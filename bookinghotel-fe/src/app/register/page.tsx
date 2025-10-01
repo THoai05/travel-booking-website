@@ -14,6 +14,8 @@ export default function RegisterPage() {
   });
 
   const [message, setMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
@@ -57,78 +59,153 @@ export default function RegisterPage() {
 
 
   return (
-    <div className="max-w-md mx-auto mt-10 bg-white shadow-md rounded p-6">
-      <h2 className="text-2xl font-bold mb-4">Đăng ký tài khoản</h2>
+    <div className="max-w-lg mx-auto mt-10 bg-white shadow-md rounded pl-12 pr-12 py-6">
+		<h2 className="text-xl font-semibold mb-4 text-center">
+			Đăng ký 
+		</h2>
+
       {message && <p className="mb-4 text-red-500">{message}</p>}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          name="username"
-          placeholder="Tên đăng nhập"
-          value={formData.username}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-          required
-        />
-        <input
-          type="text"
-          name="full_name"
-          placeholder="Họ và tên"
-          value={formData.full_name}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Mật khẩu"
-          value={formData.password}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-          required
-        />
-        <input
-          type="text"
-          name="phone"
-          placeholder="Số điện thoại"
-          value={formData.phone}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
-        <input
-          type="date"
-          name="dob"
-          value={formData.dob}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
-        <select
-          name="gender"
-          value={formData.gender}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        >
-          <option value="male">Nam</option>
-          <option value="female">Nữ</option>
-          <option value="other">Khác</option>
-        </select>
+	  
+		<div className="mb-4 flex items-center">
+			<label className="w-5 font-semibold text-red-500">
+				* 		
+			</label>
+			<input
+			  type="text"
+			  name="username"
+			  placeholder="Tên đăng nhập"
+			  value={formData.username}
+			  onChange={handleChange}
+			  className="w-full border p-2 rounded"
+			  required
+			/>
+		</div>
+		
+		<div className="mb-4 flex items-center">
+			<label className="w-5 font-semibold text-red-500">
+				* 		
+			</label>
+			<input
+			  type="text"
+			  name="full_name"
+			  placeholder="Họ và tên"
+			  value={formData.full_name}
+			  onChange={handleChange}
+			  className="w-full border p-2 rounded"
+			  required
+			/>
+		</div>
+		
+		<div className="mb-4 flex ">
+		  <div className="flex mb-1">
+			<label className="w-5 font-semibold text-red-500">*</label>
+		  </div>
+		  {/* Input và chú thích bên phải, xếp dọc */}
+		  <div className="flex-1 flex flex-col">
+			<input
+			  type="email"
+			  name="email"
+			  placeholder="Nhập email"
+			  value={formData.email}
+			  onChange={handleChange}
+			  className="w-full border p-2 rounded"
+			  required
+			/>
+			<p className="text-sm text-gray-500 mt-1">
+			  Email là bắt buộc để khôi phục tài khoản Bookinghotel. Địa chỉ Gmail sẽ được định dạng lại để ngăn chặn email trái phép.
+			</p>
+		  </div>
+		</div>
+
+		
+		
+		
+		
+		<div className="mb-4 flex items-center">
+			<label className="w-5 font-semibold text-red-500">
+				* 
+			</label>
+			<div className="relative flex-1">
+			  <input
+				type={showPassword ? "text" : "password"} // đổi type theo state
+				name="password"
+				placeholder="Mật khẩu"
+				value={formData.password}
+				onChange={handleChange}
+				className="w-full border p-2 rounded pr-10" // thêm padding phải để icon không che text
+				required
+			  />
+			  <button
+				type="button"
+				className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
+				onClick={() => setShowPassword(!showPassword)}
+			  >
+				{showPassword ? "🙈" : "👁️"} {/* icon con mắt */}
+			  </button>
+			</div>
+		</div>
+		
+		<div className="mb-4 flex items-center">
+			<label className="w-5 font-semibold text-red-500">
+				* 		
+			</label>
+			<input
+			  type="text"
+			  name="phone"
+			  placeholder="Số điện thoại"
+			  value={formData.phone}
+			  onChange={handleChange}
+			  className="w-full border p-2 rounded"
+			/>
+		</div>
+		
+		<div className="mb-4 flex items-center">
+			<label className="w-5 font-semibold text-red-500">
+				* 		
+			</label>
+			<input
+			  type="date"
+			  name="dob"
+			  value={formData.dob}
+			  onChange={handleChange}
+			  className="w-full border p-2 rounded"
+			/>
+		</div>
+		
+		<div className="mb-4 flex items-center">
+			<label className="w-5 font-semibold text-red-500">
+				* 		
+			</label>
+			<select
+			  name="gender"
+			  value={formData.gender}
+			  onChange={handleChange}
+			  className="w-full border p-2 rounded"
+			>
+			  <option value="male">Nam</option>
+			  <option value="female">Nữ</option>
+			  <option value="other">Khác</option>
+			</select>
+		</div>
 
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+          className="w-full bg-red-400 text-white py-2 rounded hover:bg-red-500"
         >
-          Đăng ký
+          Đăng ký ngay
         </button>
+		<p className="text-sm text-center text-gray-500">
+		  Bằng cách nhấn Đăng Ký Ngay, bạn đồng ý với&nbsp;
+		  <a href="/terms" className="text-blue-500 underline">
+			Điều Khoản Dịch Vụ
+		  </a>
+		  &nbsp;và&nbsp;
+		  <a href="/privacy" className="text-blue-500 underline">
+			Chính Sách Bảo Mật
+		  </a>
+		</p>
+
       </form>
     </div>
   );
