@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     usernameOrEmail: "",
     password: "",
@@ -147,12 +149,20 @@ export default function LoginPage() {
         </div>
       )}
 
+
+<button
+  onClick={() => router.push("/register")}
+  className="w-full bg-white border border-gray-400 text-gray-700 py-2 rounded hover:bg-gray-100 mt-4"
+>
+  Đăng ký ngay
+</button>
 	<p className="text-sm text-center mt-2 text-gray-500">
           Quên mật khẩu?{" "}
           <a href="/forgot-password" className="text-blue-500 underline">
             Nhấn vào đây
           </a>
     </p>
+	
     </div>
 	 
   );
