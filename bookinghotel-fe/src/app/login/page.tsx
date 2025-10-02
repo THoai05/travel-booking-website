@@ -128,7 +128,7 @@ export default function LoginPage() {
               Đang đăng nhập...
             </div>
           ) : (
-            "Đăng nhập"
+            "Đăng nhập ngay"
           )}
         </button>
       </form>
@@ -146,6 +146,7 @@ export default function LoginPage() {
           </button>
         </div>
       )}
+
 	<p className="text-sm text-center mt-2 text-gray-500">
           Quên mật khẩu?{" "}
           <a href="/forgot-password" className="text-blue-500 underline">
