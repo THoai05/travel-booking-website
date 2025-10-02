@@ -209,6 +209,16 @@ export default function RegisterPage() {
         >
           Đăng ký ngay
         </button>
+		<p className="text-sm text-center text-gray-500">
+		  Bằng cách nhấn Đăng Ký Ngay, bạn đồng ý với&nbsp;
+		  <a href="/terms" className="text-blue-500 underline">
+			Điều Khoản Dịch Vụ
+		  </a>
+		  &nbsp;và&nbsp;
+		  <a href="/privacy" className="text-blue-500 underline">
+			Chính Sách Bảo Mật
+		  </a>
+		</p>
       </form>
 
       {/* Toast hiển thị nổi màn hình nhỏ */}
