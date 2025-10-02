@@ -18,9 +18,12 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
+	localStorage.removeItem("registerMessage");
+	localStorage.removeItem("registerType");
     // khi load trang đọc lại message từ localStorage
     const savedMsg = localStorage.getItem("registerMessage");
     const savedType = localStorage.getItem("registerType");
+
     if (savedMsg) {
       setMessage(savedMsg);
       setType(savedType as "success" | "error");
@@ -216,6 +219,18 @@ export default function RegisterPage() {
           }`}
         >
           {message}
+			{/* Icon refresh */}
+			<button
+			  type="button"
+			  onClick={() => {
+				setMessage("");   // Xoá message
+				localStorage.removeItem("registerMessage");
+				localStorage.removeItem("registerType");
+			  }}
+			  className="ml-2 text-white hover:text-gray-200"
+			>
+			  ❌
+			</button>
         </div>
       )}
     </div>
