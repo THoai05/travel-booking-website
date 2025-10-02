@@ -32,29 +32,35 @@ export default function LoginPage() {
 
 	  setLoading(true);
 
-	  try {
-		// Giả lập delay 2.5s để xem loading
-		await new Promise((resolve) => setTimeout(resolve, 2500));
+	try {
+	  // Giả lập delay 2.5s để xem loading
+	  await new Promise((resolve) => setTimeout(resolve, 2500));
 
-		const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/login`, {
-		  method: "POST",
-		  headers: { "Content-Type": "application/json" },
-		  body: JSON.stringify(formData),
-		});
+	  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/login`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(formData),
+	  });
 
-		const data = await res.json();
-		setLoading(false);
+	  const data = await res.json();
+	  setLoading(false);
 
-		if (res.ok) {
-		  setToast({ message: "Đăng nhập thành công 🎉", type: "success" });
-		  setFormData({ usernameOrEmail: "", password: "" });
-		} else {
-		  setToast({ message: "Đăng nhập thất bại: " + data.message, type: "error" });
-		}
-	  } catch (err) {
-		setLoading(false);
-		setToast({ message: "Lỗi kết nối server ❌", type: "error" });
+	  if (res.ok) {
+		// Lưu thông tin user vào localStorage
+		localStorage.setItem("user", JSON.stringify(data.user));
+		// Nếu backend trả token, có thể lưu token luôn:
+		// localStorage.setItem("token", data.token);
+
+		setToast({ message: "Đăng nhập thành công 🎉", type: "success" });
+		setFormData({ usernameOrEmail: "", password: "" });
+	  } else {
+		setToast({ message: "Đăng nhập thất bại: " + data.message, type: "error" });
 	  }
+
+	} catch (err) {
+	  setLoading(false);
+	  setToast({ message: "Lỗi kết nối server ❌", type: "error" });
+	}
 	};
 
 
