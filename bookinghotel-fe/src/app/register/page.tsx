@@ -16,20 +16,23 @@ export default function RegisterPage() {
   const [message, setMessage] = useState("");
   const [type, setType] = useState<"success" | "error" | "">("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showToast, setShowToast] = useState(false);
+
+  useEffect(() => {
+    // khi load trang đọc lại message từ localStorage
+    const savedMsg = localStorage.getItem("registerMessage");
+    const savedType = localStorage.getItem("registerType");
+    if (savedMsg) {
+      setMessage(savedMsg);
+      setType(savedType as "success" | "error");
+    }
+  }, []);
 
   useEffect(() => {
     if (message) {
-      setShowToast(true);
-
-      // Auto ẩn sau 3 giây
-      const timer = setTimeout(() => {
-        setShowToast(false);
-      }, 3000);
-
-      return () => clearTimeout(timer);
+      localStorage.setItem("registerMessage", message);
+      localStorage.setItem("registerType", type);
     }
-  }, [message]);
+  }, [message, type]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -203,33 +206,16 @@ export default function RegisterPage() {
         >
           Đăng ký ngay
         </button>
-		<p className="text-sm text-center text-gray-500">
-		  Bằng cách nhấn Đăng Ký Ngay, bạn đồng ý với&nbsp;
-		  <a href="/terms" className="text-blue-500 underline">
-			Điều Khoản Dịch Vụ
-		  </a>
-		  &nbsp;và&nbsp;
-		  <a href="/privacy" className="text-blue-500 underline">
-			Chính Sách Bảo Mật
-		  </a>
-		</p>
       </form>
 
       {/* Toast hiển thị nổi màn hình nhỏ */}
-      {showToast && (
+      {message && (
         <div
-          className={`fixed bottom-5 right-5 flex items-center gap-3 px-4 py-3 rounded shadow-lg text-white transition-all ${
+          className={`fixed bottom-5 right-5 px-4 py-3 rounded shadow-lg text-white transition-all ${
             type === "success" ? "bg-green-500" : "bg-red-500"
           }`}
         >
-          <span>{message}</span>
-          {/* Icon refresh */}
-          <button
-            onClick={() => window.location.reload()}
-            className="ml-2 text-white hover:text-gray-200"
-          >
-            🔄
-          </button>
+          {message}
         </div>
       )}
     </div>
