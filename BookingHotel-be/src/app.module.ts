@@ -12,6 +12,7 @@ import { PasswordResetsModule } from './password-resets/password-resets.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
+	  
       useFactory: (config: ConfigService) => ({
         type: 'mysql',
         host: config.get<string>('DB_HOST') ?? 'localhost',

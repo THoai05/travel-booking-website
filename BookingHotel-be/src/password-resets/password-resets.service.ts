@@ -13,21 +13,21 @@ export class PasswordResetsService {
   ) {}
 
   async createResetToken(user: User) {
-    const token = uuidv4(); // Tạo token random
-    const expiresAt = new Date(Date.now() + 1000 * 60 * 15); // 15 phút
+    const token = uuidv4(); // tạo token
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 phút
 
     const reset = this.resetRepo.create({
       user,
+      user_id: user.id,
       token,
       expires_at: expiresAt,
     });
 
     await this.resetRepo.save(reset);
-
     return token;
   }
 
-  async validateToken(token: string) {
+  async validateToken(token: string): Promise<User> {
     const reset = await this.resetRepo.findOne({
       where: { token },
       relations: ['user'],
