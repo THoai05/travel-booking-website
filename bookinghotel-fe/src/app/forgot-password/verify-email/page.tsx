@@ -11,6 +11,24 @@ export default function VerifyEmailPage() {
   const [email, setEmail] = useState("");
   const router = useRouter();
 
+  // ✅ validate email
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      alert("Vui lòng nhập email");
+      return false;
+    }
+    if (email.length > 100) {
+      alert("Email không được dài quá 100 ký tự");
+      return false;
+    }
+    if (!emailRegex.test(email)) {
+      alert("Email không hợp lệ");
+      return false;
+    }
+    return true;
+  };
+
   // countdown effect
   useEffect(() => {
     if (timeLeft <= 0) return;
@@ -18,11 +36,11 @@ export default function VerifyEmailPage() {
     return () => clearInterval(interval);
   }, [timeLeft]);
 
-  // 1️⃣ gửi OTP qua EmailJS (tham khảo)
+  // 1️⃣ gửi OTP qua EmailJS
   const sendOtp = async () => {
-    if (!email) return alert("Vui lòng nhập email");
+    if (!validateEmail(email)) return;
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6 số
     setGeneratedOtp(code);
     setTimeLeft(60);
 
@@ -46,17 +64,22 @@ export default function VerifyEmailPage() {
 
   // 2️⃣ xác minh OTP và nhận token từ backend
   const handleVerify = async () => {
-    if (otp === "" || otp !== generatedOtp || timeLeft <= 0) {
+    if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+      return alert("OTP phải gồm 6 chữ số");
+    }
+    if (otp !== generatedOtp || timeLeft <= 0) {
       return alert("OTP không hợp lệ hoặc đã hết hạn");
     }
 
     try {
-      // Gọi backend tạo token để reset password
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/password-resets/request`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ method: "email_code", value: email }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/password-resets/request`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ method: "email_code", value: email }),
+        }
+      );
 
       if (!res.ok) {
         const data = await res.json();
@@ -64,7 +87,6 @@ export default function VerifyEmailPage() {
       }
 
       const data = await res.json();
-      // data.token chính là token để reset password
       router.push(`/forgot-password/reset-password?token=${data.token}`);
     } catch (err) {
       console.error(err);
@@ -95,12 +117,15 @@ export default function VerifyEmailPage() {
         <>
           <input
             type="text"
-            placeholder="Nhập OTP"
+            placeholder="Nhập OTP (6 số)"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
+            maxLength={6}
             className="w-full border p-2 rounded mb-3"
           />
-          <p className="text-sm text-gray-500 mb-2">Thời gian còn lại: {timeLeft}s</p>
+          <p className="text-sm text-gray-500 mb-2">
+            Thời gian còn lại: {timeLeft}s
+          </p>
           <button
             onClick={handleVerify}
             className="w-full bg-green-500 text-white py-2 rounded-lg"
