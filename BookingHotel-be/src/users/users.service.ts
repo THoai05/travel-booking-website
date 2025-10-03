@@ -59,5 +59,11 @@ export class UsersService {
 		const { password: _, ...result } = user;
 		return result;
 	 }
+	 
+  // 🔑 Hàm updatePassword để reset mật khẩu
+  async updatePassword(userId: number, newPassword: string): Promise<void> {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.usersRepository.update(userId, { password: hashedPassword });
+  }
 	
 }

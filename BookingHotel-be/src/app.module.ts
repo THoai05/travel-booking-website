@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';  // <-- import UsersModule
+import { PasswordResetsModule } from './password-resets/password-resets.module'; // <-- import PasswordResetsModule
 
 @Module({
   imports: [
@@ -22,8 +23,8 @@ import { UsersModule } from './users/users.module';  // <-- import UsersModule
         synchronize: true,
       }),
     }),
-	UsersModule,  // <-- thêm vào đây
-	
+	UsersModule,  // <-- thêm vào đây UsersModule
+	PasswordResetsModule, // <-- thêm vào đây PasswordResetsModule
   ],
   controllers: [AppController],
   providers: [AppService],
