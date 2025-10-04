@@ -13,7 +13,7 @@ export default function ForgotPasswordPage() {
     } else if (method === "email-link") {
       router.push("/forgot-password/verify-email-link");
     } else if (method === "sms") {
-      router.push("/forgot-password/verify-phone");
+      alert("Chức năng này đang phát triển!");
     } else {
       alert("Vui lòng chọn 1 phương án");
     }
