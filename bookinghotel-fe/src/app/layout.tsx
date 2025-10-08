@@ -1,16 +1,29 @@
 import type { Metadata } from "next";
+import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
-import Header from "./client/components/Header";
-import Footer from "./client/components/Footer";
+import Header from "./client/components/layout/Header";
+import Footer from "./client/components/layout/Footer";
 
 export const metadata: Metadata = {
   title: "Travel Booking Website",
   description: "Find and book your perfect stay",
 };
 
+const inter = Inter({
+  subsets: ["latin-ext"],   // quan trọng cho Vietnamese
+  weight: ["300","400","500","600","700"],
+  variable: "--font-inter"
+});
+
+const poppins = Poppins({
+  subsets: ["latin-ext"],
+  weight: ["400","600","700"],
+  variable: "--font-poppins"
+});
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="vi" className={`${inter.variable} ${poppins.variable}`}>
       <head>
         {/* Font Awesome CDN */}
         <link

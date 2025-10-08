@@ -1,7 +1,14 @@
 @import "tailwindcss";
 
+@layer base {
+  html, body {
+    @apply antialiased;
+  }
+}
+
 @layer utilities {
   .bg-gradient-bluvera {
     background-image: linear-gradient(to right, #00C6FF, #0072FF);
   }
 }
+

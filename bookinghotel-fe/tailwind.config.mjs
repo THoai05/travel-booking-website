@@ -4,12 +4,13 @@ import lineClampPlugin from "@tailwindcss/line-clamp";
 import animatePlugin from "tailwindcss-animatecss";
 
 module.exports = {
-  content: ["./src/**/*.{js,ts,jsx,tsx}"],
+  content: ["./app/**/*.{ts,tsx,js,jsx}", "./components/**/*.{ts,tsx,js,jsx}"],
   theme: {
     extend: {
-      backgroundImage: {
-        "gradient-bluvera": "linear-gradient(to right, #00b4db, #0083b0)",
-      },
+      fontFamily: {
+        sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica Neue", "Arial"],
+        heading: ["var(--font-poppins)", "var(--font-inter)", "ui-sans-serif"]
+      }
     },
     screens: {
       sm: "480px",
