@@ -10,23 +10,24 @@ const Header = () => {
   const pathname = usePathname();
 
   return (
-    <nav className="w-full py-2 bg-white border-b border-gray-200 flex items-center justify-between px-12">
+    <nav className="w-full py-2 bg-white border-b border-gray-200 flex items-center
+    justify-between px-12 shadow-sm transition-shadow hover:shadow">
       {/* Logo */}
-      <div className="flex-1">
+      <div className="flex-1 max-w-[380px]">
         <Link href="/" className="inline-block">
-          <Image src="/logo.png" alt="logo" width={100} height={29} />
+          <Image src="/logo.png" alt="logo" width={120} height={29} />
         </Link>
       </div>
 
       {/* Navigation links */}
-      <div className="flex-1 flex justify-center gap-8 text-gray-700 font-medium xl-max:hidden">
+      <div className="flex-1 min-w-3xl flex justify-center gap-8 text-gray-700 font-medium lg-max:hidden">
         {NAV_LINKS.map(link => {
           const isActive = pathname === link.href;
           return (
             <Link
               key={link.key}
               href={link.href}
-              className={`relative pb-1.5 transition-all 
+              className={`relative pb-1.5 transition-all
                 after:content-[''] after:absolute after:left-0 after:bottom-0 after:h-[2px]
                 after:bg-gradient-to-r after:from-[#00C6FF] after:to-[#0072FF]
                 after:transition-all after:duration-300
@@ -43,15 +44,24 @@ const Header = () => {
 
       {/* Actions */}
       <div className="flex-1 flex justify-end gap-4 items-center">
-        <select className="border rounded-md p-1">
-          <option value="en">EN</option>
-          <option value="vi">VI</option>
-        </select>
+        <div className="flex items-center gap-2">
+          {/* Language select với icon */}
+          <div className="flex items-center gap-1 px-1 py-0.5 text-sm">
+            <Image src="/global.png" alt="Global" width={16} height={16} />
+            <select className="bg-transparent outline-none text-sm p-0">
+              <option value="en">EN</option>
+              <option value="vi">VI</option>
+            </select>
+          </div>
 
-        <select className="border rounded-md p-1">
-          <option value="usd">USD</option>
-          <option value="vnd">VND</option>
-        </select>
+          {/* Currency select */}
+          <div className="px-1 py-0.5 text-sm">
+            <select className="bg-transparent outline-none text-sm p-0">
+              <option value="usd">USD</option>
+              <option value="vnd">VND</option>
+            </select>
+          </div>
+        </div>
 
         <Button
           type="button"

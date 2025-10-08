@@ -5,7 +5,7 @@ import Header from "./client/components/layout/Header";
 import Footer from "./client/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "Travel Booking Website",
+  title: "Bluvera",
   description: "Find and book your perfect stay",
 };
 

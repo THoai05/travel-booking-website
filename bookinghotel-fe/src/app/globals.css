@@ -1,26 +1,28 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 @layer base {
   html, body {
     @apply antialiased font-sans;
+    font-family: 'Inter', sans-serif;
   }
 }
+
 @layer utilities {
   .bg-gradient-bluvera {
     background-image: linear-gradient(to right, #00C6FF, #0072FF);
   }
 }
 
-
 @layer utilities {
   /* Breakpoint nhỏ hơn 1440px */
   @media (max-width: 1440px) {
-      .xl-max\:hidden { display: none ; }
+      
   }
 
   /* Breakpoint nhỏ hơn 1024px */
   @media (max-width: 1024px) {
-   
+      .lg-max\:hidden { display: none ; }
   }
 
   /* Breakpoint nhỏ hơn 768px */
