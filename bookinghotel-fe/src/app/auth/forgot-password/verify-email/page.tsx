@@ -80,16 +80,14 @@ export default function VerifyEmailPage() {
           body: JSON.stringify({ method: "email_code", value: email }),
         }
       );
-	  
-	  const data = await res.json();
-	  
+
       if (!res.ok) {
+        const data = await res.json();
         return alert(data.message || "Không thể tạo token");
       }
-	  
-	  const token = data.token;
-	  
-      router.push(`/auth/forgot-password/reset-password?token=${token}`);
+
+      const data = await res.json();
+      router.push(`/auth/forgot-password/reset-password?token=${data.token}`);
     } catch (err) {
       console.error(err);
       alert("Có lỗi xảy ra. Vui lòng thử lại");
