@@ -2,13 +2,34 @@
 
 @layer base {
   html, body {
-    @apply antialiased;
+    @apply antialiased font-sans;
   }
 }
-
 @layer utilities {
   .bg-gradient-bluvera {
     background-image: linear-gradient(to right, #00C6FF, #0072FF);
   }
 }
 
+
+@layer utilities {
+  /* Breakpoint nhỏ hơn 1440px */
+  @media (max-width: 1440px) {
+      .xl-max\:hidden { display: none ; }
+  }
+
+  /* Breakpoint nhỏ hơn 1024px */
+  @media (max-width: 1024px) {
+   
+  }
+
+  /* Breakpoint nhỏ hơn 768px */
+  @media (max-width: 768px) {
+   
+  }
+
+  /* Breakpoint nhỏ hơn 576px */
+  @media (max-width: 576px) {
+    
+  }
+}
