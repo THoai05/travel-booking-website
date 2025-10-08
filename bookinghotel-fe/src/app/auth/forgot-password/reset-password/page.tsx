@@ -33,7 +33,7 @@ export default function ResetPasswordPage() {
       }
 
       alert("Đặt lại mật khẩu thành công 🎉");
-      router.push("/login");
+      router.push("/auth/login");
     } catch (err) {
       console.error(err);
       alert("Có lỗi xảy ra. Vui lòng thử lại");
