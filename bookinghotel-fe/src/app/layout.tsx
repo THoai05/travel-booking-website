@@ -1,18 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Header from "./client/components/Header";
+import Footer from "./client/components/Footer";
 
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
+export const metadata: Metadata = {
+  title: "Travel Booking Website",
+  description: "Find and book your perfect stay",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -21,11 +15,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Font Awesome CDN */}
         <link
           rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+          integrity="sha512-K5mCjV6FvZ3QkA0Jbkh9qkL4H6S6YbA2JbW8sT4xKmsN9fHkFbYyS6gW+q0fKQ+Dz0s1aBKU8Dq8e3kK5p0A=="
+          crossOrigin="anonymous"
+          referrerPolicy="no-referrer"
         />
       </head>
 
-      <body>{children}</body>
+      <body>
+        <Header />
+        <main>
+          {children}
+        </main>
+        <Footer />
+      </body>
     </html>
   );
 }
