@@ -72,22 +72,29 @@ export default function VerifyEmailPage() {
     }
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/password-resets/request`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ method: "email_code", value: email }),
-        }
-      );
+		const res = await fetch(
+		  `${process.env.NEXT_PUBLIC_API_URL}/password-resets/request`,
+		  {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ method: "email_code", value: email }),
+		  }
+		);
 
-      if (!res.ok) {
-        const data = await res.json();
-        return alert(data.message || "Không thể tạo token");
-      }
+		const data = await res.json(); // ✅ chỉ đọc 1 lần
 
-      const data = await res.json();
-      router.push(`/auth/forgot-password/reset-password?token=${data.token}`);
+		if (!res.ok) {
+		  return alert(data.message || "Không thể tạo token");
+		}
+
+		console.log("API trả về:", data); // debug
+		const token = data.token;
+		if (!token) {
+		  return alert("Không nhận được token từ server");
+		}
+
+		router.push(`/auth/forgot-password/reset-password?token=${token}`);
+
     } catch (err) {
       console.error(err);
       alert("Có lỗi xảy ra. Vui lòng thử lại");

@@ -47,7 +47,7 @@ export class PasswordResetsController {
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       await this.mailService.sendResetCode(user.email, code);
       this.otpStore.set(user.email, { code, expiresAt: Date.now() + this.OTP_EXPIRE_MS });
-      return { message: 'OTP đã được gửi qua email' };
+      return { message: 'OTP đã được gửi qua email', token };
     }
 
     // 4️⃣ SMS / phone
