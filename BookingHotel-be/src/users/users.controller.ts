@@ -140,7 +140,7 @@ export class UsersController {
 			cb(null, name);
 		  },
 		}),
-		limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+		limits: { fileSize: 5 * 1024 * 1024 }, // 2MB
 		fileFilter: (req, file, cb) => {
 		  if (!file.mimetype.startsWith('image/')) {
 			cb(new BadRequestException('Only image files are allowed'), false);
@@ -150,17 +150,19 @@ export class UsersController {
 		},
 	  }),
 	)
+	
+	
 	async uploadAvatar(
 	  @Param('id', ParseIntPipe) id: number,
 	  @UploadedFile() file: Express.Multer.File,
 	) {
 	  if (!file) throw new BadRequestException('File is required');
 
-	  const uploadPath = path.join(__dirname, '../../../bookinghotel-fe/public/avatars');
-	  const filePath = path.join(uploadPath, file.filename);
-	  const resizedFilePath = path.join(uploadPath, `resized-${file.filename}`);
-
 	  try {
+		const uploadPath = path.join(__dirname, '../../../bookinghotel-fe/public/avatars');
+		const filePath = path.join(uploadPath, file.filename);
+		const resizedFilePath = path.join(uploadPath, `resized-${file.filename}`);
+
 		await sharp(filePath)
 		  .resize(200, 200)
 		  .toFormat('webp')
@@ -168,17 +170,24 @@ export class UsersController {
 		  .toFile(resizedFilePath);
 
 		fs.unlinkSync(filePath);
-	  } catch (err) {
-		console.error('Sharp resize error:', err);
+
+		const avatarUrl = `/avatars/resized-${file.filename}`;
+		const updatedUser = await this.usersService.updateUser(id, { avatar: avatarUrl });
+
+		const { password, ...result } = updatedUser;
+		return { message: 'Upload avatar thành công', user: result, avatarUrl };
+
+	  } catch (err: any) {
+		console.error(err);
+
+		// Nếu lỗi do file quá lớn
+		if (err.code === 'LIMIT_FILE_SIZE') {
+		  throw new BadRequestException('Kích thước ảnh không được vượt quá 5 MB');
+		}
+
 		throw new BadRequestException('Không thể xử lý ảnh');
 	  }
-
-	  // URL trả về để FE dùng luôn
-	  const avatarUrl = `/avatars/resized-${file.filename}`;
-	  const updatedUser = await this.usersService.updateUser(id, { avatar: avatarUrl });
-	  const { password, ...result } = updatedUser;
-
-	  return { message: 'Upload avatar thành công', user: result, avatarUrl };
 	}
+
 
 }
