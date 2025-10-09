@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
-import Header from "./client/components/layout/Header";
-import Footer from "./client/components/layout/Footer";
+import Header from "./client/layout/Header";
+import Footer from "./client/layout/Footer";
 
 export const metadata: Metadata = {
   title: "Bluvera",
