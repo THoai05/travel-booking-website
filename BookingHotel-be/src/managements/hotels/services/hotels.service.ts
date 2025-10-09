@@ -20,7 +20,7 @@ export class HotelsService {
         const queryBuilder = this.hotelRepo
             .createQueryBuilder('hotels')
             .skip(skip)
-            .limit(limit)
+            .take(limit)
         const [data, total] = await queryBuilder.getManyAndCount()
         const totalPages = Math.ceil(total / limit)
         
