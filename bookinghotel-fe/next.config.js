@@ -1,17 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['images.unsplash.com'], 
+    domains: ['images.unsplash.com'],
   },
   async rewrites() {
-    return {
-      beforeFiles: [
-        {
-          source: '/favourites',
-          destination: '/client/favourites',
-        },
-      ],
-    };
+    return [
+      {
+        source: '/:path*',
+        destination: '/client/:path*',
+      },
+    ];
   },
 };
 
