@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import styles from "../home/css/Hero.module.css";
+import SearchBox from "./SearchBox";
 
 const Hero = () => {
   return (
@@ -44,7 +45,7 @@ const Hero = () => {
 
             {/* Cột bên phải */}
             <div className="bg-blue-300 flex items-center justify-center">
-              <p className="text-gray-800 text-xl font-semibold">Cột 2: Form</p>
+                <SearchBox />
             </div>
 
             <div className="three-line flex pl-16 space-x-1">
