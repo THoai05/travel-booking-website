@@ -2,6 +2,7 @@
 import Image from "next/image";
 import styles from "../home/css/Hero.module.css";
 import SearchBox from "./SearchBox";
+import ThreeDotsIndicator from "./ThreeDotsIndicator";
 
 const Hero = () => {
   return (
@@ -42,17 +43,13 @@ const Hero = () => {
                 Tải ứng dụng Bluvera để đặt phòng mọi lúc, mọi nơi
               </p>
             </div>
-
+ 
             {/* Cột bên phải */}
-            <div className="bg-blue-300 flex items-center justify-center">
+            <div className="flex items-center justify-center -mt-32">
                 <SearchBox />
             </div>
 
-            <div className="three-line flex pl-16 space-x-1">
-              <div className="w-2 h-2 bg-black rounded-full shadow-md"></div>
-              <div className="w-2 h-2 bg-white rounded-full opacity-75"></div>
-              <div className="w-2 h-2 bg-white rounded-full opacity-75"></div>
-            </div>
+            <ThreeDotsIndicator />
           </div>
         </div>
       </div>
