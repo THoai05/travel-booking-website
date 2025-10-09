@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['images.unsplash.com'], 
-<<<<<<< HEAD
+    domains: ['images.unsplash.com'],
   },
   async rewrites() {
     return {
@@ -13,8 +12,6 @@ const nextConfig = {
         },
       ],
     };
-=======
->>>>>>> f0c50b0f07d835a094929dc90a652e0cd8e1d3db
   },
 };
 
