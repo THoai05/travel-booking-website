@@ -25,7 +25,6 @@ export function ChartsSection() {
         <div className="mb-8">
             <div className="bg-white border-2 border-dashed border-blue-300 rounded-xl p-6">
                 <div className="grid grid-cols-2 gap-6">
-                    {/* User Growth Chart */}
                     <Card className="border-0 shadow-none">
                         <CardHeader>
                             <CardTitle className="text-gray-900">User Growth</CardTitle>
@@ -111,7 +110,7 @@ export function ChartsSection() {
                                             <Bar
                                                 key={`bar-${index}`}
                                                 dataKey="value"
-                                                fill={entry.category === "City" ? "#3b82f6" : "#dbeafe"}
+                                                fill={entry.category === "City" ? "#aebfddff" : "#2079edff"}
                                             />
                                         ))}
                                     </Bar>
