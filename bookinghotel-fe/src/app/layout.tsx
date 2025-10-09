@@ -11,13 +11,13 @@ export const metadata: Metadata = {
 
 const inter = Inter({
   subsets: ["latin-ext"],   // quan trọng cho Vietnamese
-  weight: ["300","400","500","600","700"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-inter"
 });
 
 const poppins = Poppins({
   subsets: ["latin-ext"],
-  weight: ["400","600","700"],
+  weight: ["400", "600", "700"],
   variable: "--font-poppins"
 });
 
@@ -36,11 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
 
       <body>
-        <Header />
         <main>
           {children}
         </main>
-        <Footer />
       </body>
     </html>
   );

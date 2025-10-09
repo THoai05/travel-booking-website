@@ -43,10 +43,10 @@ const Hero = () => {
                 Tải ứng dụng Bluvera để đặt phòng mọi lúc, mọi nơi
               </p>
             </div>
- 
+
             {/* Cột bên phải */}
             <div className="flex items-center justify-center -mt-32">
-                <SearchBox />
+              <SearchBox />
             </div>
 
             <ThreeDotsIndicator />
