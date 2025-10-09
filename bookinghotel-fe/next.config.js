@@ -3,6 +3,16 @@ const nextConfig = {
   images: {
     domains: ['images.unsplash.com'],
   },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/favourites',
+          destination: '/client/favourites',
+        },
+      ],
+    };
+  },
 };
 
 export default nextConfig;
