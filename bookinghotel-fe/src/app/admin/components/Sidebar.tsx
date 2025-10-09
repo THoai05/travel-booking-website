@@ -1,44 +1,74 @@
 'use client'
 
 import {
-    LayoutDashboard, Building2, CalendarDays, CreditCard,
-    Tag, FileText, Users, Headphones, Settings, LogOut
-} from 'lucide-react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+    Home,
+    Hotel,
+    Calendar,
+    CreditCard,
+    Tag,
+    FileText,
+    Users,
+    HeadphonesIcon,
+    Settings,
+    MapPin,
+} from "lucide-react";
+
+interface SidebarProps {
+    activeTab: string;
+    setActiveTab: (tab: string) => void;
+}
 
 const menuItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
-    { name: 'Hotels', icon: Building2, href: '/admin/hotels' },
-    { name: 'Bookings', icon: CalendarDays, href: '/admin/bookings' },
-    { name: 'Payments', icon: CreditCard, href: '/admin/payments' },
-    { name: 'Promotions', icon: Tag, href: '/admin/promotions' },
-    { name: 'Blog', icon: FileText, href: '/admin/blog' },
-    { name: 'Users', icon: Users, href: '/admin/users' },
-    { name: 'Support', icon: Headphones, href: '/admin/support' },
-    { name: 'Setting', icon: Settings, href: '/admin/setting' },
-]
+    { icon: Home, label: "Dashboard" },
+    { icon: Hotel, label: "Hotels" },
+    { icon: Calendar, label: "Bookings" },
+    { icon: CreditCard, label: "Payments" },
+    { icon: Tag, label: "Promotions" },
+    { icon: FileText, label: "Blog" },
+    { icon: Users, label: "Users" },
+    { icon: HeadphonesIcon, label: "Support" },
+    { icon: Settings, label: "Setting" },
+];
 
-export default function Sidebar() {
-    const pathname = usePathname()
-
+export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     return (
-        <div className="flex">
-            <aside className="w-64 h-screen bg-gray-800 text-white flex flex-col p-5">
-                <div className="text-2xl font-bold mb-10">My App</div>
-                <ul className="space-y-5">
-                    <li className="hover:text-blue-400 cursor-pointer">Dashboard</li>
-                    <li className="hover:text-blue-400 cursor-pointer">Users</li>
-                    <li className="hover:text-blue-400 cursor-pointer">Settings</li>
-                    <li className="hover:text-blue-400 cursor-pointer">Logout</li>
-                </ul>
-            </aside>
+        <div className="fixed left-0 top-0 h-screen w-[240px] bg-white border-r border-gray-200 flex flex-col">
+            {/* Logo */}
+            <div className="p-6 flex items-center gap-2">
+                <MapPin className="h-6 w-6 text-cyan-500" />
+                <span className="text-xl font-bold text-gray-900">Bluvera.</span>
+            </div>
 
-            <main className="flex-1 p-5">
-                <h1>Welcome to the dashboard</h1>
-            </main>
+            {/* Navigation */}
+            <nav className="flex-1 px-3 py-2">
+                {menuItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.label;
+                    return (
+                        <button
+                            key={item.label}
+                            onClick={() => setActiveTab(item.label)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition-colors ${isActive
+                                ? "bg-blue-500 text-white"
+                                : "text-gray-600 hover:bg-gray-100"
+                                }`}
+                        >
+                            <Icon className="h-5 w-5" />
+                            <span>{item.label}</span>
+                        </button>
+                    );
+                })}
+            </nav>
+
+            {/* User Profile */}
+            <div className="p-4 border-t border-gray-200">
+                <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 truncate">Adrian Hajdin</p>
+                        <p className="text-xs text-gray-500 truncate">adrian@jsmastery...</p>
+                    </div>
+                </div>
+            </div>
         </div>
-
-    )
+    );
 }
