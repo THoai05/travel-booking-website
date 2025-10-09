@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,12 @@ function TripCard({ image, price, title, location, tags }: TripCardProps) {
     return (
         <Card className="overflow-hidden border-0 shadow-sm hover:shadow-md transition-shadow">
             <div className="relative h-48">
+                <Image
+                    src={image}
+                    alt={title}
+                    fill
+                    className="object-cover"
+                />
                 <div className="absolute top-3 right-3 bg-white rounded-full px-3 py-1">
                     <span className="text-gray-900">${price}</span>
                 </div>
@@ -43,7 +50,7 @@ function TripCard({ image, price, title, location, tags }: TripCardProps) {
 export function TripsSection() {
     const trips = [
         {
-            image: "https://images.unsplash.com/photo-1617911384963-36b5f5beee55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb3VudGFpbiUyMGxha2UlMjBzdW5zZXR8ZW58MXx8fHwxNzU5ODk2OTQ2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+            image: "/images/ks1.jpg",
             price: "300",
             title: "Thornridge Cir. Shiloh",
             location: "Port St.George Ln Singapore",
@@ -53,7 +60,7 @@ export function TripsSection() {
             ],
         },
         {
-            image: "https://images.unsplash.com/photo-1672841828482-45faa4c70e50?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cm9waWNhbCUyMGJlYWNoJTIwc3Vuc2V0fGVufDF8fHx8MTc1OTgyOTA2NXww&ixlib=rb-4.1.0&q=80&w=1080",
+            image: "/images/ks2.jpg",
             price: "1780",
             title: "Roraima Tepui",
             location: "Canaima Park, Venezuela",
@@ -63,7 +70,7 @@ export function TripsSection() {
             ],
         },
         {
-            image: "https://images.unsplash.com/photo-1715533540804-cd567804e4fe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxub3J0aGVybiUyMGxpZ2h0cyUyMG1vdW50YWluc3xlbnwxfHx8fDE3NTk4OTcwODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+            image: "/images/ks3.jpg",
             price: "870",
             title: "Socotra Island",
             location: "Yemen",
@@ -73,7 +80,7 @@ export function TripsSection() {
             ],
         },
         {
-            image: "https://images.unsplash.com/photo-1704384225586-af794de8d9cc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzbm93eSUyMG1vdW50YWluJTIwcGVha3N8ZW58MXx8fHwxNzU5ODk3MDg4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+            image: "/images/ks4.jpg",
             price: "604",
             title: "San Lake Baikal",
             location: "Siberia, Russia",

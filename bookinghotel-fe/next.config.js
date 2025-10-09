@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  // các cấu hình khác...
+  images: {
+    domains: ['images.unsplash.com'],
+  },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
