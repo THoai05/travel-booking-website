@@ -1,0 +1,6 @@
+.heroContainer {
+  background-image: url('/hero-1-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}

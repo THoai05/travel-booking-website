@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Hero from "./client/components/home/Hero";
 import FeaturedDestinations from "./client/components/home/FeaturedDestinations";
 import RecommendedTours from "./client/components/home/RecommendedTours";
