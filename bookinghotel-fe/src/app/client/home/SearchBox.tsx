@@ -51,7 +51,7 @@ const SearchBox = () => {
                     <Image src="/calendar.png" alt="logo" width={15} height={12} />
                   </div>
                   02/01/2024
-                </span>
+                </span> 
                 {/* Icon mũi tên xuống */}
                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
               </div>
