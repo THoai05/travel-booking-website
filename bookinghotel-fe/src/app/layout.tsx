@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
-import Header from "./client/components/layout/Header";
-import Footer from "./client/components/layout/Footer";
+import 'primereact/resources/themes/lara-light-blue/theme.css';
+import 'primereact/resources/primereact.min.css';
+import 'primeicons/primeicons.css';
+
 
 export const metadata: Metadata = {
   title: "Bluvera",
