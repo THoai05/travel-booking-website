@@ -22,4 +22,8 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   gender?: 'male' | 'female' | 'other';
+  
+  @IsOptional()
+  @IsString()
+  avatar?: string; // <-- Thêm
 }

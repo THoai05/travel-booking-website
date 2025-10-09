@@ -6,8 +6,16 @@ import {
   Patch, 
   Param, 
   ParseIntPipe,
-	Get   
+  Get,
+  UploadedFile,
+  UseInterceptors
 } from '@nestjs/common';
+
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as fs from 'fs';
+import * as path from 'path';
+const sharp = require('sharp');
 
 import { UsersService } from './users.service';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -112,5 +120,65 @@ export class UsersController {
     const { password, ...result } = user; // loại bỏ password
     return result;
   }
+  
+  
+   // ====================== UPLOAD AVATAR ======================
+	 @Post(':id/avatar')
+	@UseInterceptors(
+	  FileInterceptor('avatar', {
+		storage: diskStorage({
+		  destination: (req, file, cb) => {
+			const uploadPath = path.join(__dirname, '../../../bookinghotel-fe/public/avatars');
+			if (!fs.existsSync(uploadPath)) {
+			  fs.mkdirSync(uploadPath, { recursive: true });
+			}
+			cb(null, uploadPath);
+		  },
+		  filename: (req, file, cb) => {
+			const ext = path.extname(file.originalname);
+			const name = `avatar-${Date.now()}${ext}`;
+			cb(null, name);
+		  },
+		}),
+		limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+		fileFilter: (req, file, cb) => {
+		  if (!file.mimetype.startsWith('image/')) {
+			cb(new BadRequestException('Only image files are allowed'), false);
+		  } else {
+			cb(null, true);
+		  }
+		},
+	  }),
+	)
+	async uploadAvatar(
+	  @Param('id', ParseIntPipe) id: number,
+	  @UploadedFile() file: Express.Multer.File,
+	) {
+	  if (!file) throw new BadRequestException('File is required');
+
+	  const uploadPath = path.join(__dirname, '../../../bookinghotel-fe/public/avatars');
+	  const filePath = path.join(uploadPath, file.filename);
+	  const resizedFilePath = path.join(uploadPath, `resized-${file.filename}`);
+
+	  try {
+		await sharp(filePath)
+		  .resize(200, 200)
+		  .toFormat('webp')
+		  .webp({ quality: 80 })
+		  .toFile(resizedFilePath);
+
+		fs.unlinkSync(filePath);
+	  } catch (err) {
+		console.error('Sharp resize error:', err);
+		throw new BadRequestException('Không thể xử lý ảnh');
+	  }
+
+	  // URL trả về để FE dùng luôn
+	  const avatarUrl = `/avatars/resized-${file.filename}`;
+	  const updatedUser = await this.usersService.updateUser(id, { avatar: avatarUrl });
+	  const { password, ...result } = updatedUser;
+
+	  return { message: 'Upload avatar thành công', user: result, avatarUrl };
+	}
 
 }

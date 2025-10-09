@@ -12,10 +12,10 @@ interface User {
   gender?: "male" | "female" | "other";
   avatar?: string;
   role: string;
-  loyalty_points: number;
-  membership_level: string;
-  created_at: string;
-  updated_at: string;
+  loyalty_points?: number;
+  membership_level?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface UpdateUserForm {
@@ -30,14 +30,15 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [form, setForm] = useState<UpdateUserForm>({});
 
-  const userId = 2;
+  const userId = 2; // giả lập userId, sau này lấy từ token
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`)
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`);
+        if (!res.ok) throw new Error("Không lấy được thông tin user");
+        const data = await res.json();
         setUser(data);
-        // chỉ copy những field hợp lệ ra form
         setForm({
           full_name: data.full_name,
           email: data.email,
@@ -45,7 +46,13 @@ export default function ProfilePage() {
           dob: data.dob,
           gender: data.gender,
         });
-      });
+      } catch (err: any) {
+        console.error(err);
+        alert(err.message || "Lỗi khi tải thông tin user");
+      }
+    };
+
+    fetchUser();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -54,18 +61,49 @@ export default function ProfilePage() {
   };
 
   const handleSubmit = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form), // chỉ gửi 5 field hợp lệ
-    });
-    const data = await res.json();
-    if (res.ok) {
-      alert("Cập nhật thành công");
-      // cập nhật lại dữ liệu hiển thị
-      setUser((prev) => prev ? { ...prev, ...form } : prev);
-    } else {
-      alert(data.message || "Có lỗi xảy ra");
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        alert("Cập nhật thành công");
+        setUser((prev) => (prev ? { ...prev, ...form } : prev));
+      } else {
+        alert(data.message || "Có lỗi xảy ra khi cập nhật");
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert("Có lỗi xảy ra khi cập nhật thông tin");
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return;
+    const file = e.target.files[0];
+
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}/avatar`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        alert("Upload avatar thành công");
+        setUser((prev) => (prev ? { ...prev, avatar: data.avatarUrl } : prev));
+      } else {
+        alert(data.message || "Upload avatar thất bại");
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert("Có lỗi xảy ra khi upload avatar");
     }
   };
 
@@ -79,13 +117,14 @@ export default function ProfilePage() {
           alt="Avatar"
           className="w-32 h-32 rounded-full object-cover mb-4"
         />
-        <h2 className="text-xl font-bold">{user.full_name}</h2>
+        <input type="file" accept="image/*" onChange={handleAvatarUpload} />
+        <h2 className="text-xl font-bold mt-2">{user.full_name}</h2>
         <div className="w-full mt-4 space-y-2">
           <InfoItem label="Quyền" value={user.role} />
-          <InfoItem label="Điểm trung thành" value={user.loyalty_points.toLocaleString()} />
-          <InfoItem label="Cấp độ thành viên" value={user.membership_level} />
-          <InfoItem label="created_at" value={new Date(user.created_at).toLocaleDateString()} />
-          <InfoItem label="updated_at" value={new Date(user.updated_at).toLocaleDateString()} />
+          <InfoItem label="Điểm trung thành" value={user.loyalty_points?.toLocaleString() ?? 0} />
+          <InfoItem label="Cấp độ thành viên" value={user.membership_level ?? "-"} />
+          <InfoItem label="created_at" value={user.created_at ? new Date(user.created_at).toLocaleDateString() : "-"} />
+          <InfoItem label="updated_at" value={user.updated_at ? new Date(user.updated_at).toLocaleDateString() : "-"} />
         </div>
       </div>
 
@@ -120,13 +159,15 @@ export default function ProfilePage() {
             Cập nhật
           </button>
           <button
-            onClick={() => setForm({
-              full_name: user.full_name,
-              email: user.email,
-              phone: user.phone,
-              dob: user.dob,
-              gender: user.gender,
-            })}
+            onClick={() =>
+              setForm({
+                full_name: user.full_name,
+                email: user.email,
+                phone: user.phone,
+                dob: user.dob,
+                gender: user.gender,
+              })
+            }
             className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
           >
             Hủy thay đổi
