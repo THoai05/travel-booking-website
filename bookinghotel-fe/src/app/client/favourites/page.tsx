@@ -13,6 +13,7 @@ interface FavoriteHotel {
     address: string;
     favorite_count: number;
     added_date: string;
+    price: number;
 }
 
 export default function FavoriteHotelsList() {
@@ -30,7 +31,8 @@ export default function FavoriteHotelsList() {
             image_url: "/images/ks1.jpg",
             address: "123 Trần Phú, Nha Trang, Khánh Hòa",
             favorite_count: 245,
-            added_date: "2025-01-15T10:30:00"
+            added_date: "2025-01-15T10:30:00",
+            price: 46.65
         },
         {
             hotel_id: 2,
@@ -38,7 +40,8 @@ export default function FavoriteHotelsList() {
             image_url: "/images/ks2.jpg",
             address: "45 Nguyễn Đình Chiểu, Phú Quốc, Kiên Giang",
             favorite_count: 189,
-            added_date: "2025-01-18T14:20:00"
+            added_date: "2025-01-18T14:20:00",
+            price: 46.62
         },
         {
             hotel_id: 3,
@@ -46,7 +49,8 @@ export default function FavoriteHotelsList() {
             image_url: "/images/ks3.jpg",
             address: "78 Hoàng Diệu, Đà Lạt, Lâm Đồng",
             favorite_count: 312,
-            added_date: "2025-01-20T09:45:00"
+            added_date: "2025-01-20T09:45:00",
+            price: 676.65
         },
         {
             hotel_id: 4,
@@ -54,7 +58,8 @@ export default function FavoriteHotelsList() {
             image_url: "/images/ks4.jpg",
             address: "90 Đồng Khởi, Quận 1, TP. Hồ Chí Minh",
             favorite_count: 421,
-            added_date: "2025-01-22T16:10:00"
+            added_date: "2025-01-22T16:10:00",
+            price: 246.65
         },
         {
             hotel_id: 5,
@@ -62,7 +67,8 @@ export default function FavoriteHotelsList() {
             image_url: "/images/ks5.jpg",
             address: "56 Bạch Đằng, Hội An, Quảng Nam",
             favorite_count: 167,
-            added_date: "2025-01-25T11:30:00"
+            added_date: "2025-01-25T11:30:00",
+            price: 462.65
         },
         {
             hotel_id: 6,
@@ -70,7 +76,8 @@ export default function FavoriteHotelsList() {
             image_url: "/images/ks6.jpg",
             address: "34 Hoàn Kiếm, Hà Nội",
             favorite_count: 298,
-            added_date: "2025-01-28T13:15:00"
+            added_date: "2025-01-28T13:15:00",
+            price: 46.65
         }
     ]);
 
@@ -143,15 +150,19 @@ export default function FavoriteHotelsList() {
 
             <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4 justify-items-center">
                 {favoriteHotels.map((hotel) => (
-                    <Card key={hotel.hotel_id} className="w-70 h-auto overflow-hidden group hover:shadow-lg transition-shadow duration-300">
+                    <Card key={hotel.hotel_id} className="relative w-72 bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition duration-300">
                         <div className="relative h-48 overflow-hidden">
                             <Image
                                 src={hotel.image_url}
                                 alt={hotel.hotel_name}
                                 width={200}
                                 height={100}
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                             />
+                            {/* Badge Top Rated */}
+                            <span className="absolute top-3 left-3 bg-white text-amber-600 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
+                                Top Rated
+                            </span>
                             <Button
                                 variant="destructive"
                                 size="icon"
@@ -162,36 +173,29 @@ export default function FavoriteHotelsList() {
                                 <Heart className="h-4 w-4 fill-current text-red-600" />
                             </Button>
                         </div>
-
-                        <CardContent className="p-4">
-                            <h3 className="mb-2 line-clamp-1">
-                                {hotel.hotel_name}
-                            </h3>
-
-                            <div className="flex items-start gap-2 mb-3 text-muted-foreground">
-                                <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                                <p className="line-clamp-2">
-                                    {hotel.address}
-                                </p>
-                            </div>
-
-                            <div className="flex items-center justify-between pt-3 border-t border-border">
-                                <div className="flex items-center gap-1.5 text-muted-foreground">
-                                    <Users className="h-4 w-4" />
-                                    <span>{hotel.favorite_count} lượt yêu thích</span>
+                        <div className="rounded-lg">
+                            <CardContent className="p-4 space-y-2">
+                                <div>
+                                    <h3 className="text-lg font-semibold line-clamp-1">{hotel.hotel_name}</h3>
+                                    <p className="text-gray-500 text-sm">Deluxe Room</p>
                                 </div>
-                            </div>
 
-                            <div className="mt-3 pt-3 border-t border-border">
-                                <p className="text-muted-foreground">
-                                    Đã lưu: {new Date(hotel.added_date).toLocaleDateString('vi-VN', {
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        year: 'numeric'
-                                    })}
-                                </p>
-                            </div>
-                        </CardContent>
+                                <div className="flex justify-between text-gray-500 text-sm">
+                                    <span>🕒 2 days 3 nights</span>
+                                    <span>👥 4–6 guest</span>
+                                </div>
+
+                                <div className="flex items-center justify-between mt-2">
+                                    <p className="text-sm font-bold">
+                                        ${hotel.price ?? 48.25}{" "}
+                                        <span className="text-sm text-gray-500">/ đêm</span>
+                                    </p>
+                                    <Button className="bg-black text-white px-4 py-2 rounded-full text-sm hover:bg-gray-800 transition">
+                                        Đặt phòng ngay
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </div>
                     </Card>
                 ))}
             </div>
