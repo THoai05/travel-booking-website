@@ -4,14 +4,12 @@ const nextConfig = {
     domains: ['images.unsplash.com'],
   },
   async rewrites() {
-    return {
-      beforeFiles: [
-        {
-          source: '/favourites',
-          destination: '/client/favourites',
-        },
-      ],
-    };
+    return [
+      {
+        source: '/:path*',
+        destination: '/client/:path*',
+      },
+    ];
   },
 };
 
