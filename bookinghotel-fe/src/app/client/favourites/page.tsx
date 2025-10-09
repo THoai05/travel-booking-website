@@ -143,7 +143,7 @@ export default function FavoriteHotelsList() {
         <div className="container mx-auto px-4 py-8">
             <div className="mt-10">
                 <div className="mb-6">
-                    <h1 className="mb-2 font-semibold text-2xl">Khách sạn yêu thích</h1>
+                    <h1 className="mb-2 font-semibold text-2xl  ">Khách sạn yêu thích</h1>
                     <p className="text-muted-foreground">
                         Bạn đang có <span className="text-foreground">{favoriteHotels.length}</span> khách sạn yêu thích
                     </p>
