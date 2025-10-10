@@ -36,8 +36,7 @@ export class Room {
 
   @Column({
     name: 'room_type',
-    type: 'enum',
-    enum: RoomType,
+    type: 'nvarchar',
     nullable: false,
   })
   roomType: RoomType;
@@ -50,8 +49,7 @@ export class Room {
 
   @Column({
     name: 'status',
-    type: 'enum',
-    enum: RoomStatus,
+    type: 'nvarchar',
     nullable: false,
   })
   status: RoomStatus;

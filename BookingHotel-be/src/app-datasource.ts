@@ -5,15 +5,19 @@ dotenv.config();
 
 
 export const AppDataSource = new DataSource({
-    type: 'mysql',
-    host: process.env.DB_SERVER,
-    port: 3306,
-    username: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-    entities: [__dirname + "/../**/*.entity{.ts,.js}"],
-    migrations: [__dirname + '/migrations/*{.ts,.js}'],
-    synchronize: true,
-    cache: true,
-    
+     type: 'mssql',
+  host: process.env.DB_SERVER,     // ✅ TypeORM hỗ trợ host
+  port: 1433,
+  username: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+  migrations: [__dirname + '/migrations/*{.ts,.js}'],
+  synchronize: true,
+  cache: true,
+  extra: {                         // 👈 truyền cấu hình riêng cho driver tedious
+    trustServerCertificate: true,
+    encrypt: false,
+    server: process.env.DB_SERVER, // ✅ đây là cái mà tedious cần
+  },
 });
