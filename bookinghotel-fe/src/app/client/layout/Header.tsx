@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { NAV_LINKS } from "../../../../constants";
+import { NAV_LINKS } from "../../../constants/index";
 import Button from "../common/Button";
 
 const Header = () => {

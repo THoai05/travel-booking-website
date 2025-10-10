@@ -34,7 +34,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           referrerPolicy="no-referrer"
         />
       </head>
-
       <body>
         <main>
           {children}
