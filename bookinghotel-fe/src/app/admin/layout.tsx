@@ -13,7 +13,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
         <div className="flex min-h-screen bg-[#f5f7fa]">
             <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-            <main className="flex-grow p-6 bg-gray-100">{children}</main>
-        </div >
+            <main className="flex-grow ml-[240px] p-6 bg-gray-100">
+                {children}
+            </main>
+        </div>
     );
 }
