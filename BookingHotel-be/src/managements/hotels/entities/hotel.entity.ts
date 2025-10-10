@@ -1,9 +1,12 @@
+import { City } from 'src/managements/city/entities/city.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 
 @Entity({ name: 'hotels' })
@@ -20,8 +23,6 @@ export class Hotel {
   @Column({ name: 'address', type: 'nvarchar', length: 255, nullable: false })
   address: string;
 
-  @Column({ name: 'city', type: 'nvarchar', length: 100, nullable: false })
-  city: string;
 
   @Column({ name: 'country', type: 'nvarchar', length: 100, nullable: false })
   country: string;
@@ -37,6 +38,13 @@ export class Hotel {
 
   @Column({ name: 'check_out_time', type: 'time', nullable: false })
   checkOutTime: string;
+
+  @ManyToOne(() => City, (city) => city.hotels)
+  @JoinColumn({name:'cityId'})
+  city: City
+  
+  @Column({ name: 'cityId', type: 'int' })
+  cityId: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;

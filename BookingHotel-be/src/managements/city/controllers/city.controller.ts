@@ -1,0 +1,13 @@
+import { Controller, Get, Query } from '@nestjs/common';
+import { CityService } from '../services/city.service';
+import { GetAllDataCitiesParams } from '../interfaces/GetAllDataCityParams.interface';
+
+@Controller('city')
+export class CityController {
+  constructor(private readonly cityService: CityService) {
+  }
+  @Get('')
+  async handleGetAllDataCities(@Query() queryParam:GetAllDataCitiesParams):Promise<any>{
+      return await this.cityService.getAllDataCities(queryParam)
+  }
+}
