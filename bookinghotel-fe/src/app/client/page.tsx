@@ -3,7 +3,7 @@ import FeaturedDestinations from "./home/FeaturedDestinations";
 import RecommendedTours from "./home/RecommendedTours";
 import PromotionsProgram from "./home/PromotionsProgram";
 import Support from "./home/Support";
-import WhyChooseUs from "./home/WhyChooseUs";
+import WhyChooseUs from "./home/WhyChooseUs"; 
 import ExploreTours from "./home/ExploreTours";
 import VideoGallery from "./home/VideoGallery";
 import FaqSection from "./home/FaqSection";
