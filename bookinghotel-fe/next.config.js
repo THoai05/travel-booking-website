@@ -2,7 +2,6 @@
 const nextConfig = {
   images: {
     domains: ['images.unsplash.com'],
-    domains: ['images.unsplash.com'],
   },
   async rewrites() {
     return [
@@ -13,5 +12,4 @@ const nextConfig = {
     ]
   },
 };
-
 module.exports = nextConfig;
