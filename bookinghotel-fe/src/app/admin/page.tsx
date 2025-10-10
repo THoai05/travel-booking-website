@@ -1,13 +1,31 @@
 "use client";
-import { Layout } from "lucide-react";
+import { useState } from "react";
+import { DashboardHeader } from "./dashboard/DashboardHeader";
+import { StatsCards } from "./dashboard/StatsCards";
+import { TripsSection } from "./dashboard/TripsSection";
+import { ChartsSection } from "./dashboard/ChartsSection";
+import { TablesSection } from "./dashboard/TablesSection";
 
-export default function AdminPage() {
+export default function TravelDashboard() {
+
     return (
-        <Layout>
-            <h1 className="text-2xl font-semibold text-gray-800 mb-4">
-                Welcome to Admin Dashboard
-            </h1>
-            <p>This is the main admin page content.</p>
-        </Layout>
-    )
+        <div className="flex min-h-screen bg-[#f5f7fa]">
+            {/* Sidebar */}
+
+            {/* Main Content */}
+            <div className="flex-1 ml-[240px]">
+                <div className="p-8">
+                    <DashboardHeader />
+
+                    <StatsCards />
+
+                    <TripsSection />
+
+                    <ChartsSection />
+
+                    <TablesSection />
+                </div>
+            </div>
+        </div>
+    );
 }
