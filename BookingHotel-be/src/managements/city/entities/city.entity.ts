@@ -1,5 +1,5 @@
 import { Hotel } from "src/managements/hotels/entities/hotel.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
 
@@ -26,4 +26,16 @@ export class City{
     
     @OneToMany(() => Hotel, (hotels) => hotels.city)
     hotels:Hotel[]
+
+    @Column({
+        type: 'bit',
+        default:true
+    })
+    isFeatured: boolean
+    
+    @CreateDateColumn()
+    created_at: Date
+    
+    @UpdateDateColumn()
+    updated_at:Date
 }
