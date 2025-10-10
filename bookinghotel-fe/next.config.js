@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['images.unsplash.com'], 
+    domains: ['images.unsplash.com'],
   },
-   async rewrites() {
+  async rewrites() {
     return [
       {
         source: '/:path*',
@@ -12,5 +12,4 @@ const nextConfig = {
     ]
   },
 };
-
 module.exports = nextConfig;
