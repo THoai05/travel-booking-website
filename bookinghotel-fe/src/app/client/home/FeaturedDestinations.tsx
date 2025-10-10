@@ -4,14 +4,14 @@ import React from "react";
 import Image from "next/image";
 
 const cities = [
-  {name: "Hồ Chí Minh", img: "/hcm.png", subtitle: "342 khách sạn lân cận"},
+  { name: "Hồ Chí Minh", img: "/hcm.png", subtitle: "342 khách sạn lân cận" },
   { name: "Lào Cai", img: "/laocai.png", subtitle: "356 Tours" },
   { name: "Hà Nội", img: "/hanoi.png", subtitle: "356 Tours" },
   { name: "Quảng Ninh", img: "/quangninh.png", subtitle: "356 Tours" },
   { name: "Đà Nẵng", img: "/danang.png", subtitle: "356 Tours" },
   { name: "Đà Lạt", img: "/dalat.png", subtitle: "356 Tours" },
-  {name: "Thừa Thiên Huế", img: "/hue.png",subtitle: "356 Tours"},
-  {name: "Phú Quốc", img: "/phuquoc.png", subtitle: "356 Tours" },
+  // { name: "Thừa Thiên Huế", img: "/hue.png", subtitle: "356 Tours" },
+  // { name: "Phú Quốc", img: "/phuquoc.png", subtitle: "356 Tours" },
 ];
 
 const FeaturedDestinations = () => {
@@ -32,17 +32,17 @@ const FeaturedDestinations = () => {
         <div className="w-full flex gap-8">
           {cities.map((city, index) => (
             <div key={index} className="flex flex-col text-center">
-              <div className="">
+              <div className="w-[160px] h-[240px] rounded-[80px] overflow-hidden mx-auto">
                 <Image
                   src={city.img}
                   alt={city.name}
-                  width={200}
-                  height={200}
+                  width={160}
+                  height={240}
                   className="object-cover w-full h-full"
                 />
               </div>
-              <h4 className="font-semibold text-[18px]">{city.name}</h4>
-              <p className="text-gray-500 text-[14px]">{city.subtitle}</p>
+              <h4 className="font-semibold text-[18px] pt-[20px]">{city.name}</h4>
+              <p className="text-gray-500 text-[14px] pt-[23px]">{city.subtitle}</p>
             </div>
           ))}
         </div>
