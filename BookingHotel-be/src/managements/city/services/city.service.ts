@@ -18,7 +18,7 @@ export class CityService {
 
         const queryBuilder = await this.cityRepo
             .createQueryBuilder('city')
-            .select(['city.id', 'city.title', 'city.image', 'city.description'])
+            .select(['city.id', 'city.title', 'city.image', 'city.description','city.isFeatured'])
             .leftJoin('city.hotels','hotels')
             .addSelect([
                 'hotels.name',
@@ -27,7 +27,8 @@ export class CityService {
                 'hotels.phone',
                 'hotels.policies',
                 'hotels.checkInTime',
-                'hotels.checkOutTime'
+                'hotels.checkOutTime',
+                'hotels.isFeatured'
             ])
             .orderBy('city.id','ASC')
             .skip(skip)

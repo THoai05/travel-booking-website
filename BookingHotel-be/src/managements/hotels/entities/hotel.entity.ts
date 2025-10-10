@@ -42,6 +42,12 @@ export class Hotel {
   @ManyToOne(() => City, (city) => city.hotels)
   @JoinColumn({name:'cityId'})
   city: City
+
+  @Column({
+    type: 'bit',
+    default:true
+  })
+  isFeatured:boolean
   
   @Column({ name: 'cityId', type: 'int' })
   cityId: number;
