@@ -1,5 +1,6 @@
 "use client";
 import { useState } from 'react';
+import Header from './layout/Header';
 
 interface SidebarProps {
     activeTab: string;
