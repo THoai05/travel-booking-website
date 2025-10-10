@@ -3,9 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-// Update the import path if your constants file is located elsewhere, for example:
-import { NAV_LINKS } from "@/constants";
-// Or, if the file does not exist, create 'src/constants.ts' and export NAV_LINKS from there.
+import { NAV_LINKS } from "../../../../constants/index";
 import Button from "../common/Button";
 
 const Header = () => {

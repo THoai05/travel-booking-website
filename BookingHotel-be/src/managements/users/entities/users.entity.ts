@@ -28,30 +28,29 @@ export class User {
   @PrimaryGeneratedColumn({ name: 'id', type: 'int' })
   id: number;
 
-  @Column({ name: 'username', type: 'varchar', length: 50, nullable: false })
+  @Column({ name: 'username', type: 'nvarchar', length: 50, nullable: false })
   username: string;
 
-  @Column({ name: 'password', type: 'varchar', length: 255, nullable: false })
+  @Column({ name: 'password', type: 'nvarchar', length: 255, nullable: false })
   password: string;
 
-  @Column({ name: 'full_name', type: 'varchar', length: 100, nullable: false })
+  @Column({ name: 'full_name', type: 'nvarchar', length: 100, nullable: false })
   fullName: string;
 
-  @Column({ name: 'email', type: 'varchar', length: 100, unique: true, nullable: false })
+  @Column({ name: 'email', type: 'nvarchar', length: 100, unique: true, nullable: false })
   email: string;
 
-  @Column({ name: 'phone', type: 'varchar', length: 20, nullable: false })
+  @Column({ name: 'phone', type: 'nvarchar', length: 20, nullable: false })
   phone: string;
 
   @Column({
     name: 'role',
-    type: 'enum',
-    enum: UserRole,
+    type: 'nvarchar',
     nullable: false,
   })
   role: UserRole;
 
-  @Column({ name: 'avatar', type: 'varchar', nullable: true })
+  @Column({ name: 'avatar', type: 'nvarchar', nullable: true })
   avatar?: string;
 
   @Column({ name: 'dob', type: 'date', nullable: true })
@@ -59,8 +58,7 @@ export class User {
 
   @Column({
     name: 'gender',
-    type: 'enum',
-    enum: Gender,
+    type: 'nvarchar',
     nullable: true,
   })
   gender?: Gender;
@@ -75,8 +73,7 @@ export class User {
 
   @Column({
     name: 'membership_level',
-    type: 'enum',
-    enum: MembershipLevel,
+    type: 'nvarchar',
     default: MembershipLevel.SILVER,
     nullable: false,
   })
