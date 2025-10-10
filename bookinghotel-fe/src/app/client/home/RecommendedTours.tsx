@@ -132,9 +132,18 @@ const RecommendedTours = () => {
 
                 <p className="text-gray-700 text-sm">{tour.subtitle}</p>
 
-                <div className="flex items-center gap-4 text-gray-600 text-sm mt-2">
-                  <span>{tour.nights}</span>
-                  <span>{tour.guests}</span>
+                <div className="flex items-center gap-6 text-gray-600 text-sm mt-2">
+                  {/* Nights */}
+                  <div className="flex items-center gap-2">
+                    <Image src="/clock.png" alt="Nights" width={16} height={16} />
+                    <span>{tour.nights}</span>
+                  </div>
+
+                  {/* Guests */}
+                  <div className="flex items-center gap-2">
+                    <Image src="/user.png" alt="Guests" width={16} height={16} />
+                    <span>{tour.guests}</span>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between mt-4">
