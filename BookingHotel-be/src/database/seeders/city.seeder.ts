@@ -7,16 +7,12 @@ export default class CitySeeder implements Seeder {
     const cityRepository = dataSource.getRepository(City);
 
     const cities = [
-      { title: 'Hà Nội' },
-      { title: 'Hồ Chí Minh' },
-      { title: 'Đà Nẵng' },
-      { title: 'Nha Trang' },
-      { title: 'Cần Thơ' },
-      { title: 'Huế' },
-      { title: 'Đà Lạt' },
-      { title: 'Vũng Tàu' },
-      { title: 'Hải Phòng' },
-      { title: 'Quảng Ninh' },
+      { title: 'Hồ Chí Minh', image: '/hcm.png' },
+      { title: 'Lào Cai', image: '/laocai.png' },
+      { title: 'Hà Nội', image: '/hanoi.png' },
+      { title: 'Quảng Ninh', image: '/quangninh.png' },
+      { title: 'Đà Nẵng', image: '/danang.png' },
+      { title: 'Đà Lạt', image: '/dalat.png' },
     ];
 
     await cityRepository.save(cities);
