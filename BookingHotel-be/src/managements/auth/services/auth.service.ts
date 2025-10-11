@@ -40,23 +40,28 @@ export class AuthService {
     return { message: 'Đăng ký thành công', userId: newUser.id };
   }
 
-  async login(data: { username: string; password: string }) {
-    const { username, password } = data;
-    const user = await this.userRepo.findOne({ where: { username } });
-    if (!user) throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu!');
+	async login(data: { usernameOrEmail: string; password: string }) {
+	  const { usernameOrEmail, password } = data;
 
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu!');
+	  const user = await this.userRepo.findOne({
+		where: [
+		  { username: usernameOrEmail },
+		  { email: usernameOrEmail }
+		]
+	  });
 
-    return {
-      message: 'Đăng nhập thành công',
-      user: {
-        id: user.id,
-        username: user.username,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role,
-      },
-    };
-  }
+	  if (!user) throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu!');
+
+	  const valid = await bcrypt.compare(password, user.password);
+	  if (!valid) throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu!');
+
+	  // Xoá mật khẩu trước khi trả về
+	  const { password: _, ...userWithoutPassword } = user;
+
+	  return {
+		message: 'Đăng nhập thành công',
+		user: userWithoutPassword
+	  };
+	}
+
 }
