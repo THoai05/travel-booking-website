@@ -13,7 +13,7 @@ export default function TravelDashboard() {
             {/* Sidebar */}
 
             {/* Main Content */}
-            <div className="flex-1 ml-[240px]">
+            <div className="flex-1">
                 <div className="p-8">
                     <DashboardHeader />
 
