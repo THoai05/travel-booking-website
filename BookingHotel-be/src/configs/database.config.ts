@@ -1,19 +1,16 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
 export const databaseConfig = (): TypeOrmModuleOptions => ({
-  type: 'mssql',
-  host: process.env.DB_SERVER,     // ✅ TypeORM hỗ trợ host
-  port: 1433,
-  username: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  type: 'mysql',
+  host: process.env.DB_HOST || 'localhost',   // 👈 host MySQL (vd: 127.0.0.1)
+  port: Number(process.env.DB_PORT) || 3306,  // 👈 port mặc định của MySQL
+  username: process.env.DB_USER || 'root',    // 👈 tài khoản đăng nhập
+  password: process.env.DB_PASSWORD || '',    // 👈 mật khẩu (nếu có)
+  database: process.env.DB_NAME || 'mydb',    // 👈 tên database
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
-  synchronize: true,
-  cache: true,
-  extra: {                         // 👈 truyền cấu hình riêng cho driver tedious
-    trustServerCertificate: true,
-    encrypt: false,
-    server: process.env.DB_SERVER, // ✅ đây là cái mà tedious cần
-  },
+  synchronize: true,   // ⚠️ chỉ bật true khi dev — khi deploy thì nên false
+  logging: true,
+  timezone: 'Z',       // 👈 đồng bộ timezone (tùy chọn)
+  charset: 'utf8mb4',  // 👈 hỗ trợ tiếng Việt & emoji
 });
