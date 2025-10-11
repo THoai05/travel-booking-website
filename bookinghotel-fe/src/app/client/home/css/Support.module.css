@@ -1,0 +1,20 @@
+.support-bg{
+  background-image: url('/support.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.support-bg-3{
+  background-image: url('/support-3.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.support-bg-4{
+  background-image: url('/support-4.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
