@@ -42,7 +42,7 @@ const destinations = [
 
 const ExploreTours = () => {
   return (
-    <section className="w-full h-[800px] py-20 bg-white">
+    <section className="w-full min-h-[950px] py-20 bg-white">
       <div className="container max-w-[1200px] mx-auto">
         {/* Title */}
         <div className="text-center mb-12">
@@ -51,7 +51,6 @@ const ExploreTours = () => {
             Những địa điểm du lịch được yêu thích nhất trên khắp Việt Nam
           </p>
         </div>
-
 
         <div className="flex justify-center gap-4 mb-10">
           <button className="px-4 py-2 bg-gray-100 rounded-full text-sm flex items-center gap-2 hover:bg-gray-200 transition">

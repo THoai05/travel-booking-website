@@ -1,0 +1,6 @@
+.bg-video-gallery{
+  background-image: url('/bg-video-gallery.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
