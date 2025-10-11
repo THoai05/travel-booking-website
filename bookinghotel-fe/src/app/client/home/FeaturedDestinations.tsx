@@ -20,7 +20,7 @@ const FeaturedDestinations = () => {
       <div className="max-w-[1200px] mx-auto">
         {/* Title */}
         <div className="text-center mb-10">
-          <h1 className="text-[36px] font-bold mb-2">
+          <h1 className="text-[40px] font-bold mb-2">
             Khám phá điểm đến nổi bật tại Việt Nam
           </h1>
           <h3 className="text-[#737373] text-[20px] font-medium">
