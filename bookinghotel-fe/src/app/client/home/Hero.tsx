@@ -7,7 +7,8 @@ import ThreeDotsIndicator from "./ThreeDotsIndicator";
 const Hero = () => {
   return (
     <section className="w-full min-h-[804px] py-8">
-      <div className={`${styles.heroContainer} max-w-[1200px] h-[726px] mx-auto rounded-xl shadow-2xl overflow-hidden bg-cover bg-center`}>
+      <div className={`${styles.heroContainer} max-w-[1200px] h-[726px] mx-auto 
+        rounded-xl shadow-2xl overflow-hidden bg-cover bg-center`}>
         <div className="h-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
             {/* Cột bên trái */}

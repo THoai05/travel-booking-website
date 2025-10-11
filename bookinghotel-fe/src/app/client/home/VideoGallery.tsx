@@ -1,10 +1,11 @@
 import React from "react";
 import Image from "next/image";
 import Button from "../components/common/Button";
+import styles from "../home/css/VideoGallery.module.css";
 
 const VideoGallery = () => {
   return (
-    <section className="w-full bg-black py-20">
+    <section className={`${styles.videogallery} w-full bg-black py-20`}>
       <div className="max-w-[1200px] mx-auto px-6">
         {/* Title */}
         <div className="text-center mb-12">
@@ -25,13 +26,13 @@ const VideoGallery = () => {
               className="object-cover rounded-2xl"
             />
             <div className="absolute inset-0 flex items-center justify-center">
-              <button className="w-16 h-16 bg-white/70 rounded-full flex items-center 
+              <button className="w-32 h-32 rounded-full flex items-center 
               justify-center hover:scale-110 transition-transform duration-200 cursor-pointer">
                 <Image
                   src="/play.png"
                   alt="Play"
-                  width={30}
-                  height={30}
+                  width={60}
+                  height={60}
                 />
               </button>
             </div>
@@ -46,13 +47,13 @@ const VideoGallery = () => {
                 className="object-cover rounded-2xl"
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                <button className="w-16 h-16 bg-white/70 rounded-full flex items-center 
+                <button className="w-32 h-32 rounded-full flex items-center 
               justify-center hover:scale-110 transition-transform duration-200 cursor-pointer">
                   <Image
                     src="/play.png"
                     alt="Play"
-                    width={30}
-                    height={30}
+                    width={60}
+                    height={60}
                   />
                 </button>
               </div>
@@ -67,13 +68,13 @@ const VideoGallery = () => {
               />
               {/* Nút Play */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <button className="w-16 h-16 bg-white/70 rounded-full flex items-center 
+                <button className="w-32 h-32 rounded-full flex items-center 
               justify-center hover:scale-110 transition-transform duration-200 cursor-pointer">
                   <Image
                     src="/play.png"
                     alt="Play"
-                    width={30}
-                    height={30}
+                    width={60}
+                    height={60}
                   />
                 </button>
               </div>
@@ -89,13 +90,13 @@ const VideoGallery = () => {
                 className="object-cover rounded-2xl"
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                <button className="w-16 h-16 bg-white/70 rounded-full flex items-center 
+                <button className="w-32 h-32 rounded-full flex items-center 
               justify-center hover:scale-110 transition-transform duration-200 cursor-pointer">
                   <Image
                     src="/play.png"
                     alt="Play"
-                    width={30}
-                    height={30}
+                    width={60}
+                    height={60}
                   />
                 </button>
               </div>
@@ -109,13 +110,13 @@ const VideoGallery = () => {
                 className="object-cover rounded-2xl"
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                <button className="w-16 h-16 bg-white/70 rounded-full flex items-center 
+                <button className="w-32 h-32 rounded-full flex items-center 
               justify-center hover:scale-110 transition-transform duration-200 cursor-pointer">
                   <Image
                     src="/play.png"
                     alt="Play"
-                    width={30}
-                    height={30}
+                    width={60}
+                    height={60}
                   />
                 </button>
               </div>
