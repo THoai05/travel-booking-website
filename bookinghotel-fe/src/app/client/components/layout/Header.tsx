@@ -10,8 +10,9 @@ const Header = () => {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-white border-b border-gray-200 shadow-sm transition-shadow hover:shadow">
-      <div className="max-w-screen-xl mx-auto flex items-center justify-between px-12 py-3">
+    <nav className="fixed top-0 left-0 w-full z-50 bg-white border-b border-gray-200 
+    shadow-sm transition-shadow hover:shadow">
+      <div className="flex items-center justify-between px-12 py-3">
         <div className="flex-1 max-w-[500px]">
           <Link href="/" className="inline-block">
             <div className="w-[160px] md:w-[100px]">
@@ -70,18 +71,27 @@ const Header = () => {
             </div>
           </div>
 
-          <Button
-            type="button"
-            title="Sign In"
-            variant="border border-[#E4E6E8] font-medium hover:bg-blue-50 px-6 py-2 cursor-pointer"
-          />
-
-          <Button
-            type="button"
-            title="Sign Up"
-            variant="bg-[#0E7490] text-white px-6 py-2 hover:bg-[#0c5a6b] font-medium"
-          />
-
+          <div className="flex gap-2">
+            <div className="avatar">
+              <Image 
+              src="/avatar.png"
+                alt="logo"
+                width={40}
+                height={33}
+                className=""
+              />
+            </div>
+            <div className="">
+              <p className="text-[14px]">Nhóm K</p>
+              <Image 
+              src="/vip.png"
+                alt="logo"
+                width={60}
+                height={12}
+                className=""
+              />
+            </div>
+          </div>
           <div className="menu-icon">
             <Image src="/menu.png" alt="menu icon" width={32} height={32} />
           </div>
