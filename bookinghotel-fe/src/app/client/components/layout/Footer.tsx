@@ -1,13 +1,29 @@
 "use client";
 
 import Image from "next/image";
-import { Mail, Clock, MapPin, Phone, Facebook, Twitter, Youtube, Instagram } from "lucide-react";
+import {
+  Mail,
+  Clock,
+  MapPin,
+  Phone,
+  Facebook,
+  Twitter,
+  Youtube,
+  Instagram,
+} from "lucide-react";
+import { motion } from "framer-motion";
 
 const Footer = () => {
+  const socials = [
+    { icon: Instagram, color: "from-pink-500 via-red-400 to-yellow-400" },
+    { icon: Facebook, color: "from-blue-600 to-blue-400" },
+    { icon: Twitter, color: "from-sky-400 to-blue-500" },
+    { icon: Youtube, color: "from-red-600 to-rose-500" },
+  ];
+
   return (
     <footer className="w-full bg-white border-t border-gray-200 py-12 text-gray-700">
       <div className="max-w-[1200px] mx-auto px-6">
-        {/* --- TOP SECTION --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-10 mb-12">
           {/* --- COLUMN 1: Company Info --- */}
           <div>
@@ -60,8 +76,10 @@ const Footer = () => {
                 placeholder="Nhập email của bạn"
                 className="flex-1 px-4 py-2 text-sm outline-none"
               />
-              <button className="bg-black text-sm text-white px-4 py-3 rounded-full
-              hover:bg-gray-800 transition">
+              <button
+                className="bg-black text-sm text-white px-4 py-3 rounded-full
+              hover:bg-gray-800 transition"
+              >
                 Đăng ký ngay
               </button>
             </div>
@@ -73,54 +91,47 @@ const Footer = () => {
 
         {/* --- MIDDLE SECTION --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-10 pt-8">
-
-          {/* Follow Us */}
           <div className="flex flex-col items-center md:items-start">
             <h4 className="font-semibold mb-3">Theo dõi chúng tôi</h4>
             <div className="flex gap-3">
-              {[Instagram, Facebook, Twitter, Youtube].map((Icon, index) => (
-                <div
+              {socials.map(({ icon: Icon, color }, index) => (
+                <motion.div
                   key={index}
-                  className="w-9 h-9 flex items-center justify-center border rounded-full hover:bg-gray-100 cursor-pointer"
+                  whileHover={{ scale: 1.2, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                  className={`w-9 h-9 flex items-center justify-center rounded-full border border-gray-300 
+                    cursor-pointer relative overflow-hidden group transition-all duration-300`}
                 >
-                  <Icon size={18} />
-                </div>
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-tr ${color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+                  ></div>
+                  <Icon
+                    size={18}
+                    className="text-gray-700 relative z-10 group-hover:text-white transition-colors duration-300"
+                  />
+                </motion.div>
               ))}
             </div>
           </div>
 
-          {/* Support */}
           <div className="text-start md:text-center lg:text-start">
             <div className="flex gap-2">
-              <Image
-                src="/hotline.png"
-                alt="hotline"
-                width={20}
-                height={18}
-              />
-              <p className="flex font-semibold">
-                Cần hỗ trợ? Gọi ngay</p>
+              <Image src="/hotline.png" alt="hotline" width={20} height={18} />
+              <p className="flex font-semibold">Cần hỗ trợ? Gọi ngay</p>
             </div>
 
-            <p className="text-lg font-bold text-yellow-500 mt-3">1-800-222-8888</p>
+            <p className="text-lg font-bold text-yellow-500 mt-3">
+              1-800-222-8888
+            </p>
           </div>
 
-          {/* Payments */}
           <div className="flex flex-col items-start w-full">
             <h4 className="font-semibold mb-2">Payments</h4>
             <div className="flex gap-4 mt-2">
-              <div className="bg-white">
-                <Image src="/paypal.png" alt="PayPal" width={60} height={30} />
-              </div>
-              <div className="bg-white">
-                <Image src="/mastercard.png" alt="PayPal" width={30} height={30} />
-              </div>
-              <div className="bg-white">
-                <Image src="/stripe.png" alt="Stripe" width={40} height={30} />
-              </div>
-              <div className="bg-white">
-                <Image src="/skrill.png" alt="Skrill" width={45} height={30} />
-              </div>
+              <Image src="/paypal.png" alt="PayPal" width={60} height={30} />
+              <Image src="/mastercard.png" alt="Mastercard" width={30} height={30} />
+              <Image src="/stripe.png" alt="Stripe" width={40} height={30} />
+              <Image src="/skrill.png" alt="Skrill" width={45} height={30} />
             </div>
           </div>
         </div>
