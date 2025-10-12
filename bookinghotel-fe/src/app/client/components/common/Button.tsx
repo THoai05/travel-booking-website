@@ -1,22 +1,32 @@
 import Image from "next/image";
+import { LucideIcon } from "lucide-react";
+import React from "react";
 
 type ButtonProps = {
-    type: 'button' | 'submit' ;
-    title: string;
-    icon?: string;
-    variant: string;
-}
+  type: 'button' | 'submit';
+  title: string;
+  icon?: LucideIcon | string;
+  variant: string;
+};
 
 const Button = ({ type, title, icon, variant }: ButtonProps) => {
+  const isLucideIcon = typeof icon !== "string";
+
   return (
     <button
-    className={`flexCenter gap-1.5 rounded-full border cursor-pointer ${variant}`}
-    type={type}
+      className={`flex items-center justify-center gap-2 rounded-full border cursor-pointer ${variant}`}
+      type={type}
     >
-        {icon && <Image src={icon} alt="icon" width={24} height={24} className="mr-2" />}
-        <span className="bold-16 whitespace-nowrap">{title}</span>
+      {isLucideIcon && icon ? (
+        React.createElement(icon as LucideIcon, { className: "w-5 h-5" })
+      ) : (
+        icon && (
+          <Image src={icon as string} alt="icon" width={20} height={20} />
+        )
+      )}
+      <span className="font-semibold whitespace-nowrap">{title}</span>
     </button>
-  )
-}
+  );
+};
 
-export default Button
+export default Button;

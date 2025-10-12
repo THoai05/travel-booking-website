@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Plus, X, Plane, Activity, MapPin, Hotel, Car, Building2, Ticket } from "lucide-react";
+import styles from "../home/css/Faq.module.css";
 
 const faqData = [
   {
@@ -49,8 +50,8 @@ const FaqSection = () => {
   const [activeId, setActiveId] = useState<number | null>(1);
 
   return (
-    <section className="w-full py-20 bg-white relative overflow-hidden">
-      <div className="max-w-[900px] mx-auto relative z-10">
+    <section className={`${styles.faqBackground} w-full py-20 relative overflow-hidden`}>
+      <div className="max-w-[900px] mx-auto  z-10">
         {/* Title */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold mb-2">Câu hỏi thường gặp</h2>
