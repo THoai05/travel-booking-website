@@ -62,8 +62,9 @@ const FeaturedDestinations = () => {
             <div className="text-center text-red-500">{error}</div>
           ) : (
             // 4. Dùng 'grid' để layout tự động responsive
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8 justify-items-center">
-              {cities.map((city) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 
+            lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8 justify-items-center">
+              {/* {cities.map((city) => (
                 // 5. Dùng 'city.id' cho key, không dùng index
                 <div key={city.id} className="flex flex-col text-center">
                   <div className="w-[160px] h-[240px] rounded-[80px] overflow-hidden mx-auto">
@@ -82,7 +83,7 @@ const FeaturedDestinations = () => {
                     {city.subtitle}
                   </p>
                 </div>
-              ))}
+              ))} */}
             </div>
           )}
         </div>
