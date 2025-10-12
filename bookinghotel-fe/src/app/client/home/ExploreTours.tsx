@@ -1,5 +1,5 @@
 "use client";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ArrowRight } from "lucide-react";
 import Image from "next/image";
 
 const destinations = [
@@ -103,21 +103,20 @@ const ExploreTours = () => {
                 Crafting Your <br /> Perfect Travel <br /> Experience
               </h3>
             </div>
-            <div className="bg-black rounded-2xl flex items-center justify-between px-5 py-3
-            w-full text-white hover:bg-gray-900 transition">
+            <button
+              className="bg-black rounded-2xl flex items-center justify-between px-5 py-3
+              w-full text-white hover:bg-gray-900 transition"
+            >
               <div className="text-left leading-tight">
                 <span className="text-[17px] font-medium">Browse</span>
                 <br />
                 <span className="text-[17px] opacity-80">All destinations</span>
               </div>
-              <Image
-                src="/next-explore.png"
-                alt="Next"
-                width={35}
-                height={35}
-                className="ml-3"
-              />
-            </div>
+              <div className="bg-white rounded-full p-2 flex items-center justify-center
+              cursor-pointer">
+                <ArrowRight size={25} className="text-black" />
+              </div>
+            </button>
           </div>
         </div>
       </div>
