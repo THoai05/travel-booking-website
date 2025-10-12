@@ -6,8 +6,10 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany
 } from 'typeorm';
 import { Hotel } from 'src/managements/hotels/entities/hotel.entity';
+import { Booking } from 'src/managements/bookings/entities/bookings.entity';
 
 export enum RoomType {
   SINGLE = 'single',
@@ -27,7 +29,10 @@ export class Room {
   @PrimaryGeneratedColumn({ name: 'id', type: 'int' })
   id: number;
 
-  @ManyToOne(() => Hotel, (hotel) => hotel.id, { onDelete: 'CASCADE' })
+  @Column()
+  hotel_id:number
+
+  @ManyToOne(() => Hotel, (hotel) => hotel.rooms, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'hotel_id' })
   hotel: Hotel;
 
@@ -62,6 +67,10 @@ export class Room {
 
   @Column({ name: 'cancellation_policy', type: 'text', nullable: true })
   cancellationPolicy?: string;
+
+  @OneToMany(() => Booking, (booking) => booking.room)
+  bookings: Booking[];
+
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
