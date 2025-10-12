@@ -8,6 +8,6 @@ export default class HotelSeeder implements Seeder {
     factoryManager: SeederFactoryManager
   ): Promise<void> {
     const hotelFactory = factoryManager.get(Hotel);
-    await hotelFactory.saveMany(20); // 👈 tạo 10 record Hotel
+    await hotelFactory.saveMany(50); 
   }
 }

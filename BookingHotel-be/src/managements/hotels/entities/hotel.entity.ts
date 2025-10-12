@@ -1,4 +1,6 @@
 import { City } from 'src/managements/city/entities/city.entity';
+import { Review } from 'src/managements/reviews/entities/review.entity';
+import { Room } from 'src/managements/rooms/entities/rooms.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,6 +9,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity({ name: 'hotels' })
@@ -47,7 +50,13 @@ export class Hotel {
     type: 'bit',
     default:true
   })
-  isFeatured:boolean
+  isFeatured: boolean
+  
+  @OneToMany(() => Room, (room) => room.hotel)
+  rooms: Room[]
+  
+  @OneToMany(() => Review, (review) => review.hotel)
+  reviews:Review[]
   
   @Column({ name: 'cityId', type: 'int' })
   cityId: number;
