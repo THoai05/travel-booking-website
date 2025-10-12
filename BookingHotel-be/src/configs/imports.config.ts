@@ -1,5 +1,6 @@
 import { AmenitiesModule } from "src/managements/amenities/modules/amenities.module";
 import { AuthModule } from "src/managements/auth/modules/auth.module";
+import { BookingsModule } from "src/managements/bookings/modules/bookings.module";
 import { CityModule } from "src/managements/city/modules/city.module";
 import { CouponsModule } from "src/managements/coupons/modules/coupons.module";
 import { FavouriteModule } from "src/managements/favourite/modules/favourite.module";
@@ -27,5 +28,6 @@ export const ManagementsImports = [
     RoomsModule,
     SupportChatModule,
     UsersModule,
-    CityModule
+    CityModule,
+    BookingsModule
 ]
