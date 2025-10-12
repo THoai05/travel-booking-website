@@ -1,38 +1,41 @@
 // src/app/api/auth/route.ts
 import { NextResponse } from "next/server";
-import axios from "axios"; // dùng axios bình thường, không import api từ frontend
+import api from "@/axios/axios"
 
-const BACKEND_URL = "http://localhost:3636";
-
+// API ĐĂNG KÝ
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    if (body.action === "login") {
-      const res = await axios.post(`${BACKEND_URL}/auth/login`, {
-        usernameOrEmail: body.usernameOrEmail,
-        password: body.password,
-      });
-      return NextResponse.json(res.data);
-    }
-
+    // Kiểm tra hành động (register hoặc login)
     if (body.action === "register") {
-      const res = await axios.post(`${BACKEND_URL}/auth/register`, {
+      const res = await api.post("/auth/register", {
         username: body.username,
         password: body.password,
         fullName: body.fullName,
         email: body.email,
         phone: body.phone,
       });
+
+      return NextResponse.json(res.data);
+    }
+
+    // Nếu là đăng nhập
+    if (body.action === "login") {
+      const res = await api.post("/auth/login", {
+        usernameOrEmail: body.usernameOrEmail,
+        password: body.password,
+      });
+
       return NextResponse.json(res.data);
     }
 
     return NextResponse.json({ message: "Hành động không hợp lệ!" }, { status: 400 });
-
-  } catch (err: any) {
+  } catch (error: any) {
+    console.error("Auth API error:", error.response?.data || error.message);
     return NextResponse.json(
-      { message: err.response?.data?.message || "Lỗi server!" },
-      { status: err.response?.status || 500 }
+      { message: error.response?.data?.message || "Lỗi server!" },
+      { status: error.response?.status || 500 }
     );
   }
 }
