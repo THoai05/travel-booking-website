@@ -15,6 +15,7 @@ export async function POST(req: Request) {
         fullName: body.fullName,
         email: body.email,
         phone: body.phone,
+		dob: body.dob,
       });
 
       return NextResponse.json(res.data);

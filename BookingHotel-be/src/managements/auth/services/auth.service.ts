@@ -12,33 +12,40 @@ export class AuthService {
   ) {}
 
   async register(data: {
-    username: string;
-    password: string;
-    fullName: string;
-    email: string;
-    phone: string;
-  }) {
-    const { username, email, password, fullName, phone } = data;
+	  username: string;
+	  password: string;
+	  fullName: string;
+	  email: string;
+	  phone: string;
+	  dob?: string; // ✅ thêm trường ngày sinh (ISO string, ví dụ: "2000-05-12")
+	}) {
+	  const { username, email, password, fullName, phone, dob } = data;
 
-    const existUser = await this.userRepo.findOne({
-      where: [{ username }, { email }],
-    });
-    if (existUser) throw new BadRequestException('Username hoặc Email đã tồn tại!');
+	  // 🔍 Kiểm tra username hoặc email trùng
+	  const existUser = await this.userRepo.findOne({
+		where: [{ username }, { email }],
+	  });
+	  if (existUser) throw new BadRequestException('Username hoặc Email đã tồn tại!');
 
-    const hashed = await bcrypt.hash(password, 10);
-    const newUser = this.userRepo.create({
-      username,
-      password: hashed,
-      fullName,
-      email,
-      phone,
-      role: UserRole.CUSTOMER,
-      membershipLevel: MembershipLevel.SILVER,
-    });
+	  // 🔒 Hash password
+	  const hashed = await bcrypt.hash(password, 10);
 
-    await this.userRepo.save(newUser);
-    return { message: 'Đăng ký thành công', userId: newUser.id };
-  }
+	  // 🧩 Tạo user mới
+	  const newUser = this.userRepo.create({
+		username,
+		password: hashed,
+		fullName,
+		email,
+		phone,
+		role: UserRole.CUSTOMER,
+		membershipLevel: MembershipLevel.SILVER,
+		dob: dob ? new Date(dob) : null, // ✅ gán ngày sinh (nếu có)
+	  });
+
+	  await this.userRepo.save(newUser);
+	  return { message: 'Đăng ký thành công', userId: newUser.id };
+	}
+
 
 	async login(data: { usernameOrEmail: string; password: string }) {
 	  const { usernameOrEmail, password } = data;
