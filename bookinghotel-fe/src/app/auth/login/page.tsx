@@ -12,6 +12,7 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   
   const [loadingMessage, setLoadingMessage] = useState(""); // thông báo
+  
 
 
 
@@ -24,6 +25,31 @@ const Login = () => {
 	  setError("");
 	  setLoading(true);
 	  setLoadingMessage("Đang đăng nhập...");
+
+// ✅ Kiểm tra dữ liệu đầu vào
+  if (!formData.emailOrUsername.trim() || !formData.password.trim()) {
+    setError("Vui lòng nhập đầy đủ thông tin!");
+    setLoading(false);
+    return;
+  }
+
+  if (formData.emailOrUsername.length > 100) {
+    setError("Tên đăng nhập hoặc email không được vượt quá 100 ký tự!");
+    setLoading(false);
+    return;
+  }
+
+  if (formData.password.length < 8) {
+    setError("Mật khẩu phải có ít nhất 8 ký tự!");
+    setLoading(false);
+    return;
+  }
+  
+    if (formData.password.length > 255) {
+    setError("Mật khẩu phải có không được lớn hơn 255 ký tự!");
+    setLoading(false);
+    return;
+  }
 
     try {
       const res = await fetch("/api/auth", {
@@ -40,7 +66,7 @@ const Login = () => {
 
         if (!res.ok) throw new Error(data.message || "Đăng nhập thất bại!");
 
-        alert(data.message);
+        //alert(data.message);
 	  
 		if (rememberMe) {
 		  localStorage.setItem("loginData", JSON.stringify(data.user));
@@ -54,6 +80,8 @@ const Login = () => {
 		} else {
 		  router.push("/client");
 		}
+		
+		
     } catch (err: any) {
       setError(err.response?.data?.message || "Đăng nhập thất bại!");
     } finally {
