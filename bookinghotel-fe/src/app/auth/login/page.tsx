@@ -92,9 +92,9 @@ const Login = () => {
   return (
 <div
   className="relative h-screen bg-cover bg-center"
-  style={{ backgroundImage: "url('/images/pexels-gochrisgoxyz-1643409.jpg')" }}
+  style={{ backgroundImage: "url('/images/pexels-muffin-2468773.jpg')" }}
 >
-  <div className="absolute inset-0 bg-black/30 flex items-center justify-center p-4">
+  <div className="absolute inset-0 bg-black/5 flex items-center justify-center p-4">
 	<div className="bg-black/60 border border-white/10 text-white p-6 sm:p-8 md:p-10 rounded-[5px] shadow-xl w-full max-w-md md:max-w-lg ">
 
       <h2 className="text-xl sm:text-2xl font-light text-center mb-6 tracking-wider">
@@ -110,38 +110,38 @@ const Login = () => {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {/* Username input */}
 		<div className="relative group">
-		  <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 transition-colors duration-300 group-focus-within:text-green-400" />
+		  <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 transition-colors duration-300 group-focus-within:text-blue-400" />
 		  <input
 			type="text"
 			name="emailOrUsername"
 			placeholder="EMAIL OR USERNAME"
 			value={formData.emailOrUsername}
 			onChange={handleChange}
-			className="w-full pl-10 px-3 py-2 sm:py-2.5 bg-transparent border border-green-600 rounded text-sm sm:text-base placeholder-gray-400
+			className="w-full pl-10 px-3 py-2 sm:py-2.5 bg-transparent border border-blue-600 rounded text-sm sm:text-base placeholder-gray-400
 					   transition-all duration-300
-					   focus:border-green-400 focus:ring-2 focus:ring-green-400 focus:ring-opacity-50
-					   hover:border-green-400 hover:scale-[1.02]"
+					   focus:border-blue-400 focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50
+					   hover:border-blue-400 hover:scale-[1.02]"
 			required
 		  />
 		</div>
 
 		{/* Password input */}
 		<div className="relative group">
-		  <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 transition-colors duration-300 group-focus-within:text-green-400" />
+		  <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 transition-colors duration-300 group-focus-within:text-blue-400" />
 		  <input
 			type={showPassword ? "text" : "password"}
 			name="password"
 			placeholder="PASSWORD"
 			value={formData.password}
 			onChange={handleChange}
-			className="w-full pl-10 pr-10 px-3 py-2 sm:py-2.5 bg-transparent border border-green-600 rounded text-sm sm:text-base placeholder-gray-400
+			className="w-full pl-10 pr-10 px-3 py-2 sm:py-2.5 bg-transparent border border-blue-600 rounded text-sm sm:text-base placeholder-gray-400
 					   transition-all duration-300
-					   focus:border-green-400 focus:ring-2 focus:ring-green-400 focus:ring-opacity-50
-					   hover:border-green-400 hover:scale-[1.02]"
+					   focus:border-blue-400 focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50
+					   hover:border-blue-400 hover:scale-[1.02]"
 			required
 		  />
 		  <span
-			className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 transition-colors duration-300 hover:text-green-400"
+			className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 transition-colors duration-300 hover:text-blue-400"
 			onClick={() => setShowPassword(!showPassword)}
 		  >
 			{showPassword ? <FiEyeOff /> : <FiEye />}
@@ -151,9 +151,9 @@ const Login = () => {
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs sm:text-sm gap-2 sm:gap-0">
           <label className="flex items-center gap-2">
-            <input type="checkbox" className="accent-green-500" onChange={(e) => setRememberMe(e.target.checked)}/> Remember me
+            <input type="checkbox" className="accent-blue-500" onChange={(e) => setRememberMe(e.target.checked)}/> Remember me
           </label>
-          <a href="/auth/forgot-password" className="text-green-400 hover:underline">
+          <a href="/auth/forgot-password" className="text-blue-400 hover:underline">
             Forgot password?
           </a>
         </div>
@@ -161,7 +161,7 @@ const Login = () => {
         <button
           type="submit"
           disabled={loading}
-          className="bg-green-600 py-2 rounded hover:bg-green-700 transition-all font-semibold mt-3 text-sm sm:text-base"
+          className="bg-blue-600 py-2 rounded hover:bg-blue-700 transition-all font-semibold mt-3 text-sm sm:text-base"
         >
           {loading ? "Đang đăng nhập..." : "LOGIN"}
         </button>
@@ -169,7 +169,7 @@ const Login = () => {
 
       <div className="text-center text-xs sm:text-sm mt-6">
         To Register New Account →{" "}
-        <a href="/auth/register" className="text-green-400 hover:underline">
+        <a href="/auth/register" className="text-blue-400 hover:underline">
           Click Here
         </a>
       </div>
@@ -178,7 +178,7 @@ const Login = () => {
 		  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 			<div className="bg-black/70 text-white w-50 h-32 flex flex-col items-center justify-center rounded-lg shadow-lg">
 			  {/* Hình quay quay */}
-			  <div className="w-10 h-10 border-4 border-t-green-400 border-l-green-400 border-b-transparent border-r-transparent rounded-full animate-spin mb-3"></div>
+			  <div className="w-10 h-10 border-4 border-t-blue-400 border-l-blue-400 border-b-transparent border-r-transparent rounded-full animate-spin mb-3"></div>
 			  <span className="text-center text-sm">{loadingMessage}</span>
 			</div>
 		  </div>
