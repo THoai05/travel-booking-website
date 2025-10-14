@@ -16,6 +16,7 @@ export async function POST(req: Request) {
         email: body.email,
         phone: body.phone,
 		dob: body.dob,
+		gender : body.gender,
       });
 
       return NextResponse.json(res.data);

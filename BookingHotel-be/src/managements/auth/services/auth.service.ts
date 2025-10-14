@@ -2,7 +2,7 @@ import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { User, UserRole, MembershipLevel } from '../../users/entities/users.entity';
+import { User, UserRole,Gender, MembershipLevel } from '../../users/entities/users.entity';
 
 @Injectable()
 export class AuthService {
@@ -18,8 +18,9 @@ export class AuthService {
 	  email: string;
 	  phone: string;
 	  dob?: string; // ✅ thêm trường ngày sinh (ISO string, ví dụ: "2000-05-12")
+	  gender: "male" | "female" | "other";
 	}) {
-	  const { username, email, password, fullName, phone, dob } = data;
+	  const { username, email, password, fullName, phone, dob, gender } = data;
 
 	  // 🔍 Kiểm tra username hoặc email trùng
 	  const existUser = await this.userRepo.findOne({
@@ -37,6 +38,7 @@ export class AuthService {
 		fullName,
 		email,
 		phone,
+		gender: gender as Gender, // ép kiểu để TypeScript không lỗi
 		role: UserRole.CUSTOMER,
 		membershipLevel: MembershipLevel.SILVER,
 		dob: dob ? new Date(dob) : undefined, // ✅ gán ngày sinh (nếu có)
