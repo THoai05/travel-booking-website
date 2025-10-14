@@ -73,7 +73,7 @@ const Login = () => {
   return (
     <div
       className="relative h-screen bg-cover bg-center"
-	  style={{ backgroundColor: "#BBF5FF" }} // mã màu bạn muốn
+	  style={{ backgroundColor: "#66CCFF" }} // mã màu bạn muốn
     >
       <div className="absolute inset-0 bg-black/20 flex items-center justify-center p-4">
         <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-3xl p-8 sm:p-10 w-full max-w-md shadow-2xl text-black transition-all duration-300">
