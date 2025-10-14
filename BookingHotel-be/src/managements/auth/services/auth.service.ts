@@ -39,7 +39,7 @@ export class AuthService {
 		phone,
 		role: UserRole.CUSTOMER,
 		membershipLevel: MembershipLevel.SILVER,
-		dob: dob ? new Date(dob) : null, // ✅ gán ngày sinh (nếu có)
+		dob: dob ? new Date(dob) : undefined, // ✅ gán ngày sinh (nếu có)
 	  });
 
 	  await this.userRepo.save(newUser);
