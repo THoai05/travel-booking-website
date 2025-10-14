@@ -146,17 +146,12 @@ const Login = () => {
             disabled={loading}
             className="w-full bg-[#0068ff] text-white font-semibold py-2 rounded-lg mt-2 hover:bg-[#0053cc] transition"
           >
-            {loading ? "Đang đăng nhập..." : "Đăng nhập với mật khẩu"}
+            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>
         </form>
 
         {/* Footer */}
         <div className="mt-6 text-sm text-gray-700 border-t pt-4">
-          <p>
-            Nâng cao hiệu quả trải nghiệm người dùng với{" "}
-            <span className="font-semibold text-[#0068ff]">Travel Booking Website</span>
-          </p>
-          
           <p className="text-center text-sm text-white-200 mt-6">
             Don’t have an account?{" "}
             <a href="/auth/register" className="text-green-600 hover:underline">
@@ -165,7 +160,7 @@ const Login = () => {
           </p>
         </div>
 
-        <p className="text-sm text-gray-400 mt-4">Created by anggidwiliputra</p>
+       
       </div>
 
       {/* Loading overlay */}
