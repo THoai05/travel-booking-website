@@ -73,10 +73,12 @@ const Login = () => {
   return (
     <div
       className="relative h-screen bg-cover bg-center"
-	  style={{ backgroundColor: "#66CCFF" }} // mã màu bạn muốn
+	  style={{ 
+			background: "linear-gradient(to bottom, #003366, #666666)" 
+	  }}
     >
       <div className="absolute inset-0 bg-black/20 flex items-center justify-center p-4">
-        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-3xl p-8 sm:p-10 w-full max-w-md shadow-2xl text-black transition-all duration-300">
+        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-3xl p-8 sm:p-10 w-full max-w-md shadow-2xl text-white transition-all duration-300">
           <h2 className="text-3xl font-semibold mb-2 text-left">Login</h2>
           <p className="text-sm text-gray-200 text-left mb-6">
             Welcome back, please login to your account
