@@ -26,24 +26,24 @@ const Login = () => {
       setLoading(false);
       return;
     }
-	
-	if (formData.emailOrUsername.length > 100) {
-		setError("Tên đăng nhập hoặc email không được vượt quá 100 ký tự!");
-		setLoading(false);
-		return;
-	}
 
-  if (formData.password.length < 8) {
-    setError("Mật khẩu phải có ít nhất 8 ký tự!");
-    setLoading(false);
-    return;
-  }
-  
+    if (formData.emailOrUsername.length > 100) {
+      setError("Tên đăng nhập hoặc email không được vượt quá 100 ký tự!");
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError("Mật khẩu phải có ít nhất 8 ký tự!");
+      setLoading(false);
+      return;
+    }
+
     if (formData.password.length > 255) {
-    setError("Mật khẩu phải có không được lớn hơn 255 ký tự!");
-    setLoading(false);
-    return;
-  }
+      setError("Mật khẩu không được lớn hơn 255 ký tự!");
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/auth", {
@@ -71,105 +71,109 @@ const Login = () => {
   };
 
   return (
-    <div
-      className="relative h-screen bg-cover bg-center"
-	  style={{ 
-			background: "linear-gradient(to bottom, #003366, #666666)" 
-	  }}
-    >
-      <div className="absolute inset-0 bg-black/20 flex items-center justify-center p-4">
-        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-3xl p-8 sm:p-10 w-full max-w-md shadow-2xl text-white transition-all duration-300">
-          <h2 className="text-3xl font-semibold mb-2 text-left">Login</h2>
-          <p className="text-sm text-gray-200 text-left mb-6">
+    <div className="min-h-screen flex items-center justify-center bg-[#e7f0ff]">
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-8 text-center">
+        {/* Logo + Header */}
+        <h1 className="text-2xl font-bold text-[#0068ff] mb-2 text-center">Travel Booking</h1>
+         <p className="text-sm text-while-200 text-center mb-6">
             Welcome back, please login to your account
           </p>
 
-          {error && (
-            <div className="bg-red-600/80 text-sm p-2 rounded text-center mb-4">
-              {error}
-            </div>
-          )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {/* Username */}
-            <div className="relative group">
-              <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-green-400 transition-colors" />
-              <input
-                type="text"
-                name="emailOrUsername"
-                placeholder="User Name or Email"
-                value={formData.emailOrUsername}
-                onChange={handleChange}
-                className="w-full pl-10 pr-3 py-3 bg-transparent border border-white/30 rounded-xl placeholder-gray-300 text-white text-sm focus:outline-none focus:border-green-400 transition-all duration-300 hover:border-green-400"
-              />
-            </div>
+        {/* Error */}
+        {error && (
+          <div className="bg-red-100 text-red-600 text-sm p-2 rounded mb-4">
+            {error}
+          </div>
+        )}
 
-            {/* Password */}
-            <div className="relative group">
-              <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-green-400 transition-colors" />
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full pl-10 pr-10 py-3 bg-transparent border border-white/30 rounded-xl placeholder-gray-300 text-white text-sm focus:outline-none focus:border-green-400 transition-all duration-300 hover:border-green-400"
-              />
-              <span
-                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-300 hover:text-green-400 transition-colors"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <FiEyeOff /> : <FiEye />}
-              </span>
-            </div>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-left">
+          {/* Username */}
+          <div className="relative">
+            <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              name="emailOrUsername"
+              placeholder="Số điện thoại hoặc email"
+              value={formData.emailOrUsername}
+              onChange={handleChange}
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#0068ff]"
+            />
+          </div>
 
-            {/* Remember + Forgot */}
-            <div className="flex items-center justify-between text-xs sm:text-sm mt-1">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  className="accent-green-500"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                Remember me
-              </label>
-              <a
-                href="/auth/forgot-password"
-                className="text-green-300 hover:underline"
-              >
-                Forgot password?
-              </a>
-            </div>
-
-            {/* Login button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-green-400 to-green-600 text-white font-semibold py-3 rounded-xl mt-4 hover:opacity-90 transition-all"
+          {/* Password */}
+          <div className="relative">
+            <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Mật khẩu"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#0068ff]"
+            />
+            <span
+              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-[#0068ff]"
+              onClick={() => setShowPassword(!showPassword)}
             >
-              {loading ? "Đang đăng nhập..." : "Login"}
-            </button>
-          </form>
+              {showPassword ? <FiEyeOff /> : <FiEye />}
+            </span>
+          </div>
 
-          <p className="text-center text-sm text-gray-200 mt-6">
+          {/* Remember + Forgot */}
+          <div className="flex items-center justify-between text-xs sm:text-sm">
+            <label className="flex items-center gap-2 text-gray-600">
+              <input
+                type="checkbox"
+                className="accent-[#0068ff]"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
+              Ghi nhớ đăng nhập
+            </label>
+            <a
+              href="/auth/forgot-password"
+              className="text-[#0068ff] hover:underline"
+            >
+              Quên mật khẩu
+            </a>
+          </div>
+
+          {/* Login button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[#0068ff] text-white font-semibold py-2 rounded-lg mt-2 hover:bg-[#0053cc] transition"
+          >
+            {loading ? "Đang đăng nhập..." : "Đăng nhập với mật khẩu"}
+          </button>
+        </form>
+
+        {/* Footer */}
+        <div className="mt-6 text-sm text-gray-700 border-t pt-4">
+          <p>
+            Nâng cao hiệu quả trải nghiệm người dùng với{" "}
+            <span className="font-semibold text-[#0068ff]">Travel Booking Website</span>
+          </p>
+          
+          <p className="text-center text-sm text-white-200 mt-6">
             Don’t have an account?{" "}
-            <a href="/auth/register" className="text-green-300 hover:underline">
+            <a href="/auth/register" className="text-green-600 hover:underline">
               Signup
             </a>
           </p>
-
-          <p className="text-[10px] text-center mt-4 text-gray-300">
-            Created by anggidwiliputra
-          </p>
         </div>
+
+        <p className="text-sm text-gray-400 mt-4">Created by anggidwiliputra</p>
       </div>
 
+      {/* Loading overlay */}
       {loading && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-black/70 text-white px-6 py-4 rounded-lg flex flex-col items-center">
-            <div className="w-10 h-10 border-4 border-t-green-400 border-l-green-400 border-transparent rounded-full animate-spin mb-2"></div>
-            <span className="text-sm">{loadingMessage}</span>
+          <div className="bg-white px-6 py-4 rounded-lg flex flex-col items-center shadow-lg">
+            <div className="w-10 h-10 border-4 border-t-[#0068ff] border-l-[#0068ff] border-transparent rounded-full animate-spin mb-2"></div>
+            <span className="text-sm text-gray-700">{loadingMessage}</span>
           </div>
         </div>
       )}
