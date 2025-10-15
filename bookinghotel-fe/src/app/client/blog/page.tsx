@@ -1,7 +1,7 @@
 import React from 'react'
-import Hero from './SectionBlogPage/Hero'
-import TravelGuide from './SectionBlogPage/TravelGuide'
-import PopularDestinations from './SectionBlogPage/PopularDestinations'
+import Hero from './section_blog_page/Hero'
+import TravelGuide from './section_blog_page/TravelGuide'
+import PopularDestinations from './section_blog_page/PopularDestinations'
 
 const Blog = () => {
   return (

@@ -1,13 +1,16 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function TravelGuide() {
+  const router = useRouter();
+
   const guides = [
-    { name: "Sài Gòn", img: "/SaiGon.png" },
-    { name: "Hội An", img: "/hoian.png" },
-    { name: "Quảng Ninh", img: "/hoian.png" },
-    { name: "Huế", img: "/hue-2.png" },
+    { name: "Sài Gòn", img: "/SaiGon.png", slug: "sai-gon" },
+    { name: "Hội An", img: "/hoian.png", slug: "hoi-an" },
+    { name: "Quảng Ninh", img: "/hoian.png", slug: "quang-ninh" },
+    { name: "Huế", img: "/hue-2.png", slug: "hue" },
   ];
 
   return (
@@ -36,6 +39,7 @@ export default function TravelGuide() {
           {guides.map((item, index) => (
             <div
               key={index}
+              onClick={() => router.push(`/blog/${item.slug}`)}
               className="relative overflow-hidden rounded-xl cursor-pointer group shadow-md hover:shadow-lg transition"
             >
               <Image
