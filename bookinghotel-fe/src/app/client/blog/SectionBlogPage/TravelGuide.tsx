@@ -4,17 +4,17 @@ import Image from "next/image";
 
 export default function TravelGuide() {
   const guides = [
-    { name: "Sài Gòn", img: "/sg.jpg" },
-    { name: "Hội An", img: "/hoian.jpg" },
-    { name: "Quảng Ninh", img: "/quangninh.jpg" },
-    { name: "Huế", img: "/hue.jpg" },
+    { name: "Sài Gòn", img: "/SaiGon.png" },
+    { name: "Hội An", img: "/hoian.png" },
+    { name: "Quảng Ninh", img: "/hoian.png" },
+    { name: "Huế", img: "/hue-2.png" },
   ];
 
   return (
     <section className="w-full bg-white py-16 px-6">
       <div className="max-w-[1200px] mx-auto">
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-start mb-10">
           <h2 className="text-3xl font-bold mb-2">
             Cẩm nang du lịch từ A–Z
           </h2>
@@ -24,8 +24,9 @@ export default function TravelGuide() {
         </div>
 
         {/* Filter Button */}
-        <div className="flex justify-center mb-10">
-          <button className="bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold px-6 py-2 rounded-full shadow-md hover:shadow-lg transition">
+        <div className="flex justify-start mb-10">
+          <button className="bg-gradient-to-r from-sky-500 to-blue-600 text-white
+           font-semibold px-6 py-2 rounded-full shadow-md hover:shadow-lg transition">
             Việt Nam
           </button>
         </div>
