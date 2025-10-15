@@ -95,7 +95,7 @@ const Login = () => {
             <input
               type="text"
               name="emailOrUsername"
-              placeholder="Số điện thoại hoặc email"
+              placeholder="Username hoặc email"
               value={formData.emailOrUsername}
               onChange={handleChange}
               className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#0068ff]"
