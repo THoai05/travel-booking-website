@@ -33,7 +33,7 @@ const ScrollToTopButton = () => {
           whileHover={{ scale: 1.1, rotate: -5 }}
           whileTap={{ scale: 0.9 }}
           className="fixed bottom-6 right-6 bg-black text-white p-3 rounded-full shadow-lg 
-                     hover:bg-yellow-500 transition-colors duration-300"
+                    transition-colors duration-300"
         >
           <ArrowUp size={22} />
         </motion.button>
