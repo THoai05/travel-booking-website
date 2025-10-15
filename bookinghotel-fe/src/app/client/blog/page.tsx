@@ -1,8 +1,11 @@
 import React from 'react'
+import Hero from './SectionBlogPage/Hero'
 
 const Blog = () => {
   return (
-    <div>Blog</div>
+    <>
+      <Hero />
+    </>
   )
 }
 
