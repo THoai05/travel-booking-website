@@ -15,60 +15,78 @@ const Login = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    setLoadingMessage("Đang đăng nhập...");
+	const handleSubmit = async (e: React.FormEvent) => {
+	  e.preventDefault();
+	  setError("");
+	  setLoading(true);
+	  setLoadingMessage("Đang đăng nhập...");
 
-    if (!formData.emailOrUsername || !formData.password) {
-      setError("Vui lòng nhập đầy đủ thông tin!");
-      setLoading(false);
-      return;
-    }
+	  if (!formData.emailOrUsername || !formData.password) {
+		setError("Vui lòng nhập đầy đủ thông tin!");
+		setLoading(false);
+		return;
+	  }
 
-    if (formData.emailOrUsername.length > 100) {
-      setError("Tên đăng nhập hoặc email không được vượt quá 100 ký tự!");
-      setLoading(false);
-      return;
-    }
+	  if (formData.emailOrUsername.length > 100) {
+		setError("Tên đăng nhập hoặc email không được vượt quá 100 ký tự!");
+		setLoading(false);
+		return;
+	  }
 
-    if (formData.password.length < 8) {
-      setError("Mật khẩu phải có ít nhất 8 ký tự!");
-      setLoading(false);
-      return;
-    }
+	  if (formData.password.length < 8) {
+		setError("Mật khẩu phải có ít nhất 8 ký tự!");
+		setLoading(false);
+		return;
+	  }
 
-    if (formData.password.length > 255) {
-      setError("Mật khẩu không được lớn hơn 255 ký tự!");
-      setLoading(false);
-      return;
-    }
+	  if (formData.password.length > 255) {
+		setError("Mật khẩu không được lớn hơn 255 ký tự!");
+		setLoading(false);
+		return;
+	  }
 
-    try {
-      const res = await fetch("/api/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "login",
-          usernameOrEmail: formData.emailOrUsername,
-          password: formData.password,
-        }),
-      });
+	  try {
+		// 🔹 login
+		const res = await fetch("/api/auth", {
+		  method: "POST",
+		  headers: { "Content-Type": "application/json" },
+		  body: JSON.stringify({
+			action: "login",
+			usernameOrEmail: formData.emailOrUsername,
+			password: formData.password,
+		  }),
+		});
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Đăng nhập thất bại!");
+		const data = await res.json();
+		if (!res.ok) throw new Error(data.message || "Đăng nhập thất bại!");
 
-      if (rememberMe) localStorage.setItem("loginData", JSON.stringify(data.user));
-      else localStorage.removeItem("loginData");
+		// 🔹 lưu token
+		if (rememberMe) localStorage.setItem("token", data.token);
+		else localStorage.removeItem("token");
 
-      router.push(data.user.role === "admin" ? "/admin" : "/client");
-    } catch (err: any) {
-      setError(err.message || "Đăng nhập thất bại!");
-    } finally {
-      setLoading(false);
-    }
-  };
+		// 🔹 lấy profile
+		const token = localStorage.getItem("token");
+		console.log("JWT token:", token);
+
+		const profileRes = await fetch("/api/auth", {
+		  method: "GET",
+		  headers: {
+			Authorization: `Bearer ${token}`,
+		  },
+		});
+
+		const profileData = await profileRes.json();
+
+		// 🔹 redirect theo role
+		router.push(profileData.role === "admin" ? "/admin" : "/client");
+
+	  } catch (err: any) {
+		setError(err.message || "Đăng nhập thất bại!");
+	  } finally {
+		setLoading(false);
+	  }
+	};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#e7f0ff]">

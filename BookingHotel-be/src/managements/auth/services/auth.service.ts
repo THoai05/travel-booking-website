@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -9,6 +10,7 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+	private jwtService: JwtService,
   ) {}
 
   async register(data: {
@@ -49,28 +51,25 @@ export class AuthService {
 	}
 
 
-	async login(data: { usernameOrEmail: string; password: string }) {
-	  const { usernameOrEmail, password } = data;
+	async login(usernameOrEmail: string, password: string) {
+		const user = await this.userRepo.findOne({
+		  where: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
+		});
 
-	  const user = await this.userRepo.findOne({
-		where: [
-		  { username: usernameOrEmail },
-		  { email: usernameOrEmail }
-		]
-	  });
+		if (!user) throw new UnauthorizedException('Không tìm thấy người dùng');
+		const isMatch = await bcrypt.compare(password, user.password);
+		if (!isMatch) throw new UnauthorizedException('Sai mật khẩu');
 
-	  if (!user) throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu!');
+		const payload = { sub: user.id, username: user.username, role: user.role };
+		const token = await this.jwtService.signAsync(payload);
 
-	  const valid = await bcrypt.compare(password, user.password);
-	  if (!valid) throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu!');
+		return { message: 'Đăng nhập thành công', token };
+	}
 
-	  // Xoá mật khẩu trước khi trả về
-	  const { password: _, ...userWithoutPassword } = user;
-
-	  return {
-		message: 'Đăng nhập thành công',
-		user: userWithoutPassword
-	  };
+	async getProfile(userId: number) {
+		const user = await this.userRepo.findOne({ where: { id: userId } });
+		if (!user) throw new UnauthorizedException('Token không hợp lệ');
+		return user;
 	}
 
 }
