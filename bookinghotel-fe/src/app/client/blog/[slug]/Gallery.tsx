@@ -8,7 +8,7 @@ export default function Gallery() {
         {/* Left large image */}
         <div className="relative group rounded-xl overflow-hidden">
           <Image
-            src="/war-museum.jpg"
+            src="/bao-tang.png"
             alt="War Remnants Museum"
             width={800}
             height={600}
@@ -20,7 +20,7 @@ export default function Gallery() {
         <div className="grid grid-rows-2 gap-4">
           <div className="relative rounded-xl overflow-hidden group">
             <Image
-              src="/post-office.jpg"
+              src="/buu-dien.png"
               alt="Central Post Office"
               width={600}
               height={300}
@@ -30,7 +30,7 @@ export default function Gallery() {
 
           <div className="relative rounded-xl overflow-hidden group">
             <Image
-              src="/vinhome.jpg"
+              src="/ho-chi-minh.png"
               alt="Vinhomes Skyline"
               width={600}
               height={300}
@@ -38,7 +38,9 @@ export default function Gallery() {
             />
 
             {/* See All Photos Button */}
-            <button className="absolute bottom-4 right-4 bg-sky-500 text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-md hover:bg-sky-600 transition">
+            <button className="absolute bottom-4 left-4 bg-sky-500 text-white
+            px-4 py-1.5 rounded-lg border border-white text-sm font-light shadow-md
+            hover:bg-sky-600 transition cursor-pointer">
               See All Photos
             </button>
           </div>
