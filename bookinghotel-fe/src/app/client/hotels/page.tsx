@@ -1,8 +1,8 @@
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronRight, Filter, X, Star, Wifi, Utensils, Waves, Coffee, Building2, MapPin, Search, ArrowUp } from 'lucide-react';
+import Image from 'next/image';
 
-// --- Child UI Components (Defined here for simplicity) ---
 
 const HotelCard = ({ hotel }) => {
     // Logic để hiển thị nhãn "Top Rated" hoặc "Best Sale"
@@ -14,12 +14,15 @@ const HotelCard = ({ hotel }) => {
     const label = getLabel();
 
     return (
-        <div className="rounded-3xl overflow-hidden shadow-md border border-gray-100 hover:shadow-xl transition-shadow duration-300 bg-white group">
+        <div className="rounded-3xl overflow-hidden shadow-md border border-gray-100 hover:shadow-xl
+         transition-shadow duration-300 bg-white group">
             {/* Phần ảnh */}
             <div className="relative w-full h-[250px] rounded-t-3xl overflow-hidden">
-                <img 
-                    src={hotel.image} 
+                <Image 
+                    src="/room1.png"
                     alt={hotel.name} 
+                    width={50}
+                    height={50}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
                 />
                 {label && (
@@ -27,7 +30,9 @@ const HotelCard = ({ hotel }) => {
                         {label.text}
                     </span>
                 )}
-                <button className="absolute top-4 right-4 w-9 h-9 bg-white/80 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center text-red-500 hover:scale-110 transition-transform hover:bg-white">
+                <button className="absolute top-4 right-4 w-9 h-9 bg-white/80 backdrop-blur-sm
+                rounded-full shadow-md flex items-center justify-center text-red-500 hover:scale-110
+                transition-transform hover:bg-white">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>
                 </button>
             </div>
@@ -117,7 +122,7 @@ export default function HotelsPage() {
   }, [minPrice, maxPrice, selectedStars, selectedAmenities, searchQuery, hotelsData]);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans mt-10">
+    <div className="min-h-screen bg-slate-50 font-sans mt-12">
       <div className="flex relative">
         {/* Nút filter cho mobile */}
         <button onClick={() => setShowFilter(!showFilter)} className="fixed bottom-6 right-6 z-50 md:hidden bg-black text-white p-4 rounded-full shadow-lg hover:bg-gray-800 transition-transform transform active:scale-90">
@@ -135,7 +140,7 @@ export default function HotelsPage() {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-4">Khoảng giá (VNĐ)</h3>
                 <div className="space-y-3">
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2">
                     <input type="number" step="50000" value={minPrice} onChange={(e) => setMinPrice(Math.max(0, parseInt(e.target.value) || 0))} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black text-sm" placeholder="Từ" />
                     <input type="number" step="50000" value={maxPrice} onChange={(e) => setMaxPrice(Math.max(minPrice, parseInt(e.target.value) || 0))} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black text-sm" placeholder="Đến" />
                   </div>
