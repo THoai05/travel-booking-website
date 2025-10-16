@@ -79,8 +79,38 @@ export default function HotelFilterContainer() {
                             onChange={(e) => setMaxPrice(+e.target.value)}
                         />
                     </div>
-
                 </div>
+             </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="flex relative max-w-full">
+        {/* Mobile Filter Button */}
+        <button
+          onClick={() => setShowFilter(!showFilter)}
+          className="fixed bottom-6 right-6 z-50 md:hidden bg-black text-white p-4 rounded-full shadow-lg hover:bg-gray-800 transition-transform transform active:scale-90"
+        >
+          {showFilter ? <X size={24} /> : <Filter size={24} />}
+        </button>
+
+        {/* Filter Panel */}
+        <aside
+          className={`fixed inset-y-0 left-0 z-40 md:relative md:z-auto w-80 bg-white h-full border-r border-gray-200 transition-transform duration-300 ease-in-out transform md:translate-x-0 ${
+            showFilter ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="p-6 md:p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Bộ lọc</h2>
+              <button
+                onClick={() => setShowFilter(false)}
+                className="md:hidden text-gray-500 hover:text-gray-700"
+              >
+                <X size={20} />
+              </button>
+            </div>
 
                 <div className="sm:flex sm:gap-6 lg:block ">
                     {/* Sao */}
@@ -98,6 +128,7 @@ export default function HotelFilterContainer() {
                         </label>
                     ))}
                 </div>
+              </div>
 
                 {/* Tiện ích */}
                 <div className="mb-4">
@@ -118,6 +149,7 @@ export default function HotelFilterContainer() {
                     ))}
                     </div>   
                 </div>
+              </div>
 
 
                 <button
@@ -128,11 +160,100 @@ export default function HotelFilterContainer() {
                     Áp dụng bộ lọc
                 </button>
             </div>
+          </div>
+        </aside>
 
-            {/* Danh sách khách sạn */}
-            <div className="flex-1">
-                <HotelList hotels={hotels} />
+        {/* Hotels Grid */}
+        <main className="flex-1 p-6 md:p-8 pb-20 md:pb-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-1">Kết quả tìm kiếm</h1>
+              <p className="text-gray-600">
+                Tìm thấy <span className="font-semibold text-gray-900">{filteredHotels.length}</span> khách sạn phù hợp.
+              </p>
             </div>
-        </div>
-    );
+            
+            {filteredHotels.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+                {filteredHotels.map((hotel) => (
+                  <HotelCard key={hotel.id} hotel={hotel} />
+                ))}
+              </div>
+            ) : (
+               <NoResultsFound onReset={resetFilters} />
+            )}
+            
+            {filteredHotels.length > 0 && (
+              <div className="flex justify-center mt-12">
+                <button className="flex items-center gap-2 px-6 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                  Xem thêm <ChevronRight size={20} />
+                </button>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 }
+
+
+// --- Child Components ---
+
+const HotelCard = ({ hotel }) => (
+  <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300 bg-white hover:-translate-y-1 group">
+    <div className="relative">
+      <img src={hotel.image} alt={hotel.name} className="w-full h-48 object-cover" />
+      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black/50 to-transparent"></div>
+      <span className="absolute top-3 left-3 bg-white text-gray-800 px-3 py-1 text-xs rounded-full font-bold shadow-md flex items-center gap-1">
+        <Star size={12} className="text-yellow-400" fill="currentColor" /> {hotel.stars}.0
+      </span>
+      <button className="absolute top-3 right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center text-red-500 hover:scale-110 transition-transform hover:bg-white">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>
+      </button>
+    </div>
+
+    <div className="p-5">
+      <h3 className="font-bold text-lg text-gray-900 mb-1 line-clamp-1 group-hover:text-black">
+        {hotel.name}
+      </h3>
+      <div className="flex items-center gap-1 text-gray-600 text-sm mb-3">
+        <MapPin size={14} />
+        <span>{hotel.location}</span>
+      </div>
+      <div className="flex items-center gap-2 mb-4 text-xs">
+        <div className="flex text-yellow-400">
+          {[...Array(hotel.stars)].map((_, i) => <Star key={i} size={14} fill="currentColor" stroke="none" />)}
+        </div>
+        <span className="text-gray-600">({hotel.reviews} đánh giá)</span>
+      </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="font-bold text-gray-900 text-xl">
+            {hotel.price.toLocaleString()} ₫
+          </p>
+          <span className="text-gray-500 text-xs">/đêm</span>
+        </div>
+        <button className="bg-black text-white text-sm px-5 py-2.5 rounded-full hover:bg-gray-800 transition font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+          Đặt ngay
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+const NoResultsFound = ({ onReset }) => (
+    <div className="text-center py-20 col-span-full">
+        <div className="w-24 h-24 bg-gray-100 rounded-full mx-auto flex items-center justify-center mb-4">
+            <Search size={40} className="text-gray-400" />
+        </div>
+        <p className="text-gray-600 text-lg mb-2">Không tìm thấy khách sạn phù hợp</p>
+        <p className="text-gray-500 mb-4">Hãy thử thay đổi hoặc xóa bộ lọc để có kết quả tốt hơn.</p>
+        <button
+            onClick={onReset}
+            className="text-black font-semibold hover:underline"
+        >
+            Xóa bộ lọc
+        </button>
+    </div>
+);
