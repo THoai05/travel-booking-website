@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from "react";
-import { FiUser, FiLock, FiMail, FiPhone, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiUser, FiLock, FiMail, FiPhone, FiEye, FiEyeOff, FiX } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
-const Register = () => {
+const Register = ({ onClose, onSwitchToLogin }: { onClose: () => void; onSwitchToLogin: () => void; }) => {
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -161,7 +161,11 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#e7f0ff]">
-      <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-8 text-center">
+      <div className="relative bg-white rounded-xl shadow-lg w-full max-w-md p-8 text-center">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+            <FiX size={24} />
+        </button>
+		
         {/* Logo */}
 		<h1 className="text-2xl font-bold text-[#0068ff] mb-2 text-center">Travel Booking</h1>
          <p className="text-sm text-while-200 text-center mb-6">
