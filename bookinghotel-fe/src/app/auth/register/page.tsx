@@ -37,23 +37,99 @@ const Register = () => {
 
     const { username, full_name, email, phone, dob, password, gender, confirmPassword } = formData;
 
-    if (!username || !full_name || !email || !password || !confirmPassword) {
-      setError("Vui lòng nhập đầy đủ thông tin!");
-      setLoading(false);
-      return;
+    // --- BẮT ĐẦU VALIDATION ---
+
+    // 1. Kiểm tra trường bắt buộc
+    if (!username || !full_name || !email || !password || !confirmPassword) {
+      setError("Vui lòng nhập đầy đủ thông tin bắt buộc!");
+      setLoading(false);
+      return;
+    }
+
+    // 2. Kiểm tra Username
+    if (username.length < 3) {
+        setError("Username phải có ít nhất 3 ký tự trở lên.");
+        setLoading(false);
+        return;
+    }
+    if (username.length > 50) {
+        setError("Username không dài quá 50 ký tự.");
+        setLoading(false);
+        return;
+    }
+    const usernameRegex = /^[a-zA-Z0-9_.]+$/;
+    if (!usernameRegex.test(username)) {
+        setError("Sai định dạng username (chỉ cho phép chữ, số, '_', '.').");
+        setLoading(false);
+        return;
     }
 
-    if (password.length < 8) {
-      setError("Mật khẩu phải có ít nhất 8 ký tự!");
-      setLoading(false);
-      return;
+    // 3. Kiểm tra Họ và tên (full_name)
+    if (full_name.length > 100) {
+        setError("Họ và tên không được quá 100 ký tự.");
+        setLoading(false);
+        return;
+    }
+    const fullNameRegex = /^[a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+$/;
+    if (!fullNameRegex.test(full_name)) {
+        setError("Họ và tên không có số, ký tự đặc biệt.");
+        setLoading(false);
+        return;
     }
 
-    if (password !== confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp!");
-      setLoading(false);
-      return;
+    // 4. Kiểm tra Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        setError("Sai định dạng email.");
+        setLoading(false);
+        return;
     }
+    if (email.length > 100) {
+        setError("Email không dài quá 100 ký tự.");
+        setLoading(false);
+        return;
+    }
+
+    // 5. Kiểm tra Số điện thoại (nếu có nhập)
+    if (phone) {
+        const phoneRegex = /^(0|\+84)\d{9,10}$/;
+        if (!phoneRegex.test(phone) || phone.length > 20) {
+            setError("Số điện thoại phải bắt đầu bằng số 0 hoặc +84 và có từ 10 đến 11 chữ số.");
+            setLoading(false);
+            return;
+        }
+    }
+
+    // 6. Kiểm tra Ngày sinh (dob)
+    if (dob) {
+        const today = new Date();
+        const birthDate = new Date(dob);
+        today.setHours(0, 0, 0, 0); // Bỏ qua giờ để so sánh ngày
+        if (birthDate > today) {
+            setError("Ngày sinh không được lớn hơn ngày hiện tại.");
+            setLoading(false);
+            return;
+        }
+    }
+    
+    // 7. Kiểm tra Mật khẩu
+    if (password.length < 8) {
+      setError("Mật khẩu phải có ít nhất 8 ký tự!");
+      setLoading(false);
+      return;
+    }
+    if (password.length > 225) { // Theo tài liệu là 225
+        setError("Mật khẩu không được quá 225 ký tự.");
+        setLoading(false);
+        return;
+    }
+    if (password !== confirmPassword) {
+      setError("Mật khẩu xác nhận không khớp!");
+      setLoading(false);
+      return;
+    }
+
+    // --- KẾT THÚC VALIDATION ---
 
     try {
       const res = await fetch("/api/auth", {
