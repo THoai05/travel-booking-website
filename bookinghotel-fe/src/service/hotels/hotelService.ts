@@ -9,8 +9,19 @@ const useHandleCity = () => {
             console.log(error)
         }
     }
+
+
+    const getAllDataHotels = async () => {
+        try {
+            const response = await api.get('hotels')
+            return response.data.data
+        } catch (error) {
+            console.log(error)
+        }
+    }
     return {
-        getAllDateCities
+        getAllDateCities,
+        getAllDataHotels
     }
 }
 
