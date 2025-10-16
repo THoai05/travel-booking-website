@@ -8,6 +8,7 @@ interface Hotel {
     name: string;
     price: number;
     stars: number;
+    image: string;
     amenities: string[];
 }
 
@@ -20,18 +21,18 @@ export default function HotelList({ hotels }: HotelListProps) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-gray-500">
                 <span className="text-lg font-semibold">Không tìm thấy khách sạn phù hợp</span>
-                <p className="text-sm mt-1">Hãy thử thay đổi bộ lọc ở bên trái.</p>
             </div>
         );
     }
 
     return (
-        <div className="grid grid-cols-3 gap-4 w-full">
+        <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-6">
             {hotels.map((hotel) => (
                 <div
                     key={hotel.id}
                     className="p-4 border rounded-lg shadow-sm hover:shadow-md transition"
                 >
+
                     <h3 className="font-semibold text-lg mb-1">{hotel.name}</h3>
 
                     <div className="flex items-center mb-2">
