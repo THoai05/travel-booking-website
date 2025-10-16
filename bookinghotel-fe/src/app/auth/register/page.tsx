@@ -151,7 +151,8 @@ const Register = ({ onClose, onSwitchToLogin }: { onClose: () => void; onSwitchT
       if (!res.ok) throw new Error(data.message || "Đăng ký thất bại!");
 
       alert("Đăng ký thành công! Vui lòng đăng nhập.");
-      router.push("/auth/login");
+	  onSwitchToLogin(); // tự động chuyển sang modal login
+	  
     } catch (err: any) {
       setError(err.message || "Đăng ký thất bại!");
     } finally {
