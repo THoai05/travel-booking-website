@@ -160,8 +160,8 @@ const Register = ({ onClose, onSwitchToLogin }: { onClose: () => void; onSwitchT
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#e7f0ff]">
-      <div className="relative bg-white rounded-xl shadow-lg w-full max-w-md p-8 text-center">
+
+	<div className="w-full max-w-sm sm:max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8 relative max-h-[calc(100vh-40px)] overflow-y-auto">
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
             <FiX size={24} />
         </button>
@@ -305,11 +305,15 @@ const Register = ({ onClose, onSwitchToLogin }: { onClose: () => void; onSwitchT
 
         <div className="mt-4 text-sm">
           <span>Bạn đã có tài khoản? </span>
-          <a href="/auth/login" className="text-[#0068ff] hover:underline">
-            Đăng nhập ngay
-          </a>
+			<button
+			  type="button"
+			  onClick={onSwitchToLogin}
+			  className="text-[#0068ff] hover:underline"
+			>
+			  Đăng nhập ngay
+			</button>
         </div>
-      </div>
+      
 
       {/* Loading overlay */}
       {loading && (
@@ -320,7 +324,8 @@ const Register = ({ onClose, onSwitchToLogin }: { onClose: () => void; onSwitchT
           </div>
         </div>
       )}
-    </div>
+	  </div>
+  
   );
 };
 

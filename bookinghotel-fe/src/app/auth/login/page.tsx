@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { FiUser, FiLock, FiEye, FiEyeOff, FiX } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
-const Login = ({ onClose }: { onClose: () => void }) => {
+const Login = ({ onClose, onSwitchToRegister }: { onClose: () => void; onSwitchToRegister: () => void; }) => {
   const [formData, setFormData] = useState({ emailOrUsername: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -109,116 +109,118 @@ const Login = ({ onClose }: { onClose: () => void }) => {
 	};
 
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[#e7f0ff]">
-      <div className="relative bg-white rounded-xl shadow-lg w-full max-w-md p-8 text-center">
-	  
-        {/* Nút đóng modal */}
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-            <FiX size={24} />
-        </button>
-		
-        {/* Logo + Header */}
-        <h1 className="text-2xl font-bold text-[#0068ff] mb-2 text-center">Travel Booking</h1>
-         <p className="text-sm text-while-200 text-center mb-6">
-            Welcome back, please login to your account
-          </p>
+return (
+  <div className="w-full max-w-sm sm:max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8 relative">
+    {/* Nút đóng */}
+    <button
+      onClick={onClose}
+      className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+    >
+      <FiX size={22} />
+    </button>
 
+    {/* Logo + tiêu đề */}
+    <h1 className="text-2xl font-bold text-[#0068ff] mb-2 text-center">
+      Travel Booking
+    </h1>
+    <p className="text-sm text-gray-500 mb-5 text-center">
+      Đăng nhập để tiếp tục
+    </p>
 
-        {/* Error */}
-        {error && (
-          <div className="bg-red-100 text-red-600 text-sm p-2 rounded mb-4">
-            {error}
-          </div>
-        )}
+    {/* Thông báo lỗi */}
+    {error && (
+      <div className="bg-red-100 text-red-600 text-sm p-2 rounded mb-3 text-center">
+        {error}
+      </div>
+    )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-left">
-          {/* Username */}
-          <div className="relative">
-            <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              name="emailOrUsername"
-              placeholder="Username hoặc email"
-              value={formData.emailOrUsername}
-              onChange={handleChange}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#0068ff]"
-            />
-          </div>
-
-          {/* Password */}
-          <div className="relative">
-            <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Mật khẩu"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#0068ff]"
-            />
-            <span
-              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-[#0068ff]"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <FiEyeOff /> : <FiEye />}
-            </span>
-          </div>
-
-          {/* Remember + Forgot */}
-          <div className="flex items-center justify-between text-xs sm:text-sm">
-            <label className="flex items-center gap-2 text-gray-600">
-              <input
-                type="checkbox"
-                className="accent-[#0068ff]"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-              Ghi nhớ đăng nhập
-            </label>
-            <a
-              href="/auth/forgot-password"
-              className="text-[#0068ff] hover:underline"
-            >
-              Quên mật khẩu
-            </a>
-          </div>
-
-          {/* Login button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#0068ff] text-white font-semibold py-2 rounded-lg mt-2 hover:bg-[#0053cc] transition"
-          >
-            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
-          </button>
-        </form>
-
-        {/* Footer */}
-        <div className="mt-6 text-sm text-gray-700 border-t pt-4">
-          <p className="text-center text-sm text-white-200 mt-6">
-            Don’t have an account?{" "}
-            <a href="/auth/register" className="text-green-600 hover:underline">
-              Signup
-            </a>
-          </p>
-        </div>
-
-       
+    {/* Form */}
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3 text-left">
+      {/* Username */}
+      <div className="relative">
+        <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          name="emailOrUsername"
+          placeholder="Username hoặc email"
+          value={formData.emailOrUsername}
+          onChange={handleChange}
+          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#0068ff]"
+        />
       </div>
 
-      {/* Loading overlay */}
-      {loading && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white px-6 py-4 rounded-lg flex flex-col items-center shadow-lg">
-            <div className="w-10 h-10 border-4 border-t-[#0068ff] border-l-[#0068ff] border-transparent rounded-full animate-spin mb-2"></div>
-            <span className="text-sm text-gray-700">{loadingMessage}</span>
-          </div>
+      {/* Password */}
+      <div className="relative">
+        <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          type={showPassword ? "text" : "password"}
+          name="password"
+          placeholder="Mật khẩu"
+          value={formData.password}
+          onChange={handleChange}
+          className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#0068ff]"
+        />
+        <span
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-[#0068ff]"
+        >
+          {showPassword ? <FiEyeOff /> : <FiEye />}
+        </span>
+      </div>
+
+      {/* Ghi nhớ + Quên mật khẩu */}
+      <div className="flex items-center justify-between text-xs sm:text-sm">
+        <label className="flex items-center gap-2 text-gray-600">
+          <input
+            type="checkbox"
+            className="accent-[#0068ff]"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+          />
+          Ghi nhớ đăng nhập
+        </label>
+        <a
+          href="/auth/forgot-password"
+          className="text-[#0068ff] hover:underline"
+        >
+          Quên mật khẩu
+        </a>
+      </div>
+
+      {/* Nút đăng nhập */}
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-[#0068ff] text-white font-semibold py-2 rounded-lg mt-2 hover:bg-[#0053cc] transition"
+      >
+        {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+      </button>
+    </form>
+
+    {/* Chân trang */}
+	<div className="mt-6 text-sm text-gray-700 border-t pt-3 text-center">
+	  Bạn chưa có tài khoản?{" "}
+	  <button
+		type="button"
+		onClick={onSwitchToRegister}
+		className="text-green-600 hover:underline font-medium"
+	  >
+		Đăng ký
+	  </button>
+	</div>
+
+    {/* Overlay loading */}
+    {loading && (
+      <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-2xl">
+        <div className="flex flex-col items-center">
+          <div className="w-8 h-8 border-4 border-t-[#0068ff] border-l-[#0068ff] border-transparent rounded-full animate-spin mb-2"></div>
+          <span className="text-sm text-gray-700">{loadingMessage}</span>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
+
 };
 
 export default Login;
