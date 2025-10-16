@@ -60,9 +60,30 @@ const Login = () => {
 		const data = await res.json();
 		if (!res.ok) throw new Error(data.message || "Đăng nhập thất bại!");
 
-		// 🔹 lưu token
-		if (rememberMe) localStorage.setItem("token", data.token);
-		else localStorage.removeItem("token");
+		// 🔹 lưu token với thời gian hết hạn nếu người dùng chọn "Ghi nhớ"
+		if (rememberMe) {
+            // Thời gian hết hạn: 1 ngày
+            const expiresIn = 1 * 24 * 60 * 60 * 1000; 
+            const expiryTime = new Date().getTime() + expiresIn;
+            
+            const tokenData = {
+                token: data.token,
+                expiry: expiryTime,
+            };
+            
+            localStorage.setItem("token", JSON.stringify(tokenData));
+		} else {
+            // Thời gian hết hạn: 1 tiếng
+            const expiresIn = 1 * 60 * 60 * 1000; 
+            const expiryTime = new Date().getTime() + expiresIn;
+            
+            const tokenData = {
+                token: data.token,
+                expiry: expiryTime,
+            };
+            
+            localStorage.setItem("token", JSON.stringify(tokenData));
+		}
 
 		// 🔹 lấy profile
 		const token = localStorage.getItem("token");
