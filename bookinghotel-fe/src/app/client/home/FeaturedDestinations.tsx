@@ -15,30 +15,41 @@ interface Destination {
 
 const FeaturedDestinations = () => {
   // Sử dụng Type đã định nghĩa
-  const [cities, setCities] = useState<Destination[]>([]);
-  // 2. Thêm state để xử lý trạng thái loading và error
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  // const [cities, setCities] = useState<Destination[]>([]);
+  // // 2. Thêm state để xử lý trạng thái loading và error
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { getAllDateCities } = useHandleCity();
+  // const { getAllDateCities } = useHandleCity();
 
-  useEffect(() => {
-    const fetchAllDataCities = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await getAllDateCities();
-        setCities(response);
-      } catch (err) {
-        console.error("Failed to fetch cities:", err);
-        setError("Đã có lỗi xảy ra khi tải dữ liệu.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchAllDataCities = async () => {
+  //     setIsLoading(true);
+  //     setError(null);
+  //     try {
+  //       const response = await getAllDateCities();
+  //       setCities(response);
+  //     } catch (err) {
+  //       console.error("Failed to fetch cities:", err);
+  //       setError("Đã có lỗi xảy ra khi tải dữ liệu.");
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
 
-    fetchAllDataCities();
-  }, []); // Vẫn giữ dependency rỗng để gọi 1 lần
+  //   fetchAllDataCities();
+  // }, []); // Vẫn giữ dependency rỗng để gọi 1 lần
+
+  const cities = [
+  {name: "Hồ Chí Minh", img: "/hcm.png", subtitle: "342 khách sạn lân cận"},
+  { name: "Lào Cai", img: "/laocai.png", subtitle: "356 Tours" },
+  { name: "Hà Nội", img: "/hanoi.png", subtitle: "356 Tours" },
+  { name: "Quảng Ninh", img: "/quangninh.png", subtitle: "356 Tours" },
+  { name: "Đà Nẵng", img: "/danang.png", subtitle: "356 Tours" },
+  { name: "Đà Lạt", img: "/dalat.png", subtitle: "356 Tours" },
+  // {name: "Thừa Thiên Huế", img: "/hue.png",subtitle: "356 Tours"},
+  // {name: "Phú Quốc", img: "/phuquoc.png", subtitle: "356 Tours" },
+];
 
   return (
     <section className="w-full bg-white py-20">
@@ -64,26 +75,26 @@ const FeaturedDestinations = () => {
             // 4. Dùng 'grid' để layout tự động responsive
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 
             lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8 justify-items-center">
-              {/* {cities.map((city) => (
+              {cities.map((city) => (
                 // 5. Dùng 'city.id' cho key, không dùng index
                 <div key={city.id} className="flex flex-col text-center">
                   <div className="w-[160px] h-[240px] rounded-[80px] overflow-hidden mx-auto">
                     <Image
-                      src={city.image}
-                      alt={city.title}
+                      src={city.img}
+                      alt={city.name}
                       width={160}
                       height={240}
                       className="object-cover w-full h-full transition-transform duration-300 hover:scale-110"
                     />
                   </div>
                   <h4 className="font-semibold text-[18px] pt-[20px]">
-                    {city.title}
+                    {city.name}
                   </h4>
                   <p className="text-gray-500 text-[14px] pt-[12px]">
                     {city.subtitle}
                   </p>
                 </div>
-              ))} */}
+              ))}
             </div>
           )}
         </div>
