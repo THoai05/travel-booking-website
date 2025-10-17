@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
-import { ChevronRight, Filter, X, Star, Wifi, Utensils, Waves, Coffee, Building2, MapPin, Search, ArrowUp } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Filter, X, Star, Wifi, Utensils, Waves, Coffee, Building2, MapPin, Search, ArrowUp } from 'lucide-react';
 import Image from 'next/image';
 import { useHandleHotels } from '@/service/hotels/hotelService';
 
@@ -8,8 +8,8 @@ import { useHandleHotels } from '@/service/hotels/hotelService';
 const HotelCard = ({ hotel }) => {
     // Logic để hiển thị nhãn "Top Rated" hoặc "Best Sale"
     const getLabel = () => {
-        if (hotel.stars >= 5) return { text: "Top Rated", color: "text-[#3DC262]" };
-        if (hotel.price < 600000) return { text: "Best Sale", color: "text-red-500" };
+        if (hotel.avgRating >= 3.5) return { text: "Top Rated", color: "text-[#3DC262]" };
+        // if (hotel.price < 600000) return { text: "Best Sale", color: "text-red-500" };
         return null;
     };
     const label = getLabel();
@@ -41,12 +41,12 @@ const HotelCard = ({ hotel }) => {
             {/* Phần thông tin */}
             <div className="relative z-10 p-5 -mt-6 bg-white rounded-t-3xl">
                 <span className="absolute -top-4 right-5 flex items-center gap-1 text-yellow-500 text-xs bg-white shadow-md rounded-2xl px-4 py-2 font-semibold">
-                    ⭐ <span className="text-black">{hotel.stars}.0 ({hotel.reviews} reviews)</span>
+                    ⭐ <span className="text-black">{hotel.avgRating} ({hotel.reviewCount} reviews)</span>
                 </span>
                 <h3 className="font-bold text-lg mb-1 truncate">{hotel.name}</h3>
                 <div className="flex items-center gap-1 text-gray-600 text-sm mb-4">
                     <MapPin size={14} />
-                    <span>{hotel.location}</span>
+                    <span>{hotel.city.title}</span>
                 </div>
                 <div className="flex items-center justify-between mt-4">
                     {/* <p className="font-bold text-xl">
@@ -103,8 +103,22 @@ export default function HotelsPage() {
     //     { id: 10, name: "Khách sạn Mặt Trời", price: 1100000, stars: 4, amenities: ["Hồ bơi", "Nhà hàng"], location: "Cần Thơ", reviews: 356, image: 'https://placehold.co/600/f39c12/ffffff?text=Mặt+Trời' },
     // ], []);
 
+   const [currentPage, setCurrentPage] = useState(1);
+  const limit = 8;
 
-  const { data:hotelsData } = useHandleHotels()
+  const { data: hotelsResponse } = useHandleHotels(currentPage, limit);
+    const hotelsData = hotelsResponse?.data || [];
+    console.log(hotelsData)
+    console.log(hotelsResponse)
+  const total = hotelsResponse?.total || 0;
+  const totalPages = hotelsResponse?.totalPages || 1;
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+      window.scrollTo({ top: 0, behavior: 'smooth' }); // cuộn lên đầu trang khi đổi trang
+    }
+  };
   
 
 
@@ -230,9 +244,50 @@ export default function HotelsPage() {
                                 {filteredHotels.map((hotel) => (<HotelCard key={hotel.id} hotel={hotel} />))}
                             </div>
                         ) : (<NoResultsFound onReset={resetAllFilters} />)}
-                        {filteredHotels?.length > 0 && (
-                            <div className="flex justify-center mt-12"><button className="flex items-center gap-2 px-6 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">Xem thêm <ChevronRight size={20} /></button></div>
-                        )}
+                        {totalPages > 1 && (
+  <div className="flex justify-center mt-12 space-x-2">
+    {/* Nút Previous */}
+    <button
+      onClick={() => handlePageChange(currentPage - 1)}
+      disabled={currentPage === 1}
+      className={`px-4 py-2 rounded-full border transition ${
+        currentPage === 1 
+          ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+          : 'bg-[#E6F7FF] text-[#00BFFF] hover:bg-[#BFEFFF]'
+      }`}
+    >
+      <ChevronLeft size={18} />
+    </button>
+
+    {/* Các nút số trang */}
+    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+      <button
+        key={page}
+        onClick={() => handlePageChange(page)}
+        className={`px-4 py-2 rounded-full border transition ${
+          currentPage === page
+            ? 'bg-[#00BFFF] text-white border-[#00BFFF]'
+            : 'bg-[#E6F7FF] text-[#00BFFF] hover:bg-[#BFEFFF]'
+        }`}
+      >
+        {page}
+      </button>
+    ))}
+
+    {/* Nút Next */}
+    <button
+      onClick={() => handlePageChange(currentPage + 1)}
+      disabled={currentPage === totalPages}
+      className={`px-4 py-2 rounded-full border transition ${
+        currentPage === totalPages
+          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+          : 'bg-[#E6F7FF] text-[#00BFFF] hover:bg-[#BFEFFF]'
+      }`}
+    >
+      <ChevronRight size={18} />
+    </button>
+  </div>
+)}x
                     </div>
                 </main>
             </div>

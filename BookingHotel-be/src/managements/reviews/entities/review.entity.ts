@@ -26,7 +26,7 @@ export class Review {
   @ManyToOne(() => User, (user) => user.reviews, { onDelete: 'CASCADE' })
   user: User;
 
-  @ManyToOne(() => Hotel, (hotel) => hotel.reviews, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Hotel, (hotels) => hotels.reviews, { onDelete: 'CASCADE' })
   hotel: Hotel;
 
   @Column({ type: 'tinyint', unsigned: true }) // ✅ tinyint nhẹ hơn int, rating 1–5 đủ dùng
