@@ -56,9 +56,9 @@ export class AuthService {
 		  where: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
 		});
 
-		if (!user) throw new UnauthorizedException('Không tìm thấy người dùng');
+		if (!user) throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
 		const isMatch = await bcrypt.compare(password, user.password);
-		if (!isMatch) throw new UnauthorizedException('Sai mật khẩu');
+		if (!isMatch) throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
 
 		const payload = { sub: user.id, username: user.username, role: user.role };
 		const token = await this.jwtService.signAsync(payload);
