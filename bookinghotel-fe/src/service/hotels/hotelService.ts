@@ -1,17 +1,39 @@
 import api from "@/axios/axios"
+import { useQuery } from "@tanstack/react-query"
 
-const useHandleCity = () => {
-    const getAllDateCities = async () => {
-        try {
-            const response = await api.get('city')
-            return response.data.data
-        } catch (error) {
-            console.log(error)
-        }
-    }
-    return {
-        getAllDateCities
-    }
+export const useHandleHotels = (
+    page?: number = 1,
+    limit?:number = 8
+) => {
+    return useQuery({
+        queryKey: ['hotels',
+            page,
+            limit
+        ],
+        queryFn: async () => {
+            const response = await api.get('hotels', {
+                params: {
+                    page,
+                    limit
+                }
+            })
+            return response.data
+        },
+        staleTime: 1000 * 60 * 10
+        
+   })
 }
 
-export default useHandleCity
+export const useHandleHotelById = (id:number) => {
+    return useQuery({
+        queryKey: ['singleHotel', id],
+        queryFn: async () => {
+            const response = await api.get(`hotels/${id}`)
+            return response.data.data
+        },
+        staleTime: 1000 * 60 * 10
+    })
+}
+
+   
+

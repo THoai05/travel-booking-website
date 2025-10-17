@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { HotelsService } from '../services/hotels.service';
 import { GetAllHotelRequest } from '../dtos/req/GetAllHotelRequest.dto';
 
@@ -10,5 +10,13 @@ export class HotelsController {
   @Get('')
   async handleGetAllDataHotel(@Query() queryParam:GetAllHotelRequest) {
     return await this.hotelsService.getAllDataHotel(queryParam)
+  }
+
+  @Get(':id')
+  async handleGetDataHotelById(@Param('id',ParseIntPipe) id:number) {
+    const hotel = await this.hotelsService.getDataHotelById(id)
+    return {
+      data:hotel
+    }
   }
 }

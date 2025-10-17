@@ -14,6 +14,15 @@
   }
 }
 
+/* Ẩn scrollbar trên mọi trình duyệt */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE và Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
 @layer utilities {
   /* Breakpoint nhỏ hơn 1440px */
   @media (max-width: 1440px) {
