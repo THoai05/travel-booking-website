@@ -24,5 +24,16 @@ export const useHandleHotels = (
    })
 }
 
+export const useHandleHotelById = (id:number) => {
+    return useQuery({
+        queryKey: ['singleHotel', id],
+        queryFn: async () => {
+            const response = await api.get(`hotels/${id}`)
+            return response.data.data
+        },
+        staleTime: 1000 * 60 * 10
+    })
+}
+
    
 

@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
+import { Hotel } from 'src/managements/hotels/entities/hotel.entity';
 
 @Entity({ name: 'amenities' })
 export class Amenity {
@@ -11,5 +12,6 @@ export class Amenity {
   @Column({ name: 'description', type: 'nvarchar', nullable: true })
   description?: string;
 
- 
+  @ManyToMany(() => Hotel, (hotel) => hotel.amenities)
+  hotels: Hotel[];
 }

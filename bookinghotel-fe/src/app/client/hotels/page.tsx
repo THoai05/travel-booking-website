@@ -3,9 +3,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronRight, ChevronLeft, Filter, X, Star, Wifi, Utensils, Waves, Coffee, Building2, MapPin, Search, ArrowUp } from 'lucide-react';
 import Image from 'next/image';
 import { useHandleHotels } from '@/service/hotels/hotelService';
+import { useRouter } from 'next/navigation';
 
 
-const HotelCard = ({ hotel }) => {
+const HotelCard = ({ hotel , onclick }) => {
     // Logic để hiển thị nhãn "Top Rated" hoặc "Best Sale"
     const getLabel = () => {
         if (hotel.avgRating >= 3.5) return { text: "Top Rated", color: "text-[#3DC262]" };
@@ -15,7 +16,7 @@ const HotelCard = ({ hotel }) => {
     const label = getLabel();
 
     return (
-        <div className="rounded-3xl overflow-hidden shadow-md border border-gray-100 hover:shadow-xl
+        <div  onClick={onclick} className="rounded-3xl overflow-hidden shadow-md border border-gray-100 hover:shadow-xl
         transition-shadow duration-300 bg-white group">
             {/* Phần ảnh */}
             <div className="relative w-full h-[250px] rounded-t-3xl overflow-hidden">
@@ -118,7 +119,9 @@ export default function HotelsPage() {
       setCurrentPage(newPage);
       window.scrollTo({ top: 0, behavior: 'smooth' }); // cuộn lên đầu trang khi đổi trang
     }
-  };
+    };
+    
+    const router = useRouter()
   
 
 
@@ -241,7 +244,7 @@ export default function HotelsPage() {
                         {filteredHotels?.length > 0 ? (
                             // Tăng số cột trên màn hình lớn (xl) để lấp đầy không gian
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                                {filteredHotels.map((hotel) => (<HotelCard key={hotel.id} hotel={hotel} />))}
+                                {filteredHotels.map((hotel) => (<HotelCard key={hotel.id} hotel={hotel} onclick={()=>router.push(`hotel-detail/${hotel.id}`)} />))}
                             </div>
                         ) : (<NoResultsFound onReset={resetAllFilters} />)}
                         {totalPages > 1 && (

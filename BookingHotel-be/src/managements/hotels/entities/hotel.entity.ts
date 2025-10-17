@@ -1,6 +1,7 @@
 import { City } from 'src/managements/city/entities/city.entity';
 import { Review } from 'src/managements/reviews/entities/review.entity';
 import { Room } from 'src/managements/rooms/entities/rooms.entity';
+import { Amenity } from 'src/managements/amenities/entities/amenities.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -10,7 +11,10 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
+import { Expose } from 'class-transformer';
 
 @Entity({ name: 'hotels' })
 export class Hotel {
@@ -25,7 +29,6 @@ export class Hotel {
 
   @Column({ name: 'address', type: 'nvarchar', length: 255, nullable: false })
   address: string;
-
 
   @Column({ name: 'country', type: 'nvarchar', length: 100, nullable: false })
   country: string;
@@ -43,23 +46,31 @@ export class Hotel {
   checkOutTime: string;
 
   @ManyToOne(() => City, (city) => city.hotels)
-  @JoinColumn({name:'cityId'})
-  city: City
+  @JoinColumn({ name: 'cityId' })
+  city: City;
 
-  @Column({
-    type: 'bit',
-    default:true
-  })
-  isFeatured: boolean
-  
+  @Column({ type: 'bit', default: true })
+  isFeatured: boolean;
+
   @OneToMany(() => Room, (room) => room.hotel)
-  rooms: Room[]
-  
+  rooms: Room[];
+
   @OneToMany(() => Review, (review) => review.hotel)
-  reviews:Review[]
-  
+  reviews: Review[];
+
   @Column({ name: 'cityId', type: 'int' })
   cityId: number;
+
+  @ManyToMany(() => Amenity, (amenity) => amenity.hotels)
+  @JoinTable({
+    name: 'hotels_amenities', // 👈 tên bảng trung gian
+    joinColumn: { name: 'hotel_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'amenity_id', referencedColumnName: 'id' },
+  })
+  amenities: Amenity[];
+
+  @Expose()
+  avgRating?: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
