@@ -304,7 +304,7 @@ const Register = ({ onClose, onSwitchToLogin }: { onClose: () => void; onSwitchT
           </button>
         </form>
 
-        <div className="mt-4 text-sm">
+        <div className="mt-4 text-sm text-center">
           <span>Bạn đã có tài khoản? </span>
 			<button
 			  type="button"
