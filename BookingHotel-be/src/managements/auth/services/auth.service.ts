@@ -67,9 +67,13 @@ export class AuthService {
 	}
 
 	async getProfile(userId: number) {
-		const user = await this.userRepo.findOne({ where: { id: userId } });
-		if (!user) throw new UnauthorizedException('Token không hợp lệ');
-		return user;
+	  const user = await this.userRepo.findOne({ where: { id: userId } });
+	  if (!user) throw new UnauthorizedException('Token không hợp lệ');
+
+	  // Loại bỏ password bằng destructuring
+	  const { password, ...safeUser } = user;
+	  return safeUser;
 	}
+
 
 }
