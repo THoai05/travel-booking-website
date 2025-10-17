@@ -17,7 +17,7 @@ export const useHandleHotels = (
                     limit
                 }
             })
-            return response.data.data
+            return response.data
         },
         staleTime: 1000 * 60 * 10
         
