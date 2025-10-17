@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Hotel } from '../entities/hotel.entity';
 import { Repository } from 'typeorm';
 import { GetAllHotelRequest } from '../dtos/req/GetAllHotelRequest.dto';
+import { GetDataHotelByIdRequest } from '../dtos/req/GetDataHotelByIdRequest.dto';
 
 @Injectable()
 export class HotelsService {
@@ -67,5 +68,52 @@ export class HotelsService {
       console.error('getAllDataHotel error:', error);
       throw error;
     }
+    }
+    
+    async getDataHotelById(id:number): Promise<any>{
+        try {
+          
+          const queryBuilder = this.hotelRepo
+            .createQueryBuilder('hotels')
+            .leftJoinAndSelect('hotels.amenities', 'amenities')
+            .leftJoinAndSelect('hotels.reviews', 'reviews')
+            .leftJoinAndSelect('reviews.user','user')
+            .leftJoinAndSelect('hotels.rooms', 'rooms')
+            .leftJoinAndSelect('hotels.city', 'city')
+            .where('hotels.id = :id', { id })
+            .select([
+              'hotels.id',
+              'hotels.name',
+              'hotels.description',
+              'hotels.phone',
+              'hotels.checkOutTime',
+              'hotels.checkInTime',
+              'city.id',
+              'city.title',
+              'amenities.name',
+              'amenities.description',
+              'user.username',
+              'reviews.comment',
+              'reviews.rating',
+              'rooms.id',                
+              'rooms.roomType',
+              'rooms.pricePerNight',
+              'rooms.maxGuests',
+            ])
+            .addSelect('AVG(reviews.rating)','avgRating')
+
+           const { entities, raw } = await queryBuilder.getRawAndEntities();
+           const hotel = entities[0];
+
+          if (!hotel) {
+            throw new NotFoundException("Không tìm thấy khách sạn");
+          }
+
+          hotel.avgRating = Number(raw[0].avgRating) || 0;
+
+          return hotel
+        } catch (error) {
+            console.log(error)
+        } 
   }
 }

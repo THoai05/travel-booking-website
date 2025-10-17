@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Star, MapPin, Wifi, Utensils, Dumbbell, Wind, Users, Heart, Share2, Phone, Mail, Clock, MapPin as LocationIcon } from 'lucide-react';
+import { useParams } from 'next/navigation';
+import { useHandleHotelById } from '@/service/hotels/hotelService';
 
 export default function HotelDetails() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -17,25 +19,7 @@ export default function HotelDetails() {
     'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&h=600&fit=crop',
   ];
 
-  const amenities = [
-    { icon: Wifi, name: 'WiFi miễn phí', desc: 'Tốc độ cao 100Mbps' },
-    { icon: Utensils, name: 'Nhà hàng 24h', desc: 'Ăn uống bất cứ lúc nào' },
-    { icon: Dumbbell, name: 'Phòng gym', desc: 'Trang thiết bị hiện đại' },
-    { icon: Wind, name: 'Điều hòa cao cấp', desc: 'Thoải mái cả ngày' },
-  ];
-
-  const rooms = [
-    { type: 'Phòng đơn', price: 1500000, capacity: 1, desc: 'Giường đôi, view thành phố' },
-    { type: 'Phòng đôi', price: 2500000, capacity: 2, desc: 'Giường king, view biển' },
-    { type: 'Phòng gia đình', price: 4000000, capacity: 4, desc: 'Phòng ngủ riêng, phòng khách' },
-  ];
-
-  const reviews = [
-    { name: 'Nguyễn Văn A', rating: 5, text: 'Khách sạn rất sạch sẽ, nhân viên thân thiện. Tôi sẽ quay lại!', date: 'Tháng 10, 2025' },
-    { name: 'Trần Thị B', rating: 5, text: 'Dịch vụ xuất sắc, ăn uống ngon. Vị trí đẹp bên biển!', date: 'Tháng 9, 2025' },
-    { name: 'Lê Văn C', rating: 4, text: 'Tuyệt vời, chỉ mong giá rẻ hơn một chút.', date: 'Tháng 9, 2025' },
-    { name: 'Phạm Thị D', rating: 5, text: 'Phòng spacious, đẹp lắm. Sẽ giới thiệu cho bạn bè!', date: 'Tháng 8, 2025' },
-  ];
+ 
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % hotelImages.length);
@@ -44,6 +28,25 @@ export default function HotelDetails() {
   const prevImage = () => {
     setCurrentImageIndex((prev) => (prev - 1 + hotelImages.length) % hotelImages.length);
   };
+
+
+  const params = useParams()
+  const id = Number(params.id)
+  console.log(id)
+  const { data: hotelData } = useHandleHotelById(id)
+  console.log(hotelData)
+  
+   const amenities = hotelData?.amenities;
+
+  const rooms = hotelData?.rooms
+
+  const reviews = hotelData?.reviews
+
+  const roomTypeMap = new Map<string, string>([
+    ["deluxe", "Deluxe"],
+    ["single", "Single",],
+    ["double","Double"]
+  ])
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#f0faf9' }}>
@@ -93,15 +96,15 @@ export default function HotelDetails() {
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-4">
                 <div className="flex gap-1">
-                  {[...Array(5)].map((_, i) => (
+                  {[...Array(Number(Math.floor(hotelData?.avgRating||0)))].map((_, i) => (
                     <Star key={i} size={20} className="fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <span style={{ color: '#475569' }}>4.8 (2,340 đánh giá)</span>
+                <span style={{ color: '#475569' }}>{ hotelData?.avgRating } (2,340 đánh giá)</span>
               </div>
               <div className="flex gap-2" style={{ color: '#06b6d4' }}>
                 <MapPin size={20} />
-                <span className="font-semibold">Bãi biển Miền Trung</span>
+                <span className="font-semibold">{hotelData?.city.title}</span>
               </div>
             </div>
 
@@ -109,22 +112,22 @@ export default function HotelDetails() {
             <div className="bg-white rounded-2xl p-8 border transition hover:shadow-lg" style={{ borderColor: '#84f0ff50' }}>
               <h2 className="text-3xl font-bold mb-4" style={{ color: '#0891b2' }}>Về khách sạn</h2>
               <p style={{ color: '#475569' }} className="leading-relaxed mb-6 text-lg">
-                Luxury Sea View Hotel là điểm đến lý tưởng cho những ai muốn tận hưởng kỳ nghỉ đẹp nhất với vẻ đẹp tự nhiên và dịch vụ hạng sang. Khách sạn nằm trên bãi biển riêng với tầm nhìn toàn cảnh biển xanh, sân vườn lớn và tiện nghi đầy đủ.
+                  {hotelData?.description}
               </p>
               <div className="grid grid-cols-2 gap-4 pt-4 border-t" style={{ borderColor: '#84f0ff30' }}>
                 <div className="flex gap-3">
                   <Clock size={24} style={{ color: '#84f0ff' }} />
                   <div>
                     <p className="font-semibold" style={{ color: '#0891b2' }}>Giờ hoạt động</p>
-                    <p style={{ color: '#64748b' }}>Check-in: 14:00</p>
-                    <p style={{ color: '#64748b' }}>Check-out: 11:00</p>
+                    <p style={{ color: '#64748b' }}>Check-in: {hotelData?.checkInTime }</p>
+                    <p style={{ color: '#64748b' }}>Check-out: {hotelData?.checkOutTime }</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <Phone size={24} style={{ color: '#84f0ff' }} />
                   <div>
                     <p className="font-semibold" style={{ color: '#0891b2' }}>Liên hệ</p>
-                    <p style={{ color: '#64748b' }}>+84 987 654 321</p>
+                    <p style={{ color: '#64748b' }}>{hotelData?.phone }</p>
                     <p style={{ color: '#64748b' }}>info@hotelbiển.com</p>
                   </div>
                 </div>
@@ -135,11 +138,11 @@ export default function HotelDetails() {
             <div className="mt-8 rounded-2xl p-8 transition" style={{ backgroundColor: '#f0faf950' }}>
               <h3 className="text-2xl font-bold mb-6" style={{ color: '#0891b2' }}>Tiện nghi nổi bật</h3>
               <div className="grid grid-cols-2 gap-6">
-                {amenities.map((amenity, idx) => {
+                {amenities?.map((amenity, idx) => {
                   const Icon = amenity.icon;
                   return (
                     <div key={idx} className="flex gap-4 p-4 rounded-xl bg-white border transition hover:shadow-md" style={{ borderColor: '#84f0ff30' }}>
-                      <Icon size={32} style={{ color: '#84f0ff', flexShrink: 0 }} />
+                      {/* <Icon size={32} style={{ color: '#84f0ff', flexShrink: 0 }} /> */}
                       <div>
                         <p className="font-semibold" style={{ color: '#0891b2' }}>{amenity.name}</p>
                         <p style={{ color: '#64748b' }} className="text-sm">{amenity.desc}</p>
@@ -224,20 +227,20 @@ export default function HotelDetails() {
         <section className="mb-12">
           <h2 className="text-3xl font-bold mb-8" style={{ color: '#0891b2' }}>Loại phòng có sẵn</h2>
           <div className="grid md:grid-cols-3 gap-6">
-            {rooms.map((room, idx) => (
+            {rooms?.map((room, idx) => (
               <div key={idx} className="bg-white rounded-2xl overflow-hidden border transition hover:shadow-lg hover:scale-105" style={{ borderColor: '#84f0ff30' }}>
                 <div className="h-48 bg-gradient-to-br from-cyan-200 to-teal-100" />
                 <div className="p-6">
-                  <h4 className="text-xl font-bold mb-2" style={{ color: '#0891b2' }}>{room.type}</h4>
+                  <h4 className="text-xl font-bold mb-2" style={{ color: '#0891b2' }}>{roomTypeMap.get(room.roomType)}</h4>
                   <p style={{ color: '#64748b' }} className="text-sm mb-4">{room.desc}</p>
                   <p className="text-sm mb-4 flex items-center gap-2" style={{ color: '#06b6d4' }}>
                     <Users size={16} />
-                    Tối đa {room.capacity} khách
+                    Tối đa {room.maxGuests} khách
                   </p>
                   <div className="flex items-end justify-between">
                     <div>
                       <p className="text-2xl font-bold" style={{ color: '#84f0ff' }}>
-                        {(room.price / 1000000).toFixed(1)}M
+                          {Number(room?.pricePerNight ?? 0).toLocaleString('vi-VN')} VND
                       </p>
                       <p className="text-xs" style={{ color: '#64748b' }}>/đêm</p>
                     </div>
@@ -255,11 +258,11 @@ export default function HotelDetails() {
         <section className="mb-12">
           <h2 className="text-3xl font-bold mb-8" style={{ color: '#0891b2' }}>Đánh giá từ khách</h2>
           <div className="grid md:grid-cols-2 gap-6">
-            {reviews.map((review, idx) => (
+            {reviews?.map((review, idx) => (
               <div key={idx} className="bg-white rounded-2xl p-6 border transition hover:shadow-lg" style={{ borderColor: '#84f0ff30' }}>
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className="font-semibold" style={{ color: '#0891b2' }}>{review.name}</p>
+                    <p className="font-semibold" style={{ color: '#0891b2' }}>{review.user.username}</p>
                     <p className="text-xs" style={{ color: '#64748b' }}>{review.date}</p>
                   </div>
                   <div className="flex gap-1">
@@ -268,7 +271,7 @@ export default function HotelDetails() {
                     ))}
                   </div>
                 </div>
-                <p style={{ color: '#475569' }} className="leading-relaxed">{review.text}</p>
+                <p style={{ color: '#475569' }} className="leading-relaxed">{review.comment}</p>
               </div>
             ))}
           </div>
