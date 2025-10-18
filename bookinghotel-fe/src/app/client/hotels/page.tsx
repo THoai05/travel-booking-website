@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, MapPin, Wifi, Utensils, Dumbbell, Thermometer, Waves, Car, ParkingCircle, Filter, X, Star, Search, GlassWater, Headphones, Coffee } from 'lucide-react';
 import { useHandleHotels } from '@/service/hotels/hotelService';
+import { useRouter } from 'next/navigation';
 // --- Dữ liệu filter ---
 const STAR_OPTIONS = [5, 4, 3, 2, 1];
 const AMENITY_OPTIONS = [
@@ -85,6 +86,7 @@ const NoResultsFound = ({ onReset }) => (
 
 // --- Trang chính ---
 export default function HotelsPage() {
+    const router = useRouter()
     const [currentPage, setCurrentPage] = useState(1);
     const limit = 6;
     const [showFilter, setShowFilter] = useState(false);
@@ -281,7 +283,7 @@ export default function HotelsPage() {
                                     <HotelCard 
                                         key={hotel.id} 
                                         hotel={hotel} 
-                                        onclick={() => console.log(`Navigate to ${hotel.id}`)} 
+                                        onclick={() => router.push(`hotel-detail/${hotel.id}`)} 
                                     />
                                 ))}
                             </div>
