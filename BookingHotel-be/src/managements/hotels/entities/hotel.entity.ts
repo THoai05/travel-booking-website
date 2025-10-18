@@ -72,6 +72,15 @@ export class Hotel {
   @Expose()
   avgRating?: number;
 
+
+  @Column({
+    type: 'decimal',  // hoặc float, nhưng decimal chính xác hơn cho tiền
+    precision: 12,
+    scale: 2,
+    nullable: true,
+  })
+  avgPrice: number | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
 
