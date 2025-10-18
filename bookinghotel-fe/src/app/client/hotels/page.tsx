@@ -1,21 +1,27 @@
 'use client';
-import React, { useState, useMemo, useEffect } from 'react';
-import { ChevronRight, ChevronLeft, Filter, X, Star, Wifi, Utensils, Waves, Coffee, Building2, MapPin, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, MapPin, Wifi, Utensils, Dumbbell, Thermometer, Waves, Car, ParkingCircle, Filter, X, Star, Search, GlassWater, Headphones, Coffee } from 'lucide-react';
 import Image from 'next/image';
 import { useHandleHotels } from '@/service/hotels/hotelService';
 import { useRouter } from 'next/navigation';
+// ✅ DỌN DẸP: Xóa import 'Value' không dùng tới
 
 // --- Dữ liệu filter ---
 const STAR_OPTIONS = [5, 4, 3, 2, 1];
 const AMENITY_OPTIONS = [
-    { name: "Wifi miễn phí", icon: <Wifi size={16} /> },
+    { name: "WiFi miễn phí", icon: <Wifi size={16} /> },
+    { name: "Nhà hàng 24h", icon: <Utensils size={16} /> },
+    { name: "Phòng gym", icon: <Dumbbell size={16} /> },
+    { name: "Điều hòa cao cấp", icon: <Thermometer size={16} /> },
     { name: "Hồ bơi", icon: <Waves size={16} /> },
-    { name: "Bữa sáng", icon: <Coffee size={16} /> },
-    { name: "Gần biển", icon: <Building2 size={16} /> },
-    { name: "Nhà hàng", icon: <Utensils size={16} /> },
+    { name: "Dịch vụ đưa đón sân bay", icon: <Car size={16} /> },
+    { name: "Bãi đậu xe miễn phí", icon: <ParkingCircle size={16} /> },
+    { name: "Quầy bar", icon: <GlassWater size={16} /> },
+    { name: "Lễ tân 24/7", icon: <Headphones size={16} /> },
+    { name: "Spa & Massage", icon: <Coffee size={16} /> },
 ];
 
-// --- Card khách sạn ---
+// --- Card khách sạn (Không đổi) ---
 const HotelCard = ({ hotel, onclick }) => {
     const getLabel = () => {
         if (hotel.avgRating >= 3.5) return { text: "Top Rated", color: "text-[#3DC262]" };
@@ -52,6 +58,10 @@ const HotelCard = ({ hotel, onclick }) => {
                     <span>{hotel.city.title}</span>
                 </div>
                 <div className="flex justify-between items-center">
+                     <p className="font-semibold">
+                    {Number(hotel.avgPrice ?? 0).toLocaleString('vi-VN')}
+                    <span className="text-gray-700 text-sm">/đêm</span>
+                  </p>
                     <button className="bg-black text-white text-sm px-5 py-2.5 rounded-full hover:bg-gray-800 transition">
                         Đặt ngay
                     </button>
@@ -61,7 +71,7 @@ const HotelCard = ({ hotel, onclick }) => {
     );
 };
 
-// --- Component Không có kết quả ---
+// --- Component Không có kết quả (Không đổi) ---
 const NoResultsFound = ({ onReset }) => (
     <div className="text-center py-20 col-span-full">
         <div className="w-24 h-24 bg-gray-100 rounded-full mx-auto flex items-center justify-center mb-4">
@@ -73,52 +83,50 @@ const NoResultsFound = ({ onReset }) => (
     </div>
 );
 
-// --- Trang chính ---
+// --- Trang chính (Đã refactor) ---
 export default function HotelsPage() {
     const router = useRouter();
     const [currentPage, setCurrentPage] = useState(1);
-    const limit = 8;
+    const limit = 6;
+    const [showFilter, setShowFilter] = useState(false);
 
-    const { data: hotelsResponse } = useHandleHotels(currentPage, limit);
+    // --- Filter States ---
+    const [minPrice, setMinPrice] = useState<number | ''>('');
+    const [maxPrice, setMaxPrice] = useState<number | ''>('');
+    const [selectedStar, setSelectedStar] = useState<number | null>(null);
+    // ✅ TYPING: Thêm kiểu dữ liệu cho state
+    const [amenities, setAmenities] = useState<string[]>([]);
+
+    // --- Cập nhật hook call ---
+    const { data: hotelsResponse } = useHandleHotels(currentPage, limit, minPrice, maxPrice, selectedStar, amenities);
     const hotelsData = hotelsResponse?.data || [];
+    // ✅ DỌN DẸP: Xóa console.log
     const total = hotelsResponse?.total || 0;
     const totalPages = hotelsResponse?.totalPages || 1;
 
-    // --- Filter States ---
-    const [showFilter, setShowFilter] = useState(false);
-    const [minPrice, setMinPrice] = useState(0);
-    const [maxPrice, setMaxPrice] = useState(10000000);
-    const [stars, setStars] = useState([]);
-    const [amenities, setAmenities] = useState([]);
-
     // --- Các hàm xử lý filter ---
-    const toggleStar = (s) => setStars(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
-    const toggleAmenity = (a) => setAmenities(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]);
+    const handleStarChange = (s: number) => {
+        setSelectedStar(prev => (prev === s ? null : s));
+    };
+    const toggleAmenity = (a: string) => setAmenities(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]);
+
 
     const resetFilters = () => {
-        setMinPrice(0);
-        setMaxPrice(10000000);
-        setStars([]);
+        setMinPrice('');
+        setMaxPrice('');
+        setSelectedStar(null);
         setAmenities([]);
     };
 
-    const applyFilter = () => {
-        const filtered = hotelsData.filter(hotel => {
-            const priceMatch = hotel.price >= minPrice && hotel.price <= maxPrice;
-            const starMatch = stars.length === 0 || stars.includes(Math.round(hotel.avgRating));
-            const amenityMatch = amenities.length === 0 || amenities.every(a => hotel.amenities?.includes(a));
-            return priceMatch && starMatch && amenityMatch;
-        });
-        setFilteredHotels(filtered);
-        setShowFilter(false);
-    };
 
-    const [filteredHotels, setFilteredHotels] = useState(hotelsData);
     useEffect(() => {
-        setFilteredHotels(hotelsData);
-    }, [hotelsData]);
+        setCurrentPage(1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [minPrice, maxPrice, selectedStar, amenities]);
 
-    const handlePageChange = (newPage) => {
+
+
+    const handlePageChange = (newPage: number) => {
         if (newPage >= 1 && newPage <= totalPages) {
             setCurrentPage(newPage);
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -127,7 +135,6 @@ export default function HotelsPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-
             <div className="flex relative max-w-full">
                 {/* Mobile Filter Button */}
                 <button
@@ -139,92 +146,142 @@ export default function HotelsPage() {
 
                 {/* Filter Panel */}
                 <aside
-                    className={`fixed inset-y-0 left-0 z-40 md:relative md:z-auto w-80 bg-white h-full border-r border-gray-200 transition-transform duration-300 ease-in-out transform md:translate-x-0 ${showFilter ? "translate-x-0" : "-translate-x-full"
+                    className={`fixed inset-y-0 left-0 z-40 md:relative md:z-auto w-80 md:w-96 bg-white h-full border-r border-gray-200 transition-transform duration-300 ease-in-out transform md:translate-x-0 ${showFilter ? "translate-x-0" : "-translate-x-full"
                         }`}
                 >
-                    <div className="p-6 md:p-8">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold text-gray-900">Bộ lọc</h2>
-                            <button onClick={() => setShowFilter(false)} className="md:hidden text-gray-500 hover:text-gray-700">
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        {/* Price filter */}
-                        <div className="mb-4">
-                            <label className="block text-sm mb-1">Khoảng giá (VNĐ)</label>
-                            <div className="flex">
-                                <input
-                                    type="number"
-                                    className="border p-1 w-full mb-1 rounded-sm mr-2"
-                                    value={minPrice}
-                                    onChange={(e) => setMinPrice(Number(e.target.value))}
-                                />
-                                <input
-                                    type="number"
-                                    className="border p-1 w-full mb-1 rounded-sm"
-                                    value={maxPrice}
-                                    onChange={(e) => setMaxPrice(Number(e.target.value))}
-                                />
+                    <div className="flex flex-col h-full">
+                        {/* Header */}
+                        <div className="p-6 md:p-8 border-b border-gray-200">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-xl font-bold text-gray-900">Bộ lọc</h2>
+                                <button onClick={() => setShowFilter(false)} className="md:hidden text-gray-500 hover:text-gray-700">
+                                    <X size={20} />
+                                </button>
                             </div>
                         </div>
 
-                        {/* Stars filter */}
-                        <div className="mb-4">
-                            <label className="block text-sm mb-1">Hạng sao</label>
-                            {STAR_OPTIONS.map((s) => (
-                                <label key={s} className="flex items-center gap-2 cursor-pointer mb-2">
-                                    <input type="checkbox" checked={stars.includes(s)} onChange={() => toggleStar(s)} />
-                                    <div className="flex items-center text-yellow-400">
-                                        {[...Array(s)].map((_, i) => (
-                                            <Star key={i} size={16} fill="#facc15" stroke="none" />
-                                        ))}
-                                        <span className="ml-2 text-gray-700">{s} sao</span>
-                                    </div>
-                                </label>
-                            ))}
+                        {/* Scrollable Content Area */}
+                        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8">
+                            {/* Price filter */}
+                            <div className="space-y-4">
+                                <h3 className="font-semibold text-gray-900">Khoảng giá (VNĐ)</h3>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="number"
+                                        placeholder="Từ"
+                                        className="border border-gray-300 p-2 rounded-md w-full"
+                                        value={minPrice}
+                                        // ✅ SỬA LOGIC: Xử lý giá trị NaN (không phải số)
+                                        onChange={(e) => {
+                                            const num = parseFloat(e.target.value);
+                                            setMinPrice(isNaN(num) ? '' : num);
+                                        }}
+                                    />
+                                    <span className="text-gray-400">-</span>
+                                    <input
+                                        type="number"
+                                        placeholder="Đến"
+                                        className="border border-gray-300 p-2 rounded-md w-full"
+                                        value={maxPrice}
+                                        // ✅ SỬA LOGIC: Xử lý giá trị NaN (không phải số)
+                                        onChange={(e) => {
+                                            const num = parseFloat(e.target.value);
+                                            setMaxPrice(isNaN(num) ? '' : num);
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* === Stars filter (Radio Buttons) - Dọc === */}
+                            <div className="space-y-4">
+                                <h3 className="font-semibold text-gray-900">Hạng sao</h3>
+                                <div className="flex flex-col space-y-2" role="radiogroup">
+                                    {STAR_OPTIONS.map((s) => (
+                                        <label
+                                            key={s}
+                                            className={`flex w-full items-center justify-start gap-2 cursor-pointer border rounded-lg px-4 py-2.5 transition-colors ${selectedStar === s
+                                                ? 'bg-blue-50 border-blue-500 text-blue-700'
+                                                : 'bg-white border-gray-300 hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="star-rating"
+                                                value={s}
+                                                checked={selectedStar === s}
+                                                onChange={() => handleStarChange(s)}
+                                                className="sr-only"
+                                            />
+                                            <div className="flex items-center text-yellow-400">
+                                                {[...Array(s)].map((_, i) => (
+                                                    <Star key={i} size={16} fill="#facc15" stroke="none" />
+                                                ))}
+                                            </div>
+                                            {/* ✅ SỬA LỖI: Xóa ký tự '_' bị lạc */}
+                                            <span className={`font-medium ${selectedStar === s ? 'text-blue-700' : 'text-gray-700'}`}>{s} sao</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+
+                            {/* Amenities filter (Styled Checkboxes) */}
+                            <div className="space-y-4">
+                                <h3 className="font-semibold text-gray-900">Tiện ích phổ biến</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {/* ✅ SỬA LOGIC: Destructure 'name' và 'icon', bỏ 'value' không tồn tại */}
+                                    {AMENITY_OPTIONS.map(({ name, icon }) => (
+                                        <label
+                                            key={name}
+                                            className={`flex items-center gap-2 cursor-pointer border rounded-full px-4 py-2 text-sm transition-colors ${amenities.includes(name) // ✅ SỬA LOGIC: check bằng 'name'
+                                                ? 'bg-blue-50 border-blue-500 text-blue-700'
+                                                : 'bg-white border-gray-300 hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={amenities.includes(name)} // ✅ SỬA LOGIC: check bằng 'name'
+                                                onChange={() => toggleAmenity(name)} // ✅ SỬA LOGIC: toggle bằng 'name'
+                                                className="sr-only"
+                                            />
+                                            <span className="text-blue-600">{icon}</span>
+                                            <span>{name}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Amenities filter */}
-                        <div className="mb-4">
-                            <label className="block text-sm mb-1">Tiện ích phổ biến</label>
-                            {AMENITY_OPTIONS.map(({ name, icon }) => (
-                                <label key={name} className="flex items-center gap-2 cursor-pointer mb-2">
-                                    <input type="checkbox" checked={amenities.includes(name)} onChange={() => toggleAmenity(name)} />
-                                    <div className="flex items-center gap-2 text-gray-700">
-                                        <span className="text-blue-300">{icon}</span>
-                                        <span>{name}</span>
-                                    </div>
-                                </label>
-                            ))}
-                        </div>
-
-                        {/* Buttons */}
-                        <div className="flex gap-3">
+                        {/* Sticky Footer Buttons */}
+                        <div className="p-6 bg-white border-t border-gray-200 md:p-8">
                             <button
-                                onClick={applyFilter}
-                                className="bg-blue-400 text-white w-full py-2 rounded hover:bg-blue-300 flex items-center justify-center gap-2"
+                                onClick={resetFilters}
+                                className="w-full border border-gray-300 text-gray-700 py-2.5 px-3 rounded-lg hover:bg-gray-100 transition"
                             >
-                                <Search size={18} /> Áp dụng bộ lọc
+                                Xóa bộ lọc
                             </button>
-                            <button onClick={resetFilters} className="border py-2 px-3 rounded w-28">
-                                Xóa
+                            <button
+                                onClick={() => setShowFilter(false)}
+                                className="w-full bg-black text-white py-2.5 px-3 rounded-lg hover:bg-gray-800 transition mt-3 md:hidden"
+                            >
+                                Xem kết quả
                             </button>
                         </div>
                     </div>
                 </aside>
+
 
                 {/* Main content */}
                 <main className="flex-1 p-6 md:p-8 pb-20 md:pb-8">
                     <div className="max-w-7xl mx-auto">
                         <div className="mb-8">
                             <h1 className="text-3xl font-bold text-gray-900 mb-1">Tất cả khách sạn</h1>
-                            <p className="text-gray-600">Tìm thấy <span className="font-semibold text-gray-900">{filteredHotels?.length}</span> khách sạn.</p>
+                            <p className="text-gray-600">Tìm thấy <span className="font-semibold text-gray-900">{total}</span> khách sạn.</p>
                         </div>
 
-                        {filteredHotels?.length > 0 ? (
+                        {hotelsData?.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-                                {filteredHotels.map((hotel) => (
+                                {hotelsData.map((hotel) => (
                                     <HotelCard key={hotel.id} hotel={hotel} onclick={() => router.push(`hotel-detail/${hotel.id}`)} />
                                 ))}
                             </div>
@@ -232,7 +289,7 @@ export default function HotelsPage() {
                             <NoResultsFound onReset={resetFilters} />
                         )}
 
-                        {/* Pagination */}
+                        {/* Pagination (Không đổi) */}
                         {totalPages > 1 && (
                             <div className="flex justify-center mt-12 space-x-2">
                                 <button
@@ -276,4 +333,4 @@ export default function HotelsPage() {
             </div>
         </div>
     );
-}
+}   

@@ -2,19 +2,32 @@ import api from "@/axios/axios"
 import { useQuery } from "@tanstack/react-query"
 
 export const useHandleHotels = (
-    page?: number = 1,
-    limit?:number = 8
+    page: number = 1,
+    limit: number,
+    minPrice?: number,
+    maxPrice?: number,
+    star?: number,
+    amenities?:string[]
 ) => {
     return useQuery({
         queryKey: ['hotels',
             page,
-            limit
+            limit,
+            minPrice,
+            maxPrice,
+            star,
+            amenities
         ],
         queryFn: async () => {
+            console.log(page,limit,minPrice,maxPrice,star,amenities)
             const response = await api.get('hotels', {
                 params: {
                     page,
-                    limit
+                    limit,
+                    minPrice,
+                    maxPrice,
+                    star,
+                    amenities
                 }
             })
             return response.data
