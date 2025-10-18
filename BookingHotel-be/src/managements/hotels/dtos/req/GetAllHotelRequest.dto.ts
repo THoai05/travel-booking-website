@@ -10,4 +10,6 @@ export class GetAllHotelRequest{
     @IsNumberString({},{message:'Phải là số'})
     @IsOptional()
     limit?: string
+
+    
 }
