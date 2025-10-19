@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['images.unsplash.com'],
+    domains: ['images.unsplash.com', 'picsum.photos'],
   },
   async rewrites() {
     return [
@@ -12,4 +12,5 @@ const nextConfig = {
     ]
   },
 };
+
 module.exports = nextConfig;
