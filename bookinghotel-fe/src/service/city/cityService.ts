@@ -1,0 +1,18 @@
+import api from "@/axios/axios"
+import { useQuery } from "@tanstack/react-query"
+
+export const useHandleFilterTitleCity = (title:string) => {
+  
+        return useQuery({
+        queryKey: ['title-city',title],
+        queryFn: async () => {
+            const response = await api.get('city/title-only', {
+                params: {
+                    title
+                }
+            })
+            return response.data.data
+            },
+        staleTime: 1000 * 60 * 20
+    })
+}
