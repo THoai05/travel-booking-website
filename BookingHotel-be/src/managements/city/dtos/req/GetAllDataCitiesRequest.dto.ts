@@ -1,4 +1,4 @@
-import {  IsNumberString, IsOptional, MinLength } from "class-validator"
+import {  IsNumberString, IsOptional, MinLength ,IsString} from "class-validator"
 
 
 export class GetAllDataCitiesRequest{
@@ -10,4 +10,6 @@ export class GetAllDataCitiesRequest{
     @IsNumberString({},{message:'Phải là số'})
     @IsOptional()
     limit?: string
+
+  
 }
