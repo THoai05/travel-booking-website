@@ -50,17 +50,25 @@ export async function POST(req: Request) {
 // 🔹 Hàm GET để lấy profile
 export async function GET(req: Request) {
   try {
-    // Lấy token từ query params hoặc header của frontend
-    const token = req.headers.get("authorization"); // "Bearer <token>"
+    // Lấy token từ header
+    let token = req.headers.get("authorization");
 
-    if (!token) {
-      return NextResponse.json({ message: "Token không tồn tại" }, { status: 401 });
+    // Nếu chỉ nhận được token thô (không có Bearer) thì thêm vào
+    if (token && !token.startsWith("Bearer ")) {
+      token = `Bearer ${token}`;
     }
 
-    // Gọi backend NestJS
+    if (!token) {
+      return NextResponse.json(
+        { message: "Token không tồn tại" },
+        { status: 401 }
+      );
+    }
+
+    // Gọi đến backend NestJS
     const res = await api.get("http://localhost:3636/auth/profile", {
       headers: {
-        Authorization: token, // phải kèm "Bearer "
+        Authorization: token,
       },
     });
 
@@ -73,3 +81,5 @@ export async function GET(req: Request) {
     );
   }
 }
+
+
