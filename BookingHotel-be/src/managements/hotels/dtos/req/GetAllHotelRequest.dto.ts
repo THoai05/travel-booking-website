@@ -52,4 +52,14 @@ export class GetAllHotelRequest {
   })
   amenities?: string[];
 
+  @IsOptional()
+  @IsString()
+  cityTitle:string
+
+  @IsOptional()
+  @IsString()
+  hotelName: string
+  
+ 
+
 }
