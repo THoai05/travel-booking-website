@@ -1,0 +1,3 @@
+interface GetDataCitiesFilterParam{
+    title:string
+}

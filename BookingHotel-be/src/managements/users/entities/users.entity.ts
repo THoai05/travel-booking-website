@@ -1,100 +1,106 @@
 import { Booking } from "src/managements/bookings/entities/bookings.entity";
 import { Notification } from "src/managements/notifications/entities/notification.entity";
 import { Review } from "src/managements/reviews/entities/review.entity";
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  OneToMany,
-} from 'typeorm';
+import { ResetPassword } from 'src/managements/reset_Password/entities/reset_Password.entity';
 
-export enum UserRole {
-  ADMIN = 'admin',
-  CUSTOMER = 'customer',
-}
+  import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    CreateDateColumn,
+    UpdateDateColumn,
+    OneToMany,
+  } from 'typeorm';
 
-export enum Gender {
-  MALE = 'male',
-  FEMALE = 'female',
-  OTHER = 'other',
-}
+  export enum UserRole {
+    ADMIN = 'admin',
+    CUSTOMER = 'customer',
+  }
 
-export enum MembershipLevel {
-  SILVER = 'Silver',
-  GOLD = 'Gold',
-  PLATINUM = 'Platinum',
-}
+  export enum Gender {
+    MALE = 'male',
+    FEMALE = 'female',
+    OTHER = 'other',
+  }
 
-@Entity({ name: 'users' })
-export class User {
-  @PrimaryGeneratedColumn({ name: 'id', type: 'int' })
-  id: number;
+  export enum MembershipLevel {
+    SILVER = 'Silver',
+    GOLD = 'Gold',
+    PLATINUM = 'Platinum',
+  }
 
-  @Column({ name: 'username', type: 'nvarchar', length: 50, nullable: false })
-  username: string;
+  @Entity({ name: 'users' })
+  export class User {
+    @PrimaryGeneratedColumn({ name: 'id', type: 'int' })
+    id: number;
 
-  @Column({ name: 'password', type: 'nvarchar', length: 255, nullable: false })
-  password: string;
+    @Column({ name: 'username', type: 'nvarchar', length: 50, nullable: false })
+    username: string;
 
-  @Column({ name: 'full_name', type: 'nvarchar', length: 100, nullable: false })
-  fullName: string;
+    @Column({ name: 'password', type: 'nvarchar', length: 255, nullable: false })
+    password: string;
 
-  @Column({ name: 'email', type: 'nvarchar', length: 100, unique: true, nullable: false })
-  email: string;
+    @Column({ name: 'full_name', type: 'nvarchar', length: 100, nullable: false })
+    fullName: string;
 
-  @Column({ name: 'phone', type: 'nvarchar', length: 20, nullable: false })
-  phone: string;
+    @Column({ name: 'email', type: 'nvarchar', length: 100, unique: true, nullable: false })
+    email: string;
 
-  @Column({
-    name: 'role',
-    type: 'nvarchar',
-    nullable: false,
-  })
-  role: UserRole;
+    @Column({ name: 'phone', type: 'nvarchar', length: 20, nullable: false })
+    phone: string;
 
-  @Column({ name: 'avatar', type: 'nvarchar', nullable: true })
-  avatar?: string;
+    @Column({
+      name: 'role',
+      type: 'nvarchar',
+      nullable: false,
+    })
+    role: UserRole;
 
-  @Column({ name: 'dob', type: 'date', nullable: true })
-  dob?: Date;
+    @Column({ name: 'avatar', type: 'nvarchar', nullable: true })
+    avatar?: string;
 
-  @Column({
-    name: 'gender',
-    type: 'nvarchar',
-    nullable: true,
-  })
-  gender?: Gender;
+    @Column({ name: 'dob', type: 'date', nullable: true })
+    dob?: Date;
 
-  @Column({
-    name: 'loyalty_points',
-    type: 'int',
-    default: 0,
-    nullable: false,
-  })
-  loyaltyPoints: number;
+    @Column({
+      name: 'gender',
+      type: 'nvarchar',
+      nullable: true,
+    })
+    gender?: Gender;
 
-  @Column({
-    name: 'membership_level',
-    type: 'nvarchar',
-    default: MembershipLevel.SILVER,
-    nullable: false,
-  })
-  membershipLevel: MembershipLevel;
+    @Column({
+      name: 'loyalty_points',
+      type: 'int',
+      default: 0,
+      nullable: false,
+    })
+    loyaltyPoints: number;
 
-  @OneToMany(() => Booking, (booking) => booking.user)
-  bookings: Booking[];
+    @Column({
+      name: 'membership_level',
+      type: 'nvarchar',
+      default: MembershipLevel.SILVER,
+      nullable: false,
+    })
+    membershipLevel: MembershipLevel;
 
-  @OneToMany(() => Review, (review) => review.user)
-  reviews: Review[]
+    
+    @OneToMany(() => ResetPassword, (resetPassword) => resetPassword.user)
+    resetPasswords: ResetPassword[];
 
-  @OneToMany(() => Notification, (notification) => notification.user)
-  notifications: Notification[]
+    @OneToMany(() => Booking, (booking) => booking.user)
+    bookings: Booking[];
 
-  @CreateDateColumn({ name: 'created_at', type: 'datetime' })
-  createdAt: Date;
+    @OneToMany(() => Review, (review) => review.user)
+    reviews: Review[]
+    
+    @OneToMany(() => Notification, (notification) => notification.user)
+    notifications:Notification[]
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'datetime' })
-  updatedAt: Date;
-}
+    @CreateDateColumn({ name: 'created_at', type: 'datetime' })
+    createdAt: Date;
+
+    @UpdateDateColumn({ name: 'updated_at', type: 'datetime' })
+    updatedAt: Date;
+  }
