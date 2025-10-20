@@ -122,7 +122,7 @@ export default function ProfilePage() {
         setLoading(false);
         return;
       }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (!emailRegex.test(email)) {
         setError("Sai định dạng email.");
         setLoading(false);
@@ -244,7 +244,14 @@ export default function ProfilePage() {
           Thông báo lỗi
         </div>
 
-        <FormField label="Tên truy cập" name="username" value={user.username} disabled />
+        <FormField
+          label="Tên truy cập"
+          name="username"
+          value={user.username}
+          disabled
+          className="font-semibold text-gray-800 bg-gray-100"
+        />
+
         <FormField label="Họ và tên" name="fullName" value={form.fullName || ""} onChange={handleChange} />
         <FormField label="Email" name="email" value={form.email || ""} onChange={handleChange} />
         <FormField label="Phone" name="phone" value={form.phone || ""} onChange={handleChange} />
@@ -320,6 +327,7 @@ function FormField({
   onChange,
   disabled,
   type = "text",
+  className = "",
 }: {
   label: string;
   name: string;
@@ -327,6 +335,7 @@ function FormField({
   onChange?: (e: any) => void;
   disabled?: boolean;
   type?: string;
+  className?: string;
 }) {
   return (
     <div className="mb-4">
@@ -337,8 +346,9 @@ function FormField({
         value={value}
         disabled={disabled}
         onChange={onChange}
-        className="border rounded w-full p-2"
+        className={`border rounded w-full p-2 ${disabled ? "bg-gray-100 cursor-not-allowed" : ""} ${className}`}
       />
     </div>
   );
 }
+
