@@ -7,7 +7,9 @@ export const useHandleHotels = (
     minPrice?: number,
     maxPrice?: number,
     star?: number,
-    amenities?:string[]
+    amenities?:string[],
+    cityTitle:string,
+    hotelName:string
 ) => {
     return useQuery({
         queryKey: ['hotels',
@@ -16,7 +18,9 @@ export const useHandleHotels = (
             minPrice,
             maxPrice,
             star,
-            amenities
+            amenities,
+            cityTitle,
+            hotelName
         ],
         queryFn: async () => {
             console.log(page,limit,minPrice,maxPrice,star,amenities)
@@ -27,7 +31,9 @@ export const useHandleHotels = (
                     minPrice,
                     maxPrice,
                     star,
-                    amenities
+                    amenities,
+                    cityTitle,
+                    hotelName
                 }
             })
             return response.data
