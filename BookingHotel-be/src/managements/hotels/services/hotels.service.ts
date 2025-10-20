@@ -4,6 +4,8 @@ import { Hotel } from '../entities/hotel.entity';
 import { Repository } from 'typeorm';
 import { GetAllHotelRequest } from '../dtos/req/GetAllHotelRequest.dto';
 import { GetDataHotelByIdRequest } from '../dtos/req/GetDataHotelByIdRequest.dto';
+import { HotelDetailResponse } from '../dtos/res/HotelDetailResponse.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class HotelsService {
@@ -98,45 +100,22 @@ export class HotelsService {
     async getDataHotelById(id:number): Promise<any>{
         try {
           
-          const queryBuilder = this.hotelRepo
-            .createQueryBuilder('hotels')
-            .leftJoinAndSelect('hotels.amenities', 'amenities')
-            .leftJoinAndSelect('hotels.reviews', 'reviews')
-            .leftJoinAndSelect('reviews.user','user')
-            .leftJoinAndSelect('hotels.rooms', 'rooms')
-            .leftJoinAndSelect('hotels.city', 'city')
-            .where('hotels.id = :id', { id })
-            .select([
-              'hotels.id',
-              'hotels.name',
-              'hotels.description',
-              'hotels.phone',
-              'hotels.checkOutTime',
-              'hotels.checkInTime',
-              'city.id',
-              'city.title',
-              'amenities.name',
-              'amenities.description',
-              'user.username',
-              'reviews.comment',
-              'reviews.rating',
-              'rooms.id',                
-              'rooms.roomType',
-              'rooms.pricePerNight',
-              'rooms.maxGuests',
-            ])
-            .addSelect('AVG(reviews.rating)','avgRating')
+          const hotel = await this.hotelRepo.findOne({
+  where: { id },
+  relations: ['city', 'rooms', 'amenities', 'reviews', 'reviews.user'],
+});
+if (!hotel) throw new NotFoundException('Không tìm thấy khách sạn');
 
-           const { entities, raw } = await queryBuilder.getRawAndEntities();
-           const hotel = entities[0];
+const avgRating =
+  hotel.reviews.length > 0
+    ? hotel.reviews.reduce((acc, r) => acc + r.rating, 0) / hotel.reviews.length
+    : 0;
 
-          if (!hotel) {
-            throw new NotFoundException("Không tìm thấy khách sạn");
-          }
-
-          hotel.avgRating = Number(raw[0].avgRating) || 0;
-
-          return hotel
+const response = plainToInstance(HotelDetailResponse, {
+  ...hotel,
+  avgRating: Number(avgRating.toFixed(2)),
+});
+return response;
         } catch (error) {
             console.log(error)
         } 
