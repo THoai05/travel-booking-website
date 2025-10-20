@@ -78,7 +78,7 @@ const Register = ({ onClose, onSwitchToLogin }: { onClose: () => void; onSwitchT
     }
 
     // 4. Kiểm tra Email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@(?!(?:[0-9]+\.)+[a-zA-Z]{2,})[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
       setError("Sai định dạng email.");
       setLoading(false);
