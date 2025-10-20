@@ -186,6 +186,12 @@ export default function HotelRoomsPage() {
     ['double', 'Double'],
   ]);
 
+  const roomBedMap = new Map<string, string>([
+    ['deluxe', 2],
+    ['single', 1],
+    ['double', 2],
+  ]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 mt-20">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -455,18 +461,18 @@ export default function HotelRoomsPage() {
 
                       <div className="flex items-center gap-2 text-gray-600 mb-4 pb-4 border-b border-cyan-100/50">
                         <MapPin className="w-4 h-4 text-cyan-500 flex-shrink-0" />
-                        <span className="text-sm line-clamp-1">{room.location}</span>
+                        <span className="text-sm line-clamp-1">{selectedCity.title}</span>
                       </div>
 
                       {/* Icons Row */}
                       <div className="flex items-center gap-3 mb-4 pb-4 border-b border-cyan-100/50">
                         <div className="flex items-center gap-1.5 text-gray-600 text-sm">
                           <Users className="w-4 h-4 text-cyan-500" />
-                          <span>{room.guests} khách</span>
+                          <span>{room.maxGuests} khách</span>
                         </div>
                         <div className="flex items-center gap-1.5 text-gray-600 text-sm">
                           <Bed className="w-4 h-4 text-cyan-500" />
-                          <span>{room.beds} giường</span>
+                          <span>{roomBedMap.get(room.roomType)} giường</span>
                         </div>
                         <div className="flex items-center gap-1.5 text-gray-600 text-sm">
                           <Waves className="w-4 h-4 text-cyan-500" />
@@ -495,7 +501,7 @@ export default function HotelRoomsPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="text-2xl font-bold text-transparent bg-gradient-to-r from-cyan-500 to-emerald-500 bg-clip-text">
-                            {formatPrice(room.price)}
+                            {formatPrice(room.pricePerNight)}
                           </div>
                           <p className="text-gray-500 text-sm">mỗi đêm</p>
                         </div>

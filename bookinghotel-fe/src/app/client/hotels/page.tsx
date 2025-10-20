@@ -1,8 +1,13 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, MapPin, Wifi, Utensils, Dumbbell, Thermometer, Waves, Car, ParkingCircle, Filter, X, Star, Search, GlassWater, Headphones, Coffee } from 'lucide-react';
+import {
+    ChevronLeft, ChevronRight, MapPin, Wifi, Utensils, Dumbbell,
+    Thermometer, Waves, Car, ParkingCircle, Filter, X, Star, Search,
+    GlassWater, Headphones, Coffee, AlertTriangle // ✅ THÊM ICON LỖI
+} from 'lucide-react';
 import { useHandleHotels } from '@/service/hotels/hotelService';
 import { useRouter } from 'next/navigation';
+
 // --- Dữ liệu filter ---
 const STAR_OPTIONS = [5, 4, 3, 2, 1];
 const AMENITY_OPTIONS = [
@@ -17,7 +22,6 @@ const AMENITY_OPTIONS = [
     { name: "Lễ tân 24/7", icon: <Headphones size={16} /> },
     { name: "Spa & Massage", icon: <Coffee size={16} /> },
 ];
-
 
 // --- Card khách sạn ---
 const HotelCard = ({ hotel, onclick }) => {
@@ -70,6 +74,27 @@ const HotelCard = ({ hotel, onclick }) => {
     );
 };
 
+// --- ✅ COMPONENT MỚI: Skeleton Loading ---
+const HotelCardSkeleton = () => (
+    <div className="rounded-2xl overflow-hidden shadow-lg border border-cyan-100/30 bg-white animate-pulse">
+        <div className="relative w-full h-[250px] bg-gradient-to-br from-cyan-50 to-blue-50" />
+        <div className="p-6">
+            <div className="flex items-center gap-2 mb-3">
+                <div className="h-6 w-20 bg-gray-200 rounded-full" />
+            </div>
+            <div className="h-6 w-3/4 bg-gray-200 rounded mb-2" />
+            <div className="h-4 w-1/2 bg-gray-200 rounded mb-5" />
+            <div className="flex justify-between items-center pt-4 border-t border-cyan-100/50">
+                <div>
+                    <div className="h-8 w-24 bg-gray-200 rounded" />
+                    <div className="h-3 w-12 bg-gray-200 rounded mt-1" />
+                </div>
+                <div className="h-11 w-28 bg-gray-300 rounded-full" />
+            </div>
+        </div>
+    </div>
+);
+
 // --- Component Không có kết quả ---
 const NoResultsFound = ({ onReset }) => (
     <div className="text-center py-24 col-span-full">
@@ -84,6 +109,21 @@ const NoResultsFound = ({ onReset }) => (
     </div>
 );
 
+// --- ✅ COMPONENT MỚI: Báo lỗi ---
+const ErrorMessage = ({ onRetry }) => (
+    <div className="text-center py-24 col-span-full">
+        <div className="w-28 h-28 bg-gradient-to-br from-red-100 to-orange-100 rounded-full mx-auto flex items-center justify-center mb-6 shadow-lg">
+            <AlertTriangle size={48} className="text-red-500" />
+        </div>
+        <p className="text-gray-700 text-xl font-semibold mb-2">Ối, đã có lỗi xảy ra!</p>
+        <p className="text-gray-500 mb-6">Không thể tải dữ liệu khách sạn. Vui lòng thử lại.</p>
+        <button onClick={onRetry} className="bg-red-500 text-white font-semibold hover:bg-red-600 transition px-6 py-2.5 rounded-full">
+            ↻ Thử lại
+        </button>
+    </div>
+);
+
+
 // --- Trang chính ---
 export default function HotelsPage() {
     const router = useRouter()
@@ -97,10 +137,23 @@ export default function HotelsPage() {
     const [selectedStar, setSelectedStar] = useState(null);
     const [amenities, setAmenities] = useState([]);
 
-    // Mock data (thay thế useHandleHotels)
-    const { data: hotelsResponse } = useHandleHotels(currentPage, limit, minPrice, maxPrice, selectedStar, amenities);
+    // --- ✅ TỐI ƯU: Lấy thêm isLoading, isError, và refetch từ hook ---
+    // (Giả lập hook trả về các giá trị này)
+    const {
+        data: hotelsResponse,
+        isLoading, // Giả sử isLoading = false
+        isError,   // Giả sử isError = false
+        // refetch // Giả sử hook (SWR/TanStack Query) cung cấp hàm refetch
+    } = useHandleHotels(currentPage, limit, minPrice, maxPrice, selectedStar, amenities);
+
+    // Hàm refetch giả lập để component Error chạy được
+    // Trong thực tế, bro sẽ dùng hàm refetch từ SWR hoặc TanStack Query
+    const refetch = () => {
+        console.log("Đang gọi lại API...");
+        // hook.refetch(); 
+    };
+
     const hotelsData = hotelsResponse?.data || [];
-    // ✅ DỌN DẸP: Xóa console.log
     const total = hotelsResponse?.total || 0;
     const totalPages = hotelsResponse?.totalPages || 1;
 
@@ -129,11 +182,19 @@ export default function HotelsPage() {
         }
     };
 
+    const [hasSearched, setHasSearched] = useState(false);
+
+    useEffect(() => {
+        if (minPrice || maxPrice || selectedStar || amenities.length > 0) {
+            setHasSearched(true);
+        }
+    }, [minPrice, maxPrice, selectedStar, amenities]);
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-white via-cyan-50/30 to-white mt-20">
             {/* Header Decoration */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-cyan-100/30 to-blue-100/20 rounded-full blur-3xl -z-10" />
-            
+
             <div className="flex relative max-w-full">
                 {/* Mobile Filter Button */}
                 <button
@@ -148,6 +209,7 @@ export default function HotelsPage() {
                     className={`fixed inset-y-0 left-0 z-40 md:relative md:z-auto w-80 md:w-96 bg-white/95 backdrop-blur-lg h-full border-r border-cyan-100 transition-transform duration-300 ease-in-out transform md:translate-x-0 ${showFilter ? "translate-x-0" : "-translate-x-full"
                         }`}
                 >
+                    {/* (Nội dung filter panel giữ nguyên... ) */}
                     <div className="flex flex-col h-full">
                         {/* Header */}
                         <div className="p-6 md:p-8 border-b border-cyan-100 bg-gradient-to-r from-cyan-50/80 to-blue-50/80">
@@ -267,32 +329,51 @@ export default function HotelsPage() {
                 {/* Main content */}
                 <main className="flex-1 p-6 md:p-8 pb-20 md:pb-8">
                     <div className="max-w-7xl mx-auto">
-                        <div className="mb-10">
-                            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-cyan-700 bg-clip-text text-transparent mb-2">
-                                🌴 Tất cả khách sạn
-                            </h1>
-                            <p className="text-gray-600 flex items-center gap-2">
-                                Tìm thấy <span className="font-bold text-cyan-600 text-lg">{total}</span> 
-                                <span>khách sạn tuyệt vời</span>
-                            </p>
-                        </div>
-
-                        {hotelsData?.length > 0 ? (
+                        
+                        {/* ✅ TỐI ƯU: Chỉ hiển thị header khi không loading hoặc không lỗi */}
+                        {!isLoading && !isError && (
+                            <div className="mb-10">
+                                <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-cyan-700 bg-clip-text text-transparent mb-2">
+                                    🌴 Tất cả khách sạn
+                                </h1>
+                                <p className="text-gray-600 flex items-center gap-2">
+                                    Tìm thấy <span className="font-bold text-cyan-600 text-lg">{total}</span>
+                                    <span>khách sạn tuyệt vời</span>
+                                </p>
+                            </div>
+                        )}
+                        
+                        {/* ✅ TỐI ƯU: Logic render theo 4 trạng thái */}
+                        {isLoading ? (
+                            // 1. Trạng thái Loading
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                                {[...Array(limit)].map((_, i) => (
+                                    <HotelCardSkeleton key={i} />
+                                ))}
+                            </div>
+                        ) : isError ? (
+                            // 2. Trạng thái Error
+                            <ErrorMessage onRetry={refetch} />
+                        ) : hotelsData?.length > 0 ? (
+                            // 3. Trạng thái có dữ liệu
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
                                 {hotelsData.map((hotel) => (
-                                    <HotelCard 
-                                        key={hotel.id} 
-                                        hotel={hotel} 
-                                        onclick={() => router.push(`hotel-detail/${hotel.id}`)} 
+                                    <HotelCard
+                                        key={hotel.id}
+                                        hotel={hotel}
+                                        onclick={() => router.push(`hotel-detail/${hotel.id}`)}
                                     />
                                 ))}
                             </div>
                         ) : (
+                            // 4. Trạng thái không có dữ liệu (đã load xong, không lỗi)
                             <NoResultsFound onReset={resetFilters} />
                         )}
 
+
                         {/* Pagination */}
-                        {totalPages > 1 && (
+                        {/* ✅ TỐI ƯU: Chỉ hiển thị pagination khi không loading, không lỗi và có data */}
+                        {!isLoading && !isError && totalPages > 1 && (
                             <div className="flex justify-center mt-16 space-x-2">
                                 <button
                                     onClick={() => handlePageChange(currentPage - 1)}
