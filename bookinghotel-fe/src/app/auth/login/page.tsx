@@ -109,7 +109,7 @@ const Login = ({ onClose, onSwitchToRegister }: { onClose: () => void; onSwitchT
 
 
       // 🔹 redirect theo role
-      if (profileData.role === "admin") {
+      if (profileData.role === "admin") {     
         router.push("/admin");
       } else if (profileData.role === "customer") {
         router.push("/client");
