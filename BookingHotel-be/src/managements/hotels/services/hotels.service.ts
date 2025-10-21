@@ -22,35 +22,50 @@ export class HotelsService {
     const limit = Number(queryParam.limit) || 10;
     const star = Number(queryParam.star);
     const amenities = queryParam.amenities ? queryParam.amenities.map(a => a.trim()) : [];
-    const { minPrice, maxPrice } = queryParam;
+    const { minPrice, maxPrice ,hotelName,cityTitle} = queryParam;
     const skip = (page - 1) * limit;
 
-    const queryBuilder = this.hotelRepo
-      .createQueryBuilder('hotels')
-      .leftJoin('hotels.reviews', 'reviews')
-      .leftJoin('hotels.city', 'city')
-      .leftJoin('hotels.amenities', 'amenities')
-      .select([
-        'hotels.id',
-        'hotels.name',
-        'hotels.avgPrice',
-        'city.id',
-        'city.title'
-      ])
-      .addSelect('AVG(reviews.rating)', 'avgRating')
-      .addSelect('COUNT(reviews.id)', 'reviewCount')
-      .groupBy('hotels.id')
-      .addGroupBy('hotels.name')
-      .addGroupBy('city.id')
-      .addGroupBy('city.title');
+   const queryBuilder = this.hotelRepo
+    .createQueryBuilder('hotels')
+    .leftJoin('hotels.reviews', 'reviews')
+    .leftJoin('hotels.city', 'city')
+    .leftJoin('hotels.amenities', 'amenities')
+    .select([
+      'hotels.id',
+      'hotels.name',
+      'hotels.avgPrice',
+      'city.id',
+      'city.title'
+    ])
+    .addSelect('AVG(reviews.rating)', 'avgRating')
+    .addSelect('COUNT(reviews.id)', 'reviewCount')
+    .addSelect('GROUP_CONCAT(DISTINCT amenities.name)', 'amenityList')
+    .groupBy('hotels.id')
+    .addGroupBy('city.id');
+    
 
+// (Các filter cũ...)
     if (minPrice) {
-      queryBuilder.andWhere(`hotels.avgPrice >= :minPrice`, { minPrice });
+        queryBuilder.andWhere(`hotels.avgPrice >= :minPrice`, { minPrice });
     }
 
     if (maxPrice) {
-      queryBuilder.andWhere(`hotels.avgPrice <= :maxPrice`, { maxPrice });
+        queryBuilder.andWhere(`hotels.avgPrice <= :maxPrice`, { maxPrice });
     }
+
+    // ✅ --- THÊM FILTER CITY TITLE ---
+    // (Giả sử bro truyền 'cityTitle' từ DTO)
+    if (cityTitle) {
+        queryBuilder.andWhere('city.title = :cityTitle', { cityTitle });
+    }
+
+    // ✅ --- THÊM FILTER HOTEL NAME ---
+    // (Giả sử bro truyền 'hotelName' từ DTO, dùng ILIKE để tìm kiếm không phân biệt hoa thường)
+    if (hotelName) {
+    // MySQL không có ILIKE, dùng LIKE
+    // Dùng LOWER() để đảm bảo tìm kiếm không phân biệt hoa thường
+    queryBuilder.andWhere('LOWER(hotels.name) LIKE LOWER(:hotelName)', { hotelName: `%${hotelName}%` });
+}
 
     if (amenities.length > 0) {
       queryBuilder.andWhere('amenities.name IN (:...amenities)', { amenities });
@@ -84,6 +99,7 @@ export class HotelsService {
         },
         avgRating: item.avgRating ? Number(item.avgRating).toFixed(1) : null,
         reviewCount: Number(item.reviewCount),
+        amenities:item.amenityList
       })),
       total,
       page,
