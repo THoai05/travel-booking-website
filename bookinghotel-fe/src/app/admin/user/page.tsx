@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { getUsers } from "@/service/users/userService";
 
+// 🔹 Interface định nghĩa kiểu dữ liệu User
 interface User {
   id: number;
   username: string;
@@ -14,18 +15,24 @@ interface User {
 }
 
 export default function UserPage() {
+  // 🔹 State lưu danh sách user đầy đủ từ API
   const [allUsers, setAllUsers] = useState<User[]>([]);
+  // 🔹 State hiển thị trạng thái loading
   const [loading, setLoading] = useState(true);
+  // 🔹 Phân trang
   const [page, setPage] = useState(1);
-  const limit = 5;
+  const limit = 5; // số user trên 1 trang
+  // 🔹 Sort
   const [sortBy, setSortBy] = useState<keyof User | "">("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  // 🔹 Tìm kiếm
   const [search, setSearch] = useState("");
 
+  // 🔹 Hàm fetch dữ liệu user từ API
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getUsers();
+      const data = await getUsers(); // gọi API từ userService
       setAllUsers(data);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách user:", error);
@@ -34,12 +41,14 @@ export default function UserPage() {
     }
   }, []);
 
+  // 🔹 useEffect load dữ liệu lần đầu và refresh mỗi 30 giây
   useEffect(() => {
     fetchUsers();
-    const interval = setInterval(fetchUsers, 30000);
-    return () => clearInterval(interval);
+    const interval = setInterval(fetchUsers, 30000); // auto-refresh 30s
+    return () => clearInterval(interval); // clear interval khi unmount
   }, [fetchUsers]);
 
+  // 🔹 Tìm kiếm user theo username, fullName, email
   const filteredUsers = useMemo(() => {
     if (!search) return allUsers;
     const lower = search.toLowerCase();
@@ -51,6 +60,7 @@ export default function UserPage() {
     );
   }, [allUsers, search]);
 
+  // 🔹 Sắp xếp dữ liệu
   const sortedUsers = useMemo(() => {
     if (!sortBy) return filteredUsers;
     return [...filteredUsers].sort((a, b) => {
@@ -68,22 +78,28 @@ export default function UserPage() {
     });
   }, [filteredUsers, sortBy, sortOrder]);
 
+  // 🔹 Chia trang: lấy user hiển thị trên trang hiện tại
   const displayedUsers = useMemo(() => {
     const start = (page - 1) * limit;
     return sortedUsers.slice(start, start + limit);
   }, [sortedUsers, page]);
 
+  // 🔹 Tổng số trang
   const totalPages = Math.ceil(sortedUsers.length / limit);
 
+  // 🔹 Hàm handle sort khi click vào header table
   const handleSort = (column: keyof User) => {
     if (sortBy === column) {
+      // nếu click lại cột đang sort, đổi chiều
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
+      // nếu click cột khác, set cột đó và sort asc
       setSortBy(column);
       setSortOrder("asc");
     }
   };
 
+  // 🔹 Loading indicator
   if (loading) return <div>Đang tải danh sách người dùng...</div>;
 
   return (
@@ -91,19 +107,19 @@ export default function UserPage() {
       <div className="w-full max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6">
         <h1 className="text-2xl font-bold mb-4 text-gray-800">Danh sách User</h1>
 
-        {/* Search */}
+        {/* 🔹 Input tìm kiếm */}
         <input
           type="text"
           placeholder="Tìm kiếm theo username, fullname hoặc email..."
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
-            setPage(1);
+            setPage(1); // khi tìm kiếm, quay về trang 1
           }}
           className="mb-4 p-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
 
-        {/* Desktop Table */}
+        {/* 🔹 Table cho desktop */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full min-w-[700px] text-left border-collapse">
             <thead className="bg-gray-100 sticky top-0">
@@ -173,7 +189,7 @@ export default function UserPage() {
           </table>
         </div>
 
-        {/* Mobile Cards */}
+        {/* 🔹 Mobile Cards */}
         <div className="md:hidden flex flex-col gap-4">
           {displayedUsers.length === 0 ? (
             <div className="text-center text-gray-500">Không có dữ liệu</div>
@@ -183,6 +199,7 @@ export default function UserPage() {
                 key={user.id}
                 className="bg-gray-50 rounded-xl p-4 shadow hover:shadow-md transition-shadow flex items-center gap-4"
               >
+                {/* Avatar */}
                 <div>
                   {user.avatar ? (
                     <img
@@ -196,6 +213,7 @@ export default function UserPage() {
                     </div>
                   )}
                 </div>
+                {/* User info */}
                 <div className="flex-1">
                   <div className="font-bold text-lg">{user.username}</div>
                   <div className="text-gray-600">{user.fullName}</div>
@@ -210,7 +228,7 @@ export default function UserPage() {
           )}
         </div>
 
-        {/* Pagination */}
+        {/* 🔹 Pagination */}
         <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-2">
           <button
             className="px-4 py-2 border rounded-lg bg-white hover:bg-gray-100 disabled:opacity-50"
