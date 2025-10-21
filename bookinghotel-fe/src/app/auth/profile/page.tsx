@@ -191,9 +191,21 @@ export default function ProfilePage() {
       alert("Upload avatar thành công");
       setUser((prev) => (prev ? { ...prev, avatar: data.avatarUrl } : prev));
     } catch (err: any) {
-      console.error(err);
-      alert(err.response?.data?.message || "Upload avatar thất bại");
-    } finally {
+      //console.error("Upload avatar lỗi:", err);
+
+      // Lấy message thật sự từ server  
+      let message = "Upload avatar thất bại";
+      if (err.response?.data) {
+        if (typeof err.response.data === "string") {
+          message = err.response.data;
+        } else if (err.response.data.message) {
+          message = err.response.data.message;
+        }
+      }
+
+      alert(message);
+    }
+    finally {
       setLoading(false);
     }
   };
