@@ -21,7 +21,7 @@ export interface UpdateUserForm {
   fullName?: string;
   email?: string;
   phone?: string;
-  dob?: string;
+  dob?: string; 
   gender?: "male" | "female" | "other";
 }
 
@@ -76,3 +76,11 @@ export const useUploadAvatar = (userId: number) => {
     },
   });
 };
+
+// =================== GET ALL USERS ===================
+export const getUsers = async () => {
+  const response = await api.get("/users");
+  return response.data.users; // ✅ chỉ trả về mảng users
+};
+
+

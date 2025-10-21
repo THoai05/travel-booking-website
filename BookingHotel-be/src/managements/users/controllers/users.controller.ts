@@ -153,4 +153,10 @@ export class UsersController {
     }
   }
 
+  // Lấy tất cả người dùng
+  @Get()
+  async getAllUsers() {
+    const users = await this.usersService.findAll();
+    return { message: 'Danh sách người dùng', users };
+  }
 }

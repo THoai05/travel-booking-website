@@ -8,7 +8,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async findById(id: number): Promise<User | null> {
     return this.usersRepository.findOne({ where: { id } });
@@ -31,5 +31,27 @@ export class UsersService {
     if (!updatedUser) throw new BadRequestException('Không tìm thấy người dùng sau khi cập nhật');
 
     return updatedUser;
+  }
+
+  // ======== LẤY DANH SÁCH NGƯỜI DÙNG ========
+  async findAll(): Promise<User[]> {
+    return this.usersRepository.find({
+      order: { id: 'ASC' }, // sắp xếp theo id tăng dần, tuỳ chỉnh được
+      select: [
+        'id',
+        'username',
+        'fullName',
+        'email',
+        'phone',
+        'dob',
+        'gender',
+        'avatar',
+        'role',
+        'loyaltyPoints',
+        'membershipLevel',
+        'createdAt',
+        'updatedAt',
+      ], // chỉ lấy các field cần thiết
+    });
   }
 }
