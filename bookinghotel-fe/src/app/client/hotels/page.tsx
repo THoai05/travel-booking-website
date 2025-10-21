@@ -35,10 +35,10 @@ const AMENITY_OPTIONS = [
 ];
 
 // ✅ --- COMPONENT HOTELCARD MỚI (THEO STYLE RECOMMENDEDTOURS) ---
+// ✅ --- COMPONENT HOTELCARD MỚI (ĐÃ SỬA LAYOUT FLEXBOX) ---
 const HotelCard = ({ hotel, onclick }) => {
     // Logic label từ card cũ
     const getLabel = () => {
-        // Dùng màu xanh của card mới
         if (hotel.avgRating >= 3.5) return { text: "Top Rated", color: "text-[#3DC262]" };
         return null;
     };
@@ -48,79 +48,76 @@ const HotelCard = ({ hotel, onclick }) => {
         <div
             key={hotel.id}
             onClick={onclick}
-            className="rounded-3xl overflow-hidden shadow-md border border-gray-100 hover:shadow-xl transition-all duration-300 bg-white group cursor-pointer hover:-translate-y-1"
+            className="rounded-3xl overflow-hidden shadow-md border border-gray-100 hover:shadow-xl transition-all duration-300 bg-white group cursor-pointer hover:-translate-y-1 flex flex-col" // ✅ Added flex flex-col here too
         >
-            {/* Ảnh - Dùng lại placeholder gradient từ card cũ */}
-            <div className="relative w-full h-[250px] rounded-t-3xl overflow-hidden bg-gradient-to-br from-cyan-50 to-blue-50">
+            {/* Ảnh */}
+            <div className="relative w-full h-[250px] rounded-t-3xl overflow-hidden bg-gradient-to-br from-cyan-50 to-blue-50 flex-shrink-0"> {/* ✅ Added flex-shrink-0 */}
                 <div className="w-full h-full bg-gradient-to-br from-cyan-200/40 via-blue-100/30 to-cyan-100/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
                     <div className="text-6xl">🏖️</div>
                 </div>
-
-                {/* Nhãn (Label) bên trái - Dùng logic cũ, style mới */}
                 {label && (
                     <span className={`absolute top-4 left-4 bg-white ${label.color} px-3 py-1 text-sm rounded-full font-bold shadow-md`}>
                         {label.text}
                     </span>
                 )}
-
-                {/* Icon yêu thích bên phải (Dùng Lucide) */}
-                <div
-                    className="absolute top-4 right-4 h-9 w-9 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform"
-                >
+                <div className="absolute top-4 right-4 h-9 w-9 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
                     <Heart size={18} className="text-red-500" />
                 </div>
             </div>
 
             {/* Thông tin */}
-            <div className="relative z-10 p-5 -mt-6 bg-white rounded-t-3xl">
-                {/* Rating - Style mới, data cũ */}
-                <span className="absolute -top-4 right-5 flex items-center gap-1
-                 text-yellow-500 text-xs bg-white shadow-md rounded-2xl px-4 py-2 border border-gray-100">
-                    <Star size={14} fill="#facc15" className="text-yellow-400" />
-                    <span className="text-black font-medium">
-                        {hotel.avgRating}
-                        <span className="text-gray-500 font-normal"> ({hotel.reviewCount} đánh giá)</span>
+            {/* ✅ THAY ĐỔI 1: Thêm flex flex-col và min-height */}
+            <div className="relative z-10 p-5 -mt-6 bg-white rounded-t-3xl flex flex-col flex-grow min-h-[210px]"> {/* Adjust min-h if needed */}
+
+                {/* Phần content phía trên (Rating, Name, City, Amenities) */}
+                <div className="flex-grow"> {/* ✅ Wrap content above footer */}
+                    {/* Rating */}
+                    <span className="absolute -top-4 right-5 flex items-center gap-1 text-yellow-500 text-xs bg-white shadow-md rounded-2xl px-4 py-2 border border-gray-100">
+                        <Star size={14} fill="#facc15" className="text-yellow-400" />
+                        <span className="text-black font-medium">
+                            {hotel.avgRating}
+                            <span className="text-gray-500 font-normal"> ({hotel.reviewCount} đánh giá)</span>
+                        </span>
                     </span>
-                </span>
 
-                <div className="flex items-center justify-between mb-2 mt-4">
                     {/* Tên khách sạn */}
-                    <h3 className="font-bold text-lg text-gray-800 line-clamp-1 group-hover:text-cyan-600 transition">
-                        {hotel.name}
-                    </h3>
-                </div>
+                    <div className="flex items-center justify-between mb-2 mt-4">
+                        <h3 className="font-bold text-lg text-gray-800 line-clamp-1 group-hover:text-cyan-600 transition">
+                            {hotel.name}
+                        </h3>
+                    </div>
 
-                {/* Subtitle -> City Title (Yêu cầu của bro) */}
-                <p className="text-gray-600 text-sm flex items-center gap-2">
-                    <MapPin size={14} className="text-cyan-500 flex-shrink-0" />
-                    <span className="line-clamp-1">{hotel.city.title}</span>
-                </p>
+                    {/* City Title */}
+                    <p className="text-gray-600 text-sm flex items-center gap-2 mb-3"> {/* Added mb-3 */}
+                        <MapPin size={14} className="text-cyan-500 flex-shrink-0" />
+                        <span className="line-clamp-1">{hotel.city.title}</span>
+                    </p>
 
-              <div className="flex flex-wrap items-center gap-3 text-gray-600 text-sm mt-3 pt-3 border-t border-gray-100">
-    
-    {/* Kiểm tra xem amenities có phải là string và có nội dung không
-    */}
-    {hotel?.amenities && typeof hotel.amenities === 'string' && hotel.amenities.length > 0 && (
+                    {/* Amenities */}
+                    <div className="flex flex-wrap items-center gap-2 text-gray-600 text-sm pt-3 border-t border-gray-100 min-h-[50px]"> {/* Added min-h */}
+                        {hotel?.amenities && typeof hotel.amenities === 'string' && hotel.amenities.length > 0 ? (
+                            hotel.amenities.split(',').slice(0, 4).map((amenity) => (
+                                <div key={amenity} className="flex items-center gap-1.5 text-xs bg-cyan-50 text-cyan-700 px-2 py-1 rounded-full">
+                                    <Wifi size={14} className="flex-shrink-0" />
+                                    <span>{amenity}</span>
+                                </div>
+                            ))
+                        ) : (
+                            // Optional: Placeholder or leave empty if no amenities
+                            <span className="text-xs text-gray-400 italic">Không có thông tin tiện ích</span>
+                        )}
+                    </div>
+                </div> {/* End Wrapper */}
 
-        // ✅ Tách string thành mảng (array) bằng dấu phẩy
-        hotel.amenities.split(',').slice(0, 4).map((amenity) => (
-            
-            <div key={amenity} className="flex items-center gap-1.5 text-xs bg-cyan-50 text-cyan-700 px-2 py-1 rounded-full">
-                <Wifi size={14} className="flex-shrink-0" />
-                <span>{amenity}</span>
-            </div>
-            
-        ))
-    )}
-</div>
 
-                <div className="flex items-center justify-between mt-4">
+                {/* ✅ THAY ĐỔI 2: Phần Giá và Nút - Thêm mt-auto, pt-4, border-t */}
+                <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
                     {/* Giá */}
                     <p className="font-bold text-xl text-cyan-700">
                         {Number(hotel.avgPrice ?? 0).toLocaleString('vi-VN')}
                         <span className="text-gray-700 text-sm font-normal"> / đêm</span>
                     </p>
-                    {/* Nút (Dùng style gradient thống nhất) */}
+                    {/* Nút */}
                     <button className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm px-5 py-2.5 rounded-full hover:from-cyan-600 hover:to-blue-600 font-semibold shadow-md hover:shadow-lg transition-all active:scale-95">
                         Đặt ngay
                     </button>
