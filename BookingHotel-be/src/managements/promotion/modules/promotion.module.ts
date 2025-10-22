@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Coupon } from '../entities/promotion.entity';
 import { PromotionService } from '../services/promotion.service';
-import { PromotionController } from '../controllers/promotion.controller';
+import { CouponsController } from '../controllers/promotion.controller';
 
 @Module({
-  controllers: [PromotionController],
+  imports: [TypeOrmModule.forFeature([Coupon])],
   providers: [PromotionService],
+  controllers: [CouponsController],
 })
-export class PromotionModule {}
+export class PromotionModule { }
+

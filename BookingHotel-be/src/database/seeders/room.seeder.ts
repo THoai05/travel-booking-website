@@ -19,7 +19,7 @@ export default class RoomSeeder implements Seeder {
 
     const rooms: Room[] = [];
 
-    for (let i = 1; i <= 150; i++) {
+    for (let i = 1; i <=1000; i++) {
       const hotel = hotels[Math.floor(Math.random() * hotels.length)];
       const type = roomTypes[Math.floor(Math.random() * roomTypes.length)];
       const status = roomStatuses[Math.floor(Math.random() * roomStatuses.length)];

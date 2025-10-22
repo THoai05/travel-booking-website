@@ -1,6 +1,8 @@
-  import { Booking } from "src/managements/bookings/entities/bookings.entity";
+import { Booking } from "src/managements/bookings/entities/bookings.entity";
 import { Notification } from "src/managements/notifications/entities/notification.entity";
 import { Review } from "src/managements/reviews/entities/review.entity";
+import { ResetPassword } from 'src/managements/reset_Password/entities/reset_Password.entity';
+
   import {
     Entity,
     PrimaryGeneratedColumn,
@@ -82,6 +84,10 @@ import { Review } from "src/managements/reviews/entities/review.entity";
       nullable: false,
     })
     membershipLevel: MembershipLevel;
+
+    
+    @OneToMany(() => ResetPassword, (resetPassword) => resetPassword.user)
+    resetPasswords: ResetPassword[];
 
     @OneToMany(() => Booking, (booking) => booking.user)
     bookings: Booking[];

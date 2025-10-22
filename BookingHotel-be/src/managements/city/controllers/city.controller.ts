@@ -10,4 +10,9 @@ export class CityController {
   async handleGetAllDataCities(@Query() queryParam:GetAllDataCitiesParams):Promise<any>{
       return await this.cityService.getAllDataCities(queryParam)
   }
+
+  @Get('title-only')
+  async handleGetDataCitiesByTitle(@Query() queryParam: GetDataCitiesFilterParam): Promise<any>{
+    return await this.cityService.getDataCitiesByFilter(queryParam)
+  }
 }

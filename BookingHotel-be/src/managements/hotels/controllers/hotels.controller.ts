@@ -8,7 +8,8 @@ export class HotelsController {
 
   }
   @Get('')
-  async handleGetAllDataHotel(@Query() queryParam:GetAllHotelRequest) {
+  async handleGetAllDataHotel(@Query() queryParam: GetAllHotelRequest) {
+    console.log("o controller" + queryParam.amenities)
     return await this.hotelsService.getAllDataHotel(queryParam)
   }
 
