@@ -5,6 +5,7 @@ import {
   Param,
   Body,
   Post,
+  Delete,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
@@ -158,5 +159,11 @@ export class UsersController {
   async getAllUsers() {
     const users = await this.usersService.findAll();
     return { message: 'Danh sách người dùng', users };
+  }
+
+  // Xóa người dùng ra khỏi danh sách
+  @Delete(':id')
+  async deleteUser(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.deleteUser(id);
   }
 }

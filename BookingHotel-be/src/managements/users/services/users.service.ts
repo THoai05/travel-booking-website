@@ -54,4 +54,17 @@ export class UsersService {
       ], // chỉ lấy các field cần thiết
     });
   }
+
+
+  // ======== XÓA NGƯỜI DÙNG RA KHỎI DANH SÁCH ========
+  async deleteUser(id: number): Promise<{ message: string }> {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new BadRequestException('Người dùng không tồn tại');
+    }
+
+    await this.usersRepository.delete(id);
+    return { message: 'Xóa người dùng thành công' };
+  }
+
 }

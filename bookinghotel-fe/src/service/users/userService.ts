@@ -1,6 +1,7 @@
 import api from "@/axios/axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+
 export interface User {
   id: number;
   username: string;
@@ -21,7 +22,7 @@ export interface UpdateUserForm {
   fullName?: string;
   email?: string;
   phone?: string;
-  dob?: string; 
+  dob?: string;
   gender?: "male" | "female" | "other";
 }
 
@@ -84,3 +85,9 @@ export const getUsers = async () => {
 };
 
 
+// =================== DELETE USER ===================
+// Hàm xóa user thuần
+export const deleteUser = async (userId: number) => {
+  const res = await api.delete(`/users/${userId}`);
+  return res.data;
+};
