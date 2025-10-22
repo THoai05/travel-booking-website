@@ -5,9 +5,62 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { NAV_LINKS } from "../../../../constants/index";
 import Button from "../common/Button";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+interface UserProfile {
+  id: number;
+  username: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  role: string;
+  avatar?: string;
+  dob?: string | null;
+  gender?: string;
+  loyaltyPoints?: number;
+  membershipLevel?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 const Header = () => {
   const pathname = usePathname();
+  const router = useRouter();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  const handleClick = () => {
+    router.push("/auth/profile"); // chuyển hướng khi click
+  };
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const tokenData = localStorage.getItem("token");
+        if (!tokenData) throw new Error("Không tìm thấy token trong localStorage");
+
+        const parsed = JSON.parse(tokenData);
+        const token = parsed.token;
+
+        const res = await fetch("/api/auth", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) throw new Error("Lỗi khi lấy profile");
+        const data = await res.json();
+        setProfile(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-white border-b border-gray-200 
@@ -71,24 +124,26 @@ const Header = () => {
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div
+            className="flex gap-2 cursor-pointer items-center"
+            onClick={handleClick}
+          >
             <div className="avatar">
-              <Image 
-              src="/avatar.png"
-                alt="logo"
+              <Image
+                src={profile?.avatar || "/avatar.png"}
+                alt={profile?.username || "avatar"}
                 width={40}
                 height={33}
-                className=""
+                className="rounded-full"
               />
             </div>
-            <div className="">
-              <p className="text-[14px]">Nhóm K</p>
-              <Image 
-              src="/vip.png"
-                alt="logo"
+            <div>
+              <p className="text-[14px]">{profile?.fullName || "Nhóm K"}</p>
+              <Image
+                src="/vip.png"
+                alt="membership level"
                 width={60}
                 height={12}
-                className=""
               />
             </div>
           </div>
