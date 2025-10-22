@@ -24,7 +24,8 @@ const poppins = Poppins({
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi" className={`${inter.variable} ${poppins.variable}`}>
+    <html lang="vi" suppressHydrationWarning
+     className={`${inter.variable} ${poppins.variable}`}>
       <head>
         {/* Font Awesome CDN */}
         <link
