@@ -48,15 +48,15 @@ export class PostsService {
   }
 
   async findAll() {
-  const posts = await this.postRepo.find({
-    relations: ['author'],
-    order: { created_at: 'DESC' },
-  });
+    const posts = await this.postRepo.find({
+      relations: ['author'],
+      order: { created_at: 'DESC' },
+    });
 
-  return posts.map((post) => new PostResponseDto(post));
-}
+    return posts.map((post) => new PostResponseDto(post));
+  }
 
- async findOne(id: number) {
+  async findOne(id: number) {
     const post = await this.postRepo.findOne({
       where: { id },
       relations: ['author'],
@@ -68,14 +68,34 @@ export class PostsService {
   }
 
   async update(id: number, updatePostDto: UpdatePostDto) {
-    const post = await this.postRepo.findOne({ where: { id } });
-    if (!post) throw new NotFoundException('Không tìm thấy bài viết');
+    const post = await this.postRepo.findOne({
+      where: { id },
+      relations: ['author'],
+    });
 
+    if (!post) {
+      throw new NotFoundException('Không tìm thấy bài viết');
+    }
+    // Kiểm tra slug trùng nếu có thay đổi slug
+    if (updatePostDto.slug) {
+      const existingSlug = await this.postRepo.findOne({
+        where: { slug: updatePostDto.slug },
+      });
+
+      if (existingSlug && existingSlug.id !== id) {
+        throw new BadRequestException('Slug đã tồn tại');
+      }
+    }
+    
     Object.assign(post, updatePostDto);
     await this.postRepo.save(post);
 
-    return { message: 'Cập nhật thành công', post };
+    return {
+      message: 'Cập nhật bài viết thành công',
+      post: new PostResponseDto(post),
+    };
   }
+
 
   async remove(id: number) {
     const result = await this.postRepo.delete(id);
