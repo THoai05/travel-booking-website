@@ -4,16 +4,28 @@ import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AccommodationCard     from './card/AccommodationCard';
 
-interface SimilarAccommodationsProps {
-  accommodations: Accommodation[];
-  city: string; // Tên thành phố, ví dụ "Ngu Hanh Son District"
-  totalCount: number; // Tổng số khách sạn, ví dụ 716
+export interface Accommodations {
+    id: number,
+    name: string,
+    address: string,
+    avgPrice: number,
+    phone: string,
+    city: {
+       id: number,
+       title: string
+        },
+    avgRating: number,
+    reviewCount: number
 }
 
+interface SimilarAccommodationsProps{
+  city:string
+  data:Accommodations[]
+  
+}
 export default function SimilarAccommodations({
-  accommodations,
   city,
-  totalCount,
+  data
 }: SimilarAccommodationsProps) {
   return (
     // Nền xanh nhạt y như hình
@@ -22,20 +34,12 @@ export default function SimilarAccommodations({
       {/* === Header: Tiêu đề + Dropdown === */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
         <div>
-          <h2 className="text-2xl font-bold">Other Accommodations You Might Like</h2>
+          <h2 className="text-2xl font-bold">Có thể bạn muốn biết</h2>
           <p className="text-gray-600">
-            Similar accommodations where other guests were also staying in
+           Những khách sạn mà các khách hàng khác đã trải nghiệm
           </p>
         </div>
         
-        {/* Dropdown (Giả lập) */}
-        <div className="text-sm mt-2 md:mt-0">
-          <span className="text-gray-600">Price Display</span>
-          <Button variant="ghost" className="text-blue-600 p-1">
-            Per room per night (excl. taxe...
-            <ChevronDown className="w-4 h-4" />
-          </Button>
-        </div>
       </div>
 
       {/* === List Khách sạn Scroll Ngang === */}
@@ -47,7 +51,7 @@ export default function SimilarAccommodations({
         
         {/* Container scroll */}
         <div className="flex-1 flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-          {accommodations.map((acc) => (
+          {data?.map((acc) => (
             <AccommodationCard key={acc.id} accommodation={acc} />
           ))}
         </div>
@@ -60,15 +64,9 @@ export default function SimilarAccommodations({
 
       {/* === Link "See Other" ở cuối === */}
       <div className="flex justify-center items-center gap-2 mt-4">
-        <Button variant="ghost" size="icon" className="rounded-full bg-white shadow">
-          <ChevronLeft className="w-5 h-5" />
-        </Button>
-        <a href="#" className="text-blue-600 font-medium hover:underline">
-          See Other Accommodations in {city} ({totalCount})
+        <a href="#" className="text-sky-600 font-medium hover:underline">
+          Tìm hiểu thêm về  {city}
         </a>
-        <Button variant="ghost" size="icon" className="rounded-full bg-white shadow">
-          <ChevronRight className="w-5 h-5" />
-        </Button>
       </div>
     </section>
   );
