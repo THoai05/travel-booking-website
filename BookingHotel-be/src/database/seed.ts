@@ -13,13 +13,15 @@ import CouponSeeder from './seeders/coupon.seeder';
 import NotificationSeeder from './seeders/notifications.seeder';
 import AmenitySeeder from './seeders/amenities.seeder';
 import HotelAmenitiesSeeder from './seeders/hotel_amenities.seeder';
+import NearSpotSeeder from './seeders/nearSpot.seeder';
+import HotelImageSeeder from './seeders/imagesHotel.seeder';
 
 async function run() {
   await AppDataSource.initialize();
   console.log('🚀 Database connected');
 
   await runSeeders(AppDataSource, {
-    seeds: [CitySeeder,HotelSeeder,RoomSeeder,UserSeeder,BookingSeeder,PaymentSeeder,ReviewSeeder,CouponSeeder,NotificationSeeder,AmenitySeeder,HotelAmenitiesSeeder],
+    seeds: [CitySeeder,HotelSeeder,RoomSeeder,UserSeeder,BookingSeeder,PaymentSeeder,ReviewSeeder,CouponSeeder,NotificationSeeder,AmenitySeeder,HotelAmenitiesSeeder,NearSpotSeeder,HotelImageSeeder],
   });
 
   await AppDataSource.destroy();

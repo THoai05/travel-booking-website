@@ -123,13 +123,6 @@ export default function RoomCard({ room }: RoomCardProps) {
                   <span>{amenity}</span>
                 </div>
               ))}
-
-              <Button
-                variant="link"
-                className="text-blue-600 px-0 h-auto text-sm hover:underline"
-              >
-                See Room Details
-              </Button>
             </div>
           </div>
 
@@ -218,7 +211,7 @@ export default function RoomCard({ room }: RoomCardProps) {
 
                     <p className="text-xs text-gray-500">Exclude taxes & fees</p>
 
-                    <Button className="w-full md:w-24 bg-blue-600 hover:bg-blue-700 text-white mt-2">
+                    <Button className="w-full md:w-24 bg-sky-500 hover:bg-sky-700 text-white mt-2">
                       Choose
                     </Button>
                   </div>

@@ -4,12 +4,18 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 import { ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 import { Button } from './ui/button';
 
+interface Images {
+  url: string
+  description:string
+  isMain:boolean
+}
+
 interface ImageGalleryProps {
-  images: string[];
+  images: Images[]
 }
 
 export default function ImageGallery({ images }: ImageGalleryProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(2);
 
   const nextImage = () => {
     setCurrentIndex((prev) => (prev + 1) % images.length);
@@ -18,6 +24,7 @@ export default function ImageGallery({ images }: ImageGalleryProps) {
   const prevImage = () => {
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
   };
+  console.log(images)
 
   return (
     <div
@@ -28,13 +35,11 @@ export default function ImageGallery({ images }: ImageGalleryProps) {
         className="md:col-span-2 md:row-span-2 relative overflow-hidden rounded-lg group"
       >
         <ImageWithFallback
-          src={images[currentIndex]}
+          src={images?images[currentIndex].url:"abc.jpg"}
           alt="Property main view"
           className="w-full h-full object-cover"
         />
-         <div className="absolute bottom-12 left-4 bg-black/60 text-white px-3 py-1 rounded-lg text-sm font-medium">
-          Hotel view
-        </div>
+        
         {/* Mấy cái nút điều khiển tui giữ nguyên */}
         <Button
           variant="ghost"
@@ -59,9 +64,7 @@ export default function ImageGallery({ images }: ImageGalleryProps) {
         >
           <Maximize2 className="w-5 h-5" />
         </Button>
-        <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-          {currentIndex + 1} / {images.length}
-        </div>
+        
       </div>
 
       {/* === Thumbnail Grid (2 cột x 4 hàng) === */}
@@ -70,7 +73,7 @@ export default function ImageGallery({ images }: ImageGalleryProps) {
   className="hidden md:grid md:col-span-2 md:row-span-2 md:grid-cols-2 md:grid-rows-4 gap-2"
 >
   {/* CHANGED: slice(0, 8) để lấy 8 ảnh cho lưới 2x4 */}
-  {images.slice(0, 8).map((image, index) => (
+  {images?.map((image, index) => (
     <div
       key={index}
       className={`relative overflow-hidden rounded-lg cursor-pointer ${
@@ -79,7 +82,7 @@ export default function ImageGallery({ images }: ImageGalleryProps) {
       onClick={() => setCurrentIndex(index)}
     >
       <ImageWithFallback
-        src={image}
+        src={image.url}
         alt={`Property view ${index + 1}`}
         className="w-full h-full object-cover hover:scale-110 transition-transform"
       />
@@ -87,16 +90,11 @@ export default function ImageGallery({ images }: ImageGalleryProps) {
       {/* 🆕 Thêm text “Hotel View” nằm giữa hình */}
       <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
         <span className="text-white text-sm font-medium tracking-wide">
-          Hotel View
+          {image.description}
         </span>
       </div>
 
-      {/* CHANGED: Logic "+ more" cho ảnh cuối cùng (thứ 8, index là 7) */}
-      {index === 7 && images.length > 8 && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-sm font-medium">
-          +{images.length - 8} more
-        </div>
-      )}
+     
     </div>
   ))}
 </div>

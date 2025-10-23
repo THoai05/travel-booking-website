@@ -8,6 +8,7 @@ interface PropertyHeaderProps {
 }
 
 export default function PropertyHeader({ property }: PropertyHeaderProps) {
+  console.log(property)
   return (
     <div className="py-6 border-b border-gray-100">
       {/* Row 1: Name + Actions */}
@@ -15,21 +16,21 @@ export default function PropertyHeader({ property }: PropertyHeaderProps) {
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-800 leading-tight">
-              {property.name}
+              {property?.name||"Bluevera"}
             </h1>
             <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-sm">
-              {property.type}
+              {Math.floor(property?.summaryReview?.avgRating) +" stars - Hotel" || "Bluevera"}
             </Badge>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-gray-600 text-sm">
             <div className="flex items-center gap-1">
               <MapPin className="w-4 h-4 text-sky-500" />
-              <span>{property.location}</span>
+              <span>{property?.city.title||"city title"}</span>
             </div>
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-              <span className="font-medium text-gray-800">{property.rating.toFixed(1)}</span>
-              <span className="text-gray-500">({property.reviewCount} đánh giá)</span>
+              <span className="font-medium text-gray-800">{Number(property?.summaryReview.avgRating||0).toFixed(1)||0}</span>
+              <span className="text-gray-500">({property?.summaryReview.reviewCount||0} đánh giá)</span>
             </div>
           </div>
         </div>
@@ -56,9 +57,9 @@ export default function PropertyHeader({ property }: PropertyHeaderProps) {
       <div className="flex items-center justify-between flex-wrap gap-3 text-sm text-gray-600">
         <div className="flex items-center gap-2">
           <span className="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 font-medium">
-            ⭐ {property.rating.toFixed(1)} / 5.0
+            ⭐ {Number(property?.summaryReview.avgRating||0).toFixed(1)} / 5.0
           </span>
-          <span className="text-gray-500">Dựa trên {property.reviewCount} đánh giá</span>
+          <span className="text-gray-500">Dựa trên {property?.summaryReview.reviewCount||0} đánh giá</span>
         </div>
         <div className="text-sky-700 font-semibold cursor-pointer hover:underline">
           Xem bản đồ
