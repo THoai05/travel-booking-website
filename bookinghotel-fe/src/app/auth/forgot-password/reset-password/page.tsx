@@ -1,61 +1,59 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import api from "@/axios/axios";
 
 export default function ResetPasswordPage() {
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const router = useRouter();
+  const token = searchParams.get("token") || "";
 
-  const handleReset = async () => {
-    if (!token) return alert("Token không hợp lệ");
-    if (password.length < 8) return alert("Mật khẩu phải từ 8 ký tự");
-    if (password !== confirm) return alert("Mật khẩu không khớp");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-    setLoading(true);
+  const handleResetPassword = async () => {
+    if (password !== confirmPassword) return alert("Mật khẩu xác nhận không khớp");
     try {
-      const res = await api.post("/reset-password/reset", { token, newPassword: password });
-      alert(res.data.message || "Đặt lại mật khẩu thành công 🎉");
-      router.push("/auth/login");
+      setLoading(true);
+      await api.post("/reset-password/reset", { token, newPassword: password });
+      alert("Mật khẩu đã được đặt lại thành công!");
+      router.push("/");
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.message || "Đặt lại mật khẩu thất bại");
+      alert(err.response?.data?.message || "Có lỗi khi đặt lại mật khẩu");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 border rounded-lg shadow">
-      <h2 className="text-xl font-semibold mb-4">Đặt lại mật khẩu</h2>
-
-      <input
-        type="password"
-        placeholder="Mật khẩu mới"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full border p-2 rounded mb-3"
-      />
-      <input
-        type="password"
-        placeholder="Xác nhận mật khẩu"
-        value={confirm}
-        onChange={(e) => setConfirm(e.target.value)}
-        className="w-full border p-2 rounded mb-3"
-      />
-
-      <button
-        onClick={handleReset}
-        disabled={loading}
-        className="w-full bg-red-500 text-white py-2 rounded-lg"
-      >
-        {loading ? "Đang lưu..." : "Lưu mật khẩu mới"}
-      </button>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+        <h2 className="text-xl font-semibold mb-4">Đặt lại mật khẩu</h2>
+        <input
+          type="password"
+          placeholder="Mật khẩu mới"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full border rounded-md p-2 mb-4"
+        />
+        <input
+          type="password"
+          placeholder="Xác nhận mật khẩu"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          className="w-full border rounded-md p-2 mb-4"
+        />
+        <button
+          onClick={handleResetPassword}
+          disabled={loading || !password || !confirmPassword}
+          className="w-full bg-blue-600 text-white py-2 rounded-md"
+        >
+          {loading ? "Đang đặt lại..." : "Đặt lại mật khẩu"}
+        </button>
+      </div>
     </div>
   );
 }

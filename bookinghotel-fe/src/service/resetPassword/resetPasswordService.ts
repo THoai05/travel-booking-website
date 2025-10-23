@@ -1,5 +1,4 @@
 import api from "@/axios/axios";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export interface ResetPasswordPayload {
   token: string; // token link hoặc OTP
@@ -7,31 +6,51 @@ export interface ResetPasswordPayload {
 }
 
 // =================== Gửi link ===================
-export const useSendResetLink = () => {
-  return useMutation({
-    mutationFn: async (email: string) => {
-      const res = await api.post("/reset-password/send-link", { email });
-      return res.data;
-    },
-  });
+export const sendResetLink = async (email: string) => {
+  try {
+    const res = await api.post("/reset-password/request", {
+      method: "email_link",
+      value: email,
+    });
+    return res.data; // { message, token }
+  } catch (err: any) {
+    throw err.response?.data || { message: "Gửi link thất bại" };
+  }
 };
 
 // =================== Gửi OTP ===================
-export const useSendOTP = () => {
-  return useMutation({
-    mutationFn: async (email: string) => {
-      const res = await api.post("/reset-password/send-otp", { email });
-      return res.data;
-    },
-  });
+export const sendOTP = async (email: string) => {
+  try {
+    const res = await api.post("/reset-password/request", {
+      method: "email_code",
+      value: email,
+    });
+    return res.data; // { message }
+  } catch (err: any) {
+    throw err.response?.data || { message: "Gửi OTP thất bại" };
+  }
+};
+
+// =================== Xác thực OTP ===================
+export const verifyOTP = async (email: string, code: string) => {
+  try {
+    const res = await api.post("/reset-password/verify", {
+      method: "email_code",
+      value: email,
+      code,
+    });
+    return res.data; // { ok, token }
+  } catch (err: any) {
+    throw err.response?.data || { message: "OTP không hợp lệ hoặc hết hạn" };
+  }
 };
 
 // =================== Reset mật khẩu ===================
-export const useResetPassword = () => {
-  return useMutation({
-    mutationFn: async (payload: ResetPasswordPayload) => {
-      const res = await api.post("/reset-password/reset", payload);
-      return res.data;
-    },
-  });
+export const resetPassword = async (token: string, newPassword: string) => {
+  try {
+    const res = await api.post(`/reset-password/reset/${token}`, { password: newPassword });
+    return res.data; // { message }
+  } catch (err: any) {
+    throw err.response?.data || { message: "Đặt lại mật khẩu thất bại" };
+  }
 };

@@ -1,52 +1,35 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { ResetPasswordService } from '../services/reset_password.service';
+import { User } from 'src/managements/users/entities/users.entity';
 
 @Controller('reset-password')
 export class ResetPasswordController {
-  constructor(private readonly resetPasswordService: ResetPasswordService) { }
+  constructor(private readonly resetService: ResetPasswordService) {}
 
-  // Gửi link reset
+  // Tạo token cho link reset
   @Post('send-link')
-  async sendResetLink(@Body('email') email: string) {
-    const user = await this.resetPasswordService.findUserByEmail(email);
-    if (!user) throw new Error('User not found');
-
-    const token = await this.resetPasswordService.createResetToken(user.id);
-    const link = `http://localhost:3000/reset-password?token=${token}`;
-    await this.resetPasswordService.sendEmail(
-      user.email,
-      'Reset Password',
-      `Click link to reset password: ${link}`,
-    );
-
-    return { message: 'Reset link sent' };
+  async sendLink(@Body('email') email: string) {
+    const user: User = await this.resetService.findUserByEmail(email);
+    return this.resetService.sendResetLink(user);
   }
 
-  // Gửi OTP 6 số
+  // Tạo OTP
   @Post('send-otp')
-  async sendOTP(@Body('email') email: string) {
-    const user = await this.resetPasswordService.findUserByEmail(email);
-    if (!user) throw new Error('User not found');
-
-    const otp = await this.resetPasswordService.createOTP(user.id);
-    await this.resetPasswordService.sendEmail(
-      user.email,
-      'OTP for Reset Password',
-      `Your OTP code is: ${otp}`,
-    );
-
-    return { message: 'OTP sent' };
+  async sendOtp(@Body('email') email: string) {
+    const user: User = await this.resetService.findUserByEmail(email);
+    return this.resetService.sendOTP(user);
   }
 
-  // Reset mật khẩu
+  // Xác thực OTP
+  @Post('verify-otp')
+  verifyOtp(@Body() body: { email: string; code: string }) {
+    this.resetService.verifyOtp(body.email, body.code);
+    return { ok: true };
+  }
+
+  // Reset password
   @Post('reset')
-  async resetPassword(
-    @Body('token') token: string,
-    @Body('newPassword') newPassword: string,
-  ) {
-    await this.resetPasswordService.resetPassword(token, newPassword);
-    return { message: 'Password updated successfully' };
+  async resetPassword(@Body() body: { token: string; newPassword: string }) {
+    return this.resetService.resetPassword(body.token, body.newPassword);
   }
-
-
 }
