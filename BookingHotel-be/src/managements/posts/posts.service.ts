@@ -56,13 +56,15 @@ export class PostsService {
   return posts.map((post) => new PostResponseDto(post));
 }
 
-  async findOne(id: number) {
+ async findOne(id: number) {
     const post = await this.postRepo.findOne({
       where: { id },
       relations: ['author'],
     });
+
     if (!post) throw new NotFoundException('Không tìm thấy bài viết');
-    return post;
+
+    return new PostResponseDto(post);
   }
 
   async update(id: number, updatePostDto: UpdatePostDto) {
