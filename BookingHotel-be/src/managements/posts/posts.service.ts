@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
 import { User } from 'src/managements/users/entities/users.entity';
+import { PostResponseDto } from './dtos/post-response.dto';
 
 @Injectable()
 export class PostsService {
@@ -19,8 +20,16 @@ export class PostsService {
   async create(createPostDto: CreatePostDto) {
     const { title, content, author_id, image, slug } = createPostDto;
 
+    // Kiểm tra slug trùng
+    const existingSlug = await this.postRepo.findOne({ where: { slug } });
+    if (existingSlug) {
+      throw new BadRequestException('Slug đã tồn tại, vui lòng chọn slug khác.');
+    }
+
     const author = await this.userRepo.findOne({ where: { id: author_id } });
-    if (!author) throw new NotFoundException('Không tìm thấy tác giả');
+    if (!author) {
+      throw new NotFoundException('Không tìm thấy tác giả');
+    }
 
     const newPost = this.postRepo.create({
       title,
@@ -31,6 +40,7 @@ export class PostsService {
     });
 
     await this.postRepo.save(newPost);
+
     return {
       message: 'Tạo bài viết thành công',
       post: newPost,
@@ -38,11 +48,13 @@ export class PostsService {
   }
 
   async findAll() {
-    return this.postRepo.find({
-      relations: ['author'], // load luôn user author
-      order: { created_at: 'DESC' },
-    });
-  }
+  const posts = await this.postRepo.find({
+    relations: ['author'],
+    order: { created_at: 'DESC' },
+  });
+
+  return posts.map((post) => new PostResponseDto(post));
+}
 
   async findOne(id: number) {
     const post = await this.postRepo.findOne({
