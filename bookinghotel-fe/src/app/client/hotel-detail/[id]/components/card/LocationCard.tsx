@@ -30,7 +30,6 @@ export default function LocationCard({
       {/* === Header === */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-          <MapPin className="w-5 h-5 text-sky-500" />
           Khu vực xung quanh
         </h3>
 
@@ -59,13 +58,13 @@ export default function LocationCard({
           className="bg-gradient-to-r from-blue-100 to-sky-100 text-sky-700 font-medium shadow-sm"
         >
           <Star className="w-4 h-4 mr-2 fill-yellow-400 text-yellow-400" />
-          {tag}
+          Địa điểm lận cận
         </Badge>
       </div>
 
       {/* === Danh sách địa điểm lân cận === */}
       <div className="space-y-3 divide-y divide-sky-100">
-        {nearbyPlaces.map((place, idx) => (
+        {nearbyPlaces?.map((place, idx) => (
           <div
             key={idx}
             className="flex items-center justify-between py-2 first:pt-0 last:pb-0"
@@ -74,7 +73,7 @@ export default function LocationCard({
               <MapPin className="w-4 h-4 text-sky-500" />
               <span className="text-gray-800">{place.name}</span>
             </div>
-            <span className="text-sm text-gray-600">{place.distance}</span>
+            <span className="text-sm text-gray-600">{place.distance} Km </span>
           </div>
         ))}
       </div>

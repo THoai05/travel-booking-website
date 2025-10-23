@@ -4,11 +4,16 @@ import { City } from '../entities/city.entity';
 import { Repository } from 'typeorm';
 import { GetAllDataCitiesRequest } from '../dtos/req/GetAllDataCitiesRequest.dto';
 import { GetDataCitiesFilterRequest } from '../dtos/req/GetDataCitiesFilterRequest.dto';
+import { NearSpot } from '../entities/nearSpot.entity';
 
 @Injectable()
 export class CityService {
-    constructor(@InjectRepository(City)
-                private readonly cityRepo:Repository<City>) {
+    constructor(
+        @InjectRepository(City)
+        private readonly cityRepo: Repository<City>,
+        @InjectRepository(NearSpot)
+        private readonly nearSpotRepo:Repository<NearSpot>
+    ) {
     }
 
     async getAllDataCities(queryParam:GetAllDataCitiesRequest):Promise<any> {
@@ -74,5 +79,16 @@ export class CityService {
         } catch (error) {
             throw error
        }
+    }
+
+    async findNearSpotByCityId(cityId: number):Promise<any> {
+        const dataCityNearSpots = await this.nearSpotRepo.find({
+            where: {
+                city: {
+                    id:cityId
+                }
+            }
+        })
+        return dataCityNearSpots
     }
 }

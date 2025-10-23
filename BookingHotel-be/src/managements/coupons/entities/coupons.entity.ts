@@ -21,7 +21,7 @@ export class Coupon {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 50, unique: true })
+  @Column({ length: 50})
   code: string;
 
   @Column({ type: 'enum', enum: DiscountType })

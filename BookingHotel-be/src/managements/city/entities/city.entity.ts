@@ -1,4 +1,5 @@
 import { Hotel } from "src/managements/hotels/entities/hotel.entity";
+import { NearSpot } from "./nearSpot.entity";
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
@@ -25,7 +26,10 @@ export class City{
     description: string
     
     @OneToMany(() => Hotel, (hotels) => hotels.city)
-    hotels:Hotel[]
+    hotels: Hotel[]
+    
+    @OneToMany(() => NearSpot, (nearSpots) => nearSpots.city)
+    nearSpots: NearSpot[]
 
     @Column({
         type: 'bit',

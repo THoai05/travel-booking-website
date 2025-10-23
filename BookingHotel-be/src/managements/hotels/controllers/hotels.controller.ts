@@ -15,9 +15,15 @@ export class HotelsController {
 
   @Get(':id')
   async handleGetDataHotelById(@Param('id',ParseIntPipe) id:number) {
-    const hotel = await this.hotelsService.getDataHotelById(id)
+    const hotel = await this.hotelsService.getHotelDataById(id)
     return {
       data:hotel
     }
+  }
+
+  @Get(':id/similar')
+  async handleGetSimilarHotelByCityId(@Param('id', ParseIntPipe) id: number) {
+    const hotels = await this.hotelsService.getSimilarHotelByCityId(id)
+    return hotels
   }
 }

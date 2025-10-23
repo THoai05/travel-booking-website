@@ -5,14 +5,17 @@ import { ImageWithFallback } from '../figma/ImageWithFallback'; // Dùng lại c
 
 // Định nghĩa kiểu dữ liệu cho 1 khách sạn
 export interface Accommodation {
-  id: string;
-  imageUrl: string;
-  name: string;
-  rating: number;
-  reviewCount: number;
-  location: string;
-  originalPrice: number;
-  discountedPrice: number;
+ id: number,
+    name: string,
+    address: string,
+    avgPrice: number,
+    phone: string,
+    city: {
+       id: number,
+       title: string
+        },
+    avgRating: number,
+    reviewCount: number
 }
 
 interface AccommodationCardProps {
@@ -25,41 +28,41 @@ export default function AccommodationCard({ accommodation }: AccommodationCardPr
     <div className="flex-shrink-0 w-64 bg-white shadow rounded-lg overflow-hidden">
       <div className="h-40 relative">
         <ImageWithFallback
-          src={accommodation.imageUrl}
-          alt={accommodation.name}
+          src={accommodation?.imageUrl|| "abc.jpg"}
+          alt={accommodation?.name || "Bluevera"}
           className="w-full h-full object-cover"
         />
       </div>
       
       <div className="p-3">
-        <h3 className="font-bold text-gray-800 truncate" title={accommodation.name}>
-          {accommodation.name}
+        <h3 className="font-bold text-gray-800 truncate" title={accommodation?.name}>
+          {accommodation?.name || "Bluevera"}
         </h3>
         
         {/* Rating */}
         <div className="flex items-center gap-1 text-sm mt-1">
           <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
           <span className="font-medium text-gray-700">
-            {accommodation.rating.toFixed(1)}
+            {Number(accommodation?.avgRating.toFixed(1)) * 2 || 0}
           </span>
           <span className="text-gray-500">
-            / 10 ({accommodation.reviewCount})
+            / 10 ({accommodation?.reviewCount || 0})
           </span>
         </div>
         
         {/* Location */}
         <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-          <MapPin className="w-4 h-4" />
-          <span>{accommodation.location}</span>
+          <MapPin className="w-4 h-4 text-sky-600" />
+          <span>{accommodation?.city.title || "Bluevera"}</span>
         </div>
         
         {/* Prices */}
         <div className="mt-3 text-right">
           <span className="text-sm text-gray-500 line-through">
-            {accommodation.originalPrice.toLocaleString('vi-VN')} VND
+            10,000,000 VND
           </span>
           <p className="text-lg font-bold text-orange-600">
-            {accommodation.discountedPrice.toLocaleString('vi-VN')} VND
+            {Number(accommodation?.avgPrice ?? 0).toLocaleString('vi-VN')} VND
           </p>
           <span className="text-xs text-gray-500">
             Exclude taxes & fees
