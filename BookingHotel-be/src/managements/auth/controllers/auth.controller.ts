@@ -11,7 +11,6 @@ export class AuthController {
     return this.authService.register(data);
   }
 
-  // ✅ Thêm login
   @Post('login')
   async login(@Body() body: { usernameOrEmail: string; password: string }) {
     const { usernameOrEmail, password } = body;
@@ -27,6 +26,4 @@ export class AuthController {
 	  // Gọi hàm getProfile trong service để đọc thông tin đầy đủ từ DB
 	  return this.authService.getProfile(userId);
 	}
-  
-  
 }

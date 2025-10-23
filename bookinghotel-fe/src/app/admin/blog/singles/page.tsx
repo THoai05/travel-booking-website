@@ -29,7 +29,7 @@ const dummyPosts: Post[] = Array.from({ length: 10 }).map((_, i) => ({
   thumbnail: `https://picsum.photos/seed/post${i + 1}/96/96`,
   excerpt:
     "Đoạn mô tả ngắn gọn cho bài viết để người dùng có thể nắm ý chính nhanh chóng.",
-}));
+})); 
 
 export default function ModernSingleListPost() {
   const [posts] = useState<Post[]>(dummyPosts);

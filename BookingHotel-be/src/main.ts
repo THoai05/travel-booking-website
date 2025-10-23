@@ -17,7 +17,6 @@ async function bootstrap() {
     transform: true
   }))
 
-  // =================== Serve avatars ===================
   app.use('/avatars', express.static(join(process.cwd(), 'uploads', 'avatars')));
   await app.listen(3636);
 
