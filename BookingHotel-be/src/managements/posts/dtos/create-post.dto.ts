@@ -24,4 +24,8 @@ export class CreatePostDto {
   @IsString()
   @IsNotEmpty()
   slug: string;
+
+  @IsOptional()
+  @IsNumber()
+  city_id?: number;
 }

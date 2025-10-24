@@ -6,6 +6,8 @@ import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
 import { User } from 'src/managements/users/entities/users.entity';
 import { PostResponseDto } from './dtos/post-response.dto';
+import { City } from 'src/managements/city/entities/city.entity';
+import slugify from 'slugify';
 
 @Injectable()
 export class PostsService {
@@ -15,35 +17,68 @@ export class PostsService {
 
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+
+    @InjectRepository(City)
+    private readonly cityRepo: Repository<City>,
   ) { }
 
-  async create(createPostDto: CreatePostDto) {
-    const { title, content, author_id, image, slug } = createPostDto;
+   async create(createPostDto: CreatePostDto) {
+    const { title, content, author_id, image, slug, city_id } = createPostDto;
 
-    // Kiểm tra slug trùng
-    const existingSlug = await this.postRepo.findOne({ where: { slug } });
-    if (existingSlug) {
-      throw new BadRequestException('Slug đã tồn tại, vui lòng chọn slug khác.');
-    }
+    // Tạo slug tự động nếu chưa có
+    const finalSlug =
+      slug && slug.trim().length > 0
+        ? slugify(slug, { lower: true, strict: true })
+        : slugify(title, { lower: true, strict: true });
+
+    const existingSlug = await this.postRepo.findOne({ where: { slug: finalSlug } });
+    if (existingSlug) throw new BadRequestException('Slug đã tồn tại, vui lòng chọn slug khác.');
 
     const author = await this.userRepo.findOne({ where: { id: author_id } });
-    if (!author) {
-      throw new NotFoundException('Không tìm thấy tác giả');
+    if (!author) throw new NotFoundException('Không tìm thấy tác giả');
+
+    let city: City | null = null;
+    if (city_id) {
+      city = await this.cityRepo.findOne({ where: { id: city_id } });
+      if (!city) throw new NotFoundException('Không tìm thấy thành phố');
     }
 
     const newPost = this.postRepo.create({
       title,
       content,
       image,
-      slug,
+      slug: finalSlug,
       author,
+      city,
     });
 
     await this.postRepo.save(newPost);
+    
+    const response = {
+      id: newPost.id,
+      title: newPost.title,
+      content: newPost.content,
+      image: newPost.image,
+      slug: newPost.slug,
+      is_public: newPost.is_public,
+      created_at: newPost.created_at,
+      author: {
+        id: author.id,
+        username: author.username,
+        fullName: author.fullName,
+      },
+      city: city
+        ? {
+            id: city.id,
+            title: city.title,
+            image: city.image,
+          }
+        : null,
+    };
 
     return {
       message: 'Tạo bài viết thành công',
-      post: newPost,
+      post: response,
     };
   }
 
@@ -86,7 +121,7 @@ export class PostsService {
         throw new BadRequestException('Slug đã tồn tại');
       }
     }
-    
+
     Object.assign(post, updatePostDto);
     await this.postRepo.save(post);
 
@@ -96,7 +131,6 @@ export class PostsService {
     };
   }
 
-
   async remove(id: number) {
     const result = await this.postRepo.delete(id);
     if (result.affected === 0)
@@ -104,4 +138,18 @@ export class PostsService {
 
     return { message: 'Xóa bài viết thành công' };
   }
+
+  async search(keyword: string) {
+    const posts = await this.postRepo
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.author', 'author')
+      .where('post.title ILIKE :keyword', { keyword: `%${keyword}%` })
+      .orWhere('post.content ILIKE :keyword', { keyword: `%${keyword}%` })
+      .orWhere('author.username ILIKE :keyword', { keyword: `%${keyword}%` })
+      .orderBy('post.created_at', 'DESC')
+      .getMany();
+
+    return posts.map((post) => new PostResponseDto(post));
+  }
+
 }

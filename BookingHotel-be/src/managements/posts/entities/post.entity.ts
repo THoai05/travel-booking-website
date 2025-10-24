@@ -8,6 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from 'src/managements/users/entities/users.entity';
+import { City } from 'src/managements/city/entities/city.entity';
 
 @Entity('blog_posts')
 export class Post {
@@ -26,6 +27,13 @@ export class Post {
 
   @Column({ nullable: true })
   author_id: number;
+
+  @ManyToOne(() => City, (city) => city.posts, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'city_id' })
+  city: City | null;
+
+  @Column({ nullable: true })
+  city_id: number | null;
 
   @Column({ nullable: true })
   image: string;
