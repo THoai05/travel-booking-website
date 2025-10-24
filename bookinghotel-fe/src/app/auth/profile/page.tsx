@@ -35,6 +35,12 @@ export default function ProfilePage() {
   const [loadingMessage, setLoadingMessage] = useState("");
   const [error, setError] = useState("");
 
+  // =================== Sử dụng toLocaleDateString với UTC ===================
+  const formatDateUTC = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("vi-VN", { timeZone: "UTC" });
+  };
 
   // =================== LẤY THÔNG TIN NGƯỜI DÙNG ===================
   useEffect(() => {
@@ -235,8 +241,8 @@ export default function ProfilePage() {
           <InfoItem label="Quyền" value={user.role} />
           <InfoItem label="Điểm trung thành" value={user.loyaltyPoints?.toLocaleString() ?? 0} />
           <InfoItem label="Cấp độ thành viên" value={user.membershipLevel ?? "0"} />
-          <InfoItem label="created_at" value={user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"} />
-          <InfoItem label="updated_at" value={user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : "-"} />
+          <InfoItem label="created_at" value={formatDateUTC(user.createdAt)} />
+          <InfoItem label="updated_at" value={formatDateUTC(user.updatedAt)} />
         </div>
       </div>
 
