@@ -170,7 +170,7 @@ export default function ForgotPasswordWizard() {
             </div>
             <button
               onClick={handleChooseMethod}
-              className="w-full bg-red-500 text-white py-2 rounded-lg mt-4"
+              className="w-full bg-blue-500 text-white py-2 rounded-lg mt-4"
             >
               Tiếp tục
             </button>
@@ -216,7 +216,7 @@ export default function ForgotPasswordWizard() {
             <button
               onClick={() => handleVerifyOtp(otp)}
               disabled={loading || !otp}
-              className="w-full bg-green-500 text-white py-2 rounded-md"
+              className="w-full bg-blue-500 text-white py-2 rounded-md"
             >
               {loading ? "Đang xác minh..." : "Xác minh OTP"}
             </button>
@@ -225,7 +225,7 @@ export default function ForgotPasswordWizard() {
 
         {step === "link-sent" && (
           <div className="space-y-3 text-center">
-            <p className="text-green-600 font-medium">
+            <p className="text-blue-600 font-medium">
               ✅ Link đổi mật khẩu đã được gửi vào email của bạn. <br />
               Vui lòng kiểm tra hộp thư!
             </p>
