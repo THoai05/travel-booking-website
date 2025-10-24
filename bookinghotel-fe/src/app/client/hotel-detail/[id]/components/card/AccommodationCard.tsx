@@ -1,21 +1,20 @@
-// components/cards/AccommodationCard.tsx
-
-import { Star, MapPin } from 'lucide-react';
-import { ImageWithFallback } from '../figma/ImageWithFallback'; // Dùng lại component của bro
+import { Star, MapPin, Phone } from 'lucide-react';
+import { ImageWithFallback } from '../figma/ImageWithFallback';
 
 // Định nghĩa kiểu dữ liệu cho 1 khách sạn
 export interface Accommodation {
- id: number,
-    name: string,
-    address: string,
-    avgPrice: number,
-    phone: string,
-    city: {
-       id: number,
-       title: string
-        },
-    avgRating: number,
-    reviewCount: number
+  id: number;
+  name: string;
+  address: string;
+  avgPrice: number;
+  phone: string;
+  city: {
+    id: number;
+    title: string;
+  };
+  avgRating: number;
+  reviewCount: number;
+  imageUrl?: string;
 }
 
 interface AccommodationCardProps {
@@ -23,50 +22,77 @@ interface AccommodationCardProps {
 }
 
 export default function AccommodationCard({ accommodation }: AccommodationCardProps) {
+  // Tính rating trên thang điểm 10
+  const rating = Number((accommodation.avgRating * 2).toFixed(1));
+  
+  // Placeholder image nếu không có
+  const defaultImage = "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBob3RlbCUyMHJvb218ZW58MXx8fHwxNzYxMTg3NTI1fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral";
+
   return (
-    // Set width cố định để nó scroll ngang
-    <div className="flex-shrink-0 w-64 bg-white shadow rounded-lg overflow-hidden">
-      <div className="h-40 relative">
+    <div className="flex-shrink-0 w-72 bg-white rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 group">
+      {/* Image Section */}
+      <div className="relative h-48 overflow-hidden">
         <ImageWithFallback
-          src={accommodation?.imageUrl|| "abc.jpg"}
-          alt={accommodation?.name || "Bluevera"}
-          className="w-full h-full object-cover"
+          src={accommodation.imageUrl || defaultImage}
+          alt={accommodation.name}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
         />
+        
+        {/* Rating Badge */}
+        <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-1.5 shadow-lg">
+          <div className="flex items-center gap-1">
+            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+            <span className="text-gray-900">{rating}</span>
+            <span className="text-gray-500 text-sm">/10</span>
+          </div>
+        </div>
       </div>
       
-      <div className="p-3">
-        <h3 className="font-bold text-gray-800 truncate" title={accommodation?.name}>
-          {accommodation?.name || "Bluevera"}
+      {/* Content Section */}
+      <div className="p-4">
+        {/* Hotel Name */}
+        <h3 
+          className="text-gray-900 mb-2 line-clamp-1 group-hover:text-sky-600 transition-colors" 
+          title={accommodation.name}
+        >
+          {accommodation.name}
         </h3>
         
-        {/* Rating */}
-        <div className="flex items-center gap-1 text-sm mt-1">
-          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-          <span className="font-medium text-gray-700">
-            {Number(accommodation?.avgRating.toFixed(1)) * 2 || 0}
-          </span>
-          <span className="text-gray-500">
-            / 10 ({accommodation?.reviewCount || 0})
-          </span>
-        </div>
-        
         {/* Location */}
-        <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-          <MapPin className="w-4 h-4 text-sky-600" />
-          <span>{accommodation?.city.title || "Bluevera"}</span>
+        <div className="flex items-center gap-1.5 text-gray-600 mb-1">
+          <MapPin className="w-4 h-4 text-sky-500 flex-shrink-0" />
+          <span className="text-sm truncate">{accommodation.city.title}</span>
         </div>
         
-        {/* Prices */}
-        <div className="mt-3 text-right">
-          <span className="text-sm text-gray-500 line-through">
-            10,000,000 VND
-          </span>
-          <p className="text-lg font-bold text-orange-600">
-            {Number(accommodation?.avgPrice ?? 0).toLocaleString('vi-VN')} VND
+        {/* Review Count */}
+        <div className="text-sm text-gray-500 mb-3">
+          {accommodation.reviewCount} đánh giá
+        </div>
+        
+        {/* Divider */}
+        <div className="border-t border-gray-200 pt-3 mt-3">
+          {/* Price Section */}
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Giá trung bình/đêm</p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-orange-600">
+                  {Number(accommodation.avgPrice).toLocaleString('vi-VN')}
+                </span>
+                <span className="text-sm text-gray-500">VND</span>
+              </div>
+            </div>
+            
+            {/* View Details Button */}
+            <button className="px-4 py-2 bg-sky-600 text-white text-sm rounded-lg hover:bg-sky-700 transition-colors">
+              Xem chi tiết
+            </button>
+          </div>
+          
+          {/* Tax Notice */}
+          <p className="text-xs text-gray-400 mt-2">
+            *Chưa bao gồm thuế và phí
           </p>
-          <span className="text-xs text-gray-500">
-            Exclude taxes & fees
-          </span>
         </div>
       </div>
     </div>
