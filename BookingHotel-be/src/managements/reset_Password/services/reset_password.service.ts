@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { ResetPassword } from '../entities/reset_Password.entity';
 import { User } from 'src/managements/users/entities/users.entity';
 import { v4 as uuidv4 } from 'uuid';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class ResetPasswordService {
@@ -62,10 +63,19 @@ export class ResetPasswordService {
     }
 
     async resetPassword(token: string, newPassword: string) {
+        // 1️⃣ Xác thực token
         const user = await this.validateToken(token);
-        user.password = newPassword; // có thể hash bằng bcrypt
+
+        // 2️⃣ Hash password mới
+        const hashed = await bcrypt.hash(newPassword, 10);
+        user.password = hashed;
+
+        // 3️⃣ Lưu user
         await this.userRepo.save(user);
+
+        // 4️⃣ Xoá token reset
         await this.resetRepo.delete({ token });
+
         return { message: 'Password reset successfully' };
     }
 }
