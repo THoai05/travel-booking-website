@@ -61,7 +61,20 @@ export const useHandleSimilarHotelByCityId = (id: number) => {
             const response = await api.get(`hotels/${id}/similar`)
             return response.data
         },
+        enabled:!!id,
         staleTime:1000 * 60 * 10
+    })
+}
+
+export const useHandleGetHotelsByRegionId = (id: number) => {
+    return useQuery({
+        queryKey: ['regionHotel', id],
+        queryFn: async () => {
+            const response = await api.get(`regions/${id}/hotels`)
+            return response.data
+        },
+        enabled: !!id,
+        staleTime: 1000 * 60 * 10
     })
 }
 

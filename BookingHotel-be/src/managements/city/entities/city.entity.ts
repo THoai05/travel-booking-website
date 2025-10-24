@@ -1,6 +1,7 @@
 import { Hotel } from "src/managements/hotels/entities/hotel.entity";
 import { NearSpot } from "./nearSpot.entity";
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Region } from "./region.entity";
 
 @Entity()
 
@@ -30,6 +31,12 @@ export class City{
     
     @OneToMany(() => NearSpot, (nearSpots) => nearSpots.city)
     nearSpots: NearSpot[]
+
+    @ManyToOne(() => Region, (region) => region.cities)
+    @JoinColumn({
+        name:'regionId'
+    })
+    region:Region
 
     @Column({
         type: 'bit',

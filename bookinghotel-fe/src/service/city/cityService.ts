@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 export const useHandleFilterTitleCity = (title:string) => {
   
         return useQuery({
-        queryKey: ['title-city',title],
+        queryKey: ['city',title],
         queryFn: async () => {
             const response = await api.get('city/title-only', {
                 params: {
@@ -13,6 +13,18 @@ export const useHandleFilterTitleCity = (title:string) => {
             })
             return response.data.data
             },
+        staleTime: 1000 * 60 * 20
+    })
+}
+
+export const useHandleGetTitleCities = (isDisplayNavbar:boolean)=>{
+    return useQuery({
+        queryKey: ['title', isDisplayNavbar],
+        queryFn: async () => {
+            const response = await api.get('city/only-title')
+            return response.data
+        },
+        enabled:isDisplayNavbar,
         staleTime: 1000 * 60 * 20
     })
 }
