@@ -23,7 +23,7 @@ export class ResetPasswordService {
         return user;
     }
 
-    async createResetToken(user: User, expireMinutes = 15): Promise<string> {
+    async createResetToken(user: User, expireMinutes = 5): Promise<string> {
         const token = uuidv4();
         const expiresAt = new Date(Date.now() + expireMinutes * 60 * 1000);
 
