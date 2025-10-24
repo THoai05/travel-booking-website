@@ -12,14 +12,37 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [tokenValid, setTokenValid] = useState<boolean | null>(null); // ✅ trạng thái token
 
+  // ================== Kiểm tra token khi load trang ==================
+  useEffect(() => {
+    const verifyToken = async () => {
+      if (!token) {
+        setTokenValid(false);
+        return;
+      }
+      try {
+        const res = await api.post("/reset-password/check-token", { token });
+        setTokenValid(res.data.valid);
+      } catch (err) {
+        console.error(err);
+        setTokenValid(false);
+      }
+    };
+
+    verifyToken();
+  }, [token]);
+
+  // ================== Đặt lại mật khẩu ==================
   const handleResetPassword = async () => {
-    if (password !== confirmPassword) return alert("Mật khẩu xác nhận không khớp");
+    if (password !== confirmPassword)
+      return alert("Mật khẩu xác nhận không khớp");
+
     try {
       setLoading(true);
       await api.post("/reset-password/reset", { token, newPassword: password });
       alert("Mật khẩu đã được đặt lại thành công!");
-      router.push("/");
+      router.push("/login");
     } catch (err: any) {
       console.error(err);
       alert(err.response?.data?.message || "Có lỗi khi đặt lại mật khẩu");
@@ -28,6 +51,37 @@ export default function ResetPasswordPage() {
     }
   };
 
+  // ================== Giao diện ==================
+  if (tokenValid === null) {
+    // Đang kiểm tra token
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <p className="text-gray-600">Đang kiểm tra liên kết...</p>
+      </div>
+    );
+  }
+
+  if (tokenValid === false) {
+    // Token hết hạn hoặc không hợp lệ
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+        <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md space-y-3 text-center">
+          <p className="text-red-600 font-medium">
+            ❌ Liên kết đặt lại mật khẩu của bạn đã hết hạn hoặc không hợp lệ.
+            Vui lòng yêu cầu gửi lại liên kết mới.
+          </p>
+          <button
+            onClick={() => router.push("/")}
+            className="w-full bg-gray-600 text-white py-2 rounded-lg"
+          >
+            Quay lại đăng nhập
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Token hợp lệ → hiển thị form đặt lại mật khẩu
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">

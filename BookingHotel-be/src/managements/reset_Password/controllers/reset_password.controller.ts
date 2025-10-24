@@ -4,7 +4,7 @@ import { User } from 'src/managements/users/entities/users.entity';
 
 @Controller('reset-password')
 export class ResetPasswordController {
-  constructor(private readonly resetService: ResetPasswordService) {}
+  constructor(private readonly resetService: ResetPasswordService) { }
 
   // Tạo token cho link reset
   @Post('send-link')
@@ -32,4 +32,16 @@ export class ResetPasswordController {
   async resetPassword(@Body() body: { token: string; newPassword: string }) {
     return this.resetService.resetPassword(body.token, body.newPassword);
   }
+
+  // Kiểm tra token hợp lệ
+  @Post('check-token')
+  async checkToken(@Body('token') token: string) {
+    try {
+      const user = await this.resetService.validateToken(token);
+      return { valid: true, email: user.email };
+    } catch (err) {
+      return { valid: false, message: 'Token không hợp lệ hoặc đã hết hạn' };
+    }
+  }
+
 }

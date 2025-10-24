@@ -5,7 +5,7 @@ import api from "@/axios/axios";
 import emailjs from "@emailjs/browser";
 import { useRouter } from "next/navigation";
 
-type Step = "choose-method" | "enter-email" | "verify-otp";
+type Step = "choose-method" | "enter-email" | "verify-otp" | "link-sent";
 
 export default function ForgotPasswordWizard() {
   const router = useRouter();
@@ -47,14 +47,14 @@ export default function ForgotPasswordWizard() {
           EMAILJS_PUBLIC_KEY
         );
 
-        alert("Email chứa link đặt lại mật khẩu đã được gửi!");
-        router.push(resetLink); // redirect sang page reset-password
+        // ✅ Thay vì router.push(resetLink), chuyển sang hiển thị giao diện thông báo
+        setStep("link-sent");
       } else if (method === "email-otp") {
         const res = await api.post("/reset-password/send-otp", { email });
         const token = res.data.token;
         setTokenOTP(token);
 
-        setOtp(res.data.code); // lưu OTP để hiển thị countdown
+        //setOtp(res.data.code); // lưu OTP để hiển thị countdown
         setOtpCountdown(300); // reset countdown 5 phút
         await emailjs.send(
           EMAILJS_SERVICE_ID,
@@ -93,9 +93,6 @@ export default function ForgotPasswordWizard() {
       setLoading(true);
       const res = await api.post("/reset-password/verify-otp", { email, code: inputOtp });
       alert("OTP hợp lệ! Bạn sẽ được chuyển đến đặt lại mật khẩu.");
-
-      
-
       router.push(`/auth/forgot-password/reset-password?token=${tokenOTP}`);
     } catch (err: any) {
       console.error(err);
@@ -111,18 +108,31 @@ export default function ForgotPasswordWizard() {
       <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
         {step === "choose-method" && (
           <>
-            <h2 className="text-xl font-semibold mb-4">Chọn phương thức</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              Chọn một phương pháp để xác nhận đổi mật khẩu
+            </h2>
+            <p className="mb-6 text-gray-600">
+              Đây là các phương án mà bạn có thể chọn
+            </p>
             <div
               onClick={() => setMethod("email-link")}
-              className={`p-4 mb-3 border rounded-lg cursor-pointer ${method === "email-link" ? "border-blue-500 bg-blue-50" : "border-gray-300"}`}
+              className={`p-4 mb-3 border rounded-lg cursor-pointer ${method === "email-link" ? "border-blue-500 bg-blue-50" : "border-gray-300"
+                }`}
             >
               📧 Gửi link Gmail
+              <p className="text-sm text-gray-500">
+                Chúng tôi sẽ gửi link đến email của bạn
+              </p>
             </div>
             <div
               onClick={() => setMethod("email-otp")}
-              className={`p-4 mb-3 border rounded-lg cursor-pointer ${method === "email-otp" ? "border-blue-500 bg-blue-50" : "border-gray-300"}`}
+              className={`p-4 mb-3 border rounded-lg cursor-pointer ${method === "email-otp" ? "border-blue-500 bg-blue-50" : "border-gray-300"
+                }`}
             >
               🔑 Gửi mã OTP Gmail
+              <p className="text-sm text-gray-500">
+                Chúng tôi sẽ gửi mã xác nhận gồm 6 số đến email của bạn
+              </p>
             </div>
             <button
               onClick={handleChooseMethod}
@@ -157,7 +167,10 @@ export default function ForgotPasswordWizard() {
           <>
             <h2 className="text-xl font-semibold mb-4">Nhập OTP</h2>
             <p>OTP đã được gửi tới email {email}</p>
-            <p className="mb-2">Thời gian còn lại: {Math.floor(otpCountdown / 60)}:{String(otpCountdown % 60).padStart(2, "0")}</p>
+            <p className="mb-2">
+              Thời gian còn lại: {Math.floor(otpCountdown / 60)}:
+              {String(otpCountdown % 60).padStart(2, "0")}
+            </p>
             <input
               type="text"
               placeholder="OTP"
@@ -173,6 +186,21 @@ export default function ForgotPasswordWizard() {
               {loading ? "Đang xác minh..." : "Xác minh OTP"}
             </button>
           </>
+        )}
+
+        {step === "link-sent" && (
+          <div className="space-y-3 text-center">
+            <p className="text-green-600 font-medium">
+              ✅ Link đổi mật khẩu đã được gửi vào email của bạn. <br />
+              Vui lòng kiểm tra hộp thư!
+            </p>
+            <button
+              onClick={() => router.push("/")}
+              className="w-full bg-gray-600 text-white py-2 rounded-lg"
+            >
+              Quay lại đăng nhập
+            </button>
+          </div>
         )}
       </div>
     </div>
