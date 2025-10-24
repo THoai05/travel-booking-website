@@ -42,13 +42,12 @@ export default function ProfilePage() {
     return d.toLocaleDateString("vi-VN", { timeZone: "UTC" });
   };
 
-  // =================== LẤY THÔNG TIN NGƯỜI DÙNG ===================
+  // =================== LẤY THÔNG TIN NGƯỜI DÙNG VỚI POLLING ===================
   useEffect(() => {
+    let interval: NodeJS.Timer;
+
     const fetchProfileAndUser = async () => {
       try {
-        setLoading(true);
-        setLoadingMessage("Đang tải thông tin người dùng...");
-
         const storedId = localStorage.getItem("editUserId");
         if (!storedId) return;
 
@@ -56,25 +55,29 @@ export default function ProfilePage() {
         setUserId(userId);
 
         const res = await api.get(`/users/${userId}`);
-        const data = res.data;
-        setUser(data.user || data);
-        setForm({
-          fullName: data.user?.fullName || data.fullName,
-          email: data.user?.email || data.email,
-          phone: data.user?.phone || data.phone,
-          dob: data.user?.dob || data.dob,
-          gender: data.user?.gender || data.gender,
-        });
+        const data = res.data.user || res.data;
+
+        // Nếu dữ liệu mới khác dữ liệu cũ thì cập nhật
+        if (JSON.stringify(data) !== JSON.stringify(user)) {
+          setUser(data);
+          setForm({
+            fullName: data.fullName,
+            email: data.email,
+            phone: data.phone,
+            dob: data.dob,
+            gender: data.gender,
+          });
+        }
       } catch (err: any) {
         console.error(err);
-        alert(err.response?.data?.message || "Lỗi khi tải thông tin user");
-      } finally {
-        setLoading(false);
       }
     };
 
-    fetchProfileAndUser();
-  }, []);
+    fetchProfileAndUser(); // lần đầu load
+    interval = setInterval(fetchProfileAndUser, 3000); // polling mỗi 3s
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   // =================== XỬ LÝ INPUT ===================
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -85,13 +88,12 @@ export default function ProfilePage() {
   // =================== CẬP NHẬT THÔNG TIN ===================
   const handleSubmit = async () => {
     const { fullName, email, phone, dob } = form;
-    setError(""); // reset lỗi cũ nếu có
+    setError("");
 
     try {
       setLoading(true);
       setLoadingMessage("Đang kiểm tra thông tin...");
 
-      // === 3. Kiểm tra Họ và tên ===
       if (!fullName) {
         setError("Vui lòng nhập họ và tên.");
         setLoading(false);
@@ -109,7 +111,6 @@ export default function ProfilePage() {
         return;
       }
 
-      // === 4. Kiểm tra Email ===
       if (!email) {
         setError("Vui lòng nhập email.");
         setLoading(false);
@@ -127,7 +128,6 @@ export default function ProfilePage() {
         return;
       }
 
-      // === 5. Kiểm tra Số điện thoại ===
       if (phone) {
         const phoneRegex = /^(0|\+84)\d{9,10}$/;
         if (!phoneRegex.test(phone) || phone.length > 20) {
@@ -137,7 +137,6 @@ export default function ProfilePage() {
         }
       }
 
-      // === 6. Kiểm tra Ngày sinh ===
       if (dob) {
         const today = new Date();
         const birthDate = new Date(dob);
@@ -149,7 +148,6 @@ export default function ProfilePage() {
         }
       }
 
-      // === Nếu tất cả OK, gọi API ===
       setLoadingMessage("Đang cập nhật thông tin...");
       const res = await api.patch(`/users/${userId}`, form);
       const data = res.data;
@@ -163,8 +161,6 @@ export default function ProfilePage() {
       setLoading(false);
     }
   };
-
-
 
   // =================== UPLOAD AVATAR ===================
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -184,9 +180,6 @@ export default function ProfilePage() {
       alert("Upload avatar thành công");
       setUser((prev) => (prev ? { ...prev, avatar: data.avatarUrl } : prev));
     } catch (err: any) {
-      //console.error("Upload avatar lỗi:", err);
-
-      // Lấy message thật sự từ server  
       let message = "Upload avatar thất bại";
       if (err.response?.data) {
         if (typeof err.response.data === "string") {
@@ -195,10 +188,8 @@ export default function ProfilePage() {
           message = err.response.data.message;
         }
       }
-
       alert(message);
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -207,7 +198,6 @@ export default function ProfilePage() {
 
   return (
     <div className="relative flex flex-col md:grid md:grid-cols-2 gap-6 p-4 md:p-8 bg-gray-50 min-h-screen">
-      {/* --- CỘT TRÁI --- */}
       <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-gradient-to-b from-blue-400 to-blue-200 shadow-md">
         <img
           src={user.avatar || "https://via.placeholder.com/150"}
@@ -233,7 +223,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* --- CỘT PHẢI --- */}
       <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
         <h2 className="text-xl font-semibold mb-4 text-center md:text-left text-gray-800">
           Thông tin cá nhân
@@ -244,10 +233,6 @@ export default function ProfilePage() {
             {error}
           </div>
         )}
-
-        <div className="text-sm text-red-600 font-medium mb-2 hidden">
-          Thông báo lỗi
-        </div>
 
         <FormField
           label="Tên truy cập"
@@ -262,7 +247,6 @@ export default function ProfilePage() {
         <FormField label="Phone" name="phone" value={form.phone || ""} onChange={handleChange} />
         <FormField label="Ngày sinh" type="date" name="dob" value={form.dob?.split("T")[0] || ""} onChange={handleChange} />
 
-        {/* Giới tính */}
         <div className="mb-4">
           <label className="block mb-1 font-medium text-gray-700">Giới tính</label>
           <select
@@ -302,7 +286,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Loading overlay */}
       {loading && (
         <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-2xl">
           <div className="flex flex-col items-center">
@@ -313,7 +296,6 @@ export default function ProfilePage() {
       )}
     </div>
   );
-
 }
 
 function InfoItem({ label, value }: { label: string; value: any }) {
@@ -356,4 +338,3 @@ function FormField({
     </div>
   );
 }
-
