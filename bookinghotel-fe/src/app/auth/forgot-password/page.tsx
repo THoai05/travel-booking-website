@@ -76,7 +76,7 @@ export default function ChooseMethod() {
         {/* --- Nút tiếp tục --- */}
         <button
           onClick={handleNext}
-          className="w-full mt-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold shadow-md hover:shadow-xl hover:scale-[1.03] transition-all duration-300 active:scale-[0.97]"
+          className="w-full mt-6 py-3 rounded-[5px] bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold shadow-md hover:shadow-xl hover:scale-[1.03] transition-all duration-300 active:scale-[0.97]"
         >
           Tiếp tục 🚀
         </button>
