@@ -1,19 +1,38 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiUser, FiLock, FiEye, FiEyeOff, FiX } from "react-icons/fi";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
-const Login = ({ onClose, onSwitchToRegister }: { onClose: () => void; onSwitchToRegister: () => void; }) => {
-  const [formData, setFormData] = useState({ emailOrUsername: "", password: "" });
+const Login = ({
+  onClose,
+  onSwitchToRegister,
+}: {
+  onClose: () => void;
+  onSwitchToRegister: () => void;
+}) => {
+  const [formData, setFormData] = useState({
+    emailOrUsername: "",
+    password: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [error, setError] = useState("");
+  const [redirectTo, setRedirectTo] = useState(""); // redirect khi profile load xong
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  useEffect(() => {
+    if (!redirectTo) return;
+    const timer = setTimeout(() => {
+      router.push(redirectTo);
+    }, 500); // giữ overlay 0.5s
+    return () => clearTimeout(timer);
+  }, [redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,24 +40,22 @@ const Login = ({ onClose, onSwitchToRegister }: { onClose: () => void; onSwitchT
     setLoading(true);
     setLoadingMessage("Đang đăng nhập...");
 
+    // Validation
     if (!formData.emailOrUsername || !formData.password) {
       setError("Vui lòng nhập đầy đủ thông tin!");
       setLoading(false);
       return;
     }
-
     if (formData.emailOrUsername.length > 100) {
       setError("Tên đăng nhập hoặc email không được vượt quá 100 ký tự!");
       setLoading(false);
       return;
     }
-
     if (formData.password.length < 8) {
       setError("Mật khẩu phải có ít nhất 8 ký tự!");
       setLoading(false);
       return;
     }
-
     if (formData.password.length > 255) {
       setError("Mật khẩu không được lớn hơn 255 ký tự!");
       setLoading(false);
@@ -46,7 +63,8 @@ const Login = ({ onClose, onSwitchToRegister }: { onClose: () => void; onSwitchT
     }
 
     try {
-      // 🔹 login
+      // 🔹 Step 1: Login
+      setLoadingMessage("Đang đăng nhập...");
       const res = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -60,41 +78,19 @@ const Login = ({ onClose, onSwitchToRegister }: { onClose: () => void; onSwitchT
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Đăng nhập thất bại!");
 
-      // 🔹 lưu token với thời gian hết hạn nếu người dùng chọn "Ghi nhớ"
-      if (rememberMe) {
-        // Thời gian hết hạn: 1 ngày
-        const expiresIn = 1 * 24 * 60 * 60 * 1000;
-        const expiryTime = new Date().getTime() + expiresIn;
+      // 🔹 Step 2: Lưu token
+      const expiresIn = rememberMe
+        ? 1 * 24 * 60 * 60 * 1000
+        : 1 * 60 * 60 * 1000;
+      const expiryTime = new Date().getTime() + expiresIn;
+      const tokenData = { token: data.token, expiry: expiryTime };
+      localStorage.setItem("token", JSON.stringify(tokenData));
 
-        const tokenData = {
-          token: data.token,
-          expiry: expiryTime,
-        };
+      // 🔹 Step 3: Fetch profile
+      setLoadingMessage("Đang đăng nhập...");
+      const parsed = JSON.parse(localStorage.getItem("token")!);
+      const token = parsed.token;
 
-        localStorage.setItem("token", JSON.stringify(tokenData));
-      } else {
-        // Thời gian hết hạn: 1 tiếng
-        const expiresIn = 1 * 60 * 60 * 1000;
-        const expiryTime = new Date().getTime() + expiresIn;
-
-        const tokenData = {
-          token: data.token,
-          expiry: expiryTime,
-        };
-
-        localStorage.setItem("token", JSON.stringify(tokenData));
-      }
-
-      // 🔹 lấy profile
-      // 🔹 Lấy token thật từ localStorage
-      const tokenData = localStorage.getItem("token");
-      if (!tokenData) throw new Error("Không tìm thấy token trong localStorage");
-
-      const parsed = JSON.parse(tokenData);
-      const token = parsed.token; // chỉ lấy phần token
-      console.log("JWT token:", token);
-
-      // 🔹 Gọi API lấy profile
       const profileRes = await fetch("/api/auth", {
         method: "GET",
         headers: {
@@ -103,28 +99,19 @@ const Login = ({ onClose, onSwitchToRegister }: { onClose: () => void; onSwitchT
         },
       });
 
-
       const profileData = await profileRes.json();
-      console.log("role:", profileData.role);
+      if (!profileRes.ok) throw new Error(profileData.message || "Lấy profile thất bại!");
 
-
-      // 🔹 redirect theo role
-      if (profileData.role === "admin") {     
-        router.push("/admin");
-      } else if (profileData.role === "customer") {
-        router.push("/client");
-      }
-
-
-
+      // 🔹 Step 4: Redirect theo role (overlay vẫn hiển thị)
+      if (profileData.role === "admin") setRedirectTo("/admin");
+      else if (profileData.role === "customer") setRedirectTo("/client");
+      else setRedirectTo("/");
 
     } catch (err: any) {
       setError(err.message || "Đăng nhập thất bại!");
-    } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <div className="w-full max-w-sm sm:max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8 relative">
@@ -196,10 +183,7 @@ const Login = ({ onClose, onSwitchToRegister }: { onClose: () => void; onSwitchT
             />
             Ghi nhớ đăng nhập
           </label>
-          <a
-            href="/auth/forgot-password"
-            className="text-[#0068ff] hover:underline"
-          >
+          <a href="/auth/forgot-password" className="text-[#0068ff] hover:underline">
             Quên mật khẩu
           </a>
         </div>
@@ -210,7 +194,7 @@ const Login = ({ onClose, onSwitchToRegister }: { onClose: () => void; onSwitchT
           disabled={loading}
           className="w-full bg-[#0068ff] text-white font-semibold py-2 rounded-lg mt-2 hover:bg-[#0053cc] transition"
         >
-          {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+          {loading ? loadingMessage : "Đăng nhập"}
         </button>
       </form>
 
@@ -226,18 +210,30 @@ const Login = ({ onClose, onSwitchToRegister }: { onClose: () => void; onSwitchT
         </button>
       </div>
 
-      {/* Overlay loading */}
-      {loading && (
-        <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-2xl">
-          <div className="flex flex-col items-center">
-            <div className="w-8 h-8 border-4 border-t-[#0068ff] border-l-[#0068ff] border-transparent rounded-full animate-spin mb-2"></div>
-            <span className="text-sm text-gray-700">{loadingMessage}</span>
-          </div>
-        </div>
-      )}
+      {/* Overlay loading mượt */}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-2xl z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="flex flex-col items-center"
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+              transition={{ type: "spring", stiffness: 120 }}
+            >
+              <div className="w-8 h-8 border-4 border-t-[#0068ff] border-l-[#0068ff] border-transparent rounded-full animate-spin mb-2"></div>
+              <span className="text-sm text-gray-700">{loadingMessage}</span>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
-
 };
 
 export default Login;
