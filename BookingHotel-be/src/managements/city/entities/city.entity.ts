@@ -1,7 +1,8 @@
 import { Hotel } from "src/managements/hotels/entities/hotel.entity";
 import { NearSpot } from "./nearSpot.entity";
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Post } from "src/managements/posts/entities/post.entity";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Region } from "./region.entity";
 
 @Entity()
 
@@ -13,6 +14,12 @@ export class City {
         type: 'nvarchar'
     })
     title: string
+
+    @ManyToOne(() => Region, (region) => region.cities)
+    @JoinColumn({
+        name:'regionId'
+    })
+    region:Region
 
     @Column({
         type: 'nvarchar',

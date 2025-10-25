@@ -35,20 +35,24 @@ export default function ProfilePage() {
   const [loadingMessage, setLoadingMessage] = useState("");
   const [error, setError] = useState("");
 
+  // =================== Sử dụng toLocaleDateString với UTC ===================
+  const formatDateUTC = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("vi-VN", { timeZone: "UTC" });
+  };
 
-  // =================== LẤY THÔNG TIN NGƯỜI DÙNG ===================
+  // =================== LẤY THÔNG TIN NGƯỜI DÙNG VỚI POLLING ===================
   useEffect(() => {
+    let interval: NodeJS.Timer;
+
     const fetchProfileAndUser = async () => {
       try {
-        setLoading(true);
-        setLoadingMessage("Đang tải thông tin người dùng...");
-
         const tokenData = localStorage.getItem("token");
         if (!tokenData) throw new Error("Không tìm thấy token trong localStorage");
 
         const parsed = JSON.parse(tokenData);
         const token = parsed.token;
-        console.log("JWT token:", token);
 
         const profileRes = await fetch("/api/auth", {
           method: "GET",
@@ -63,25 +67,29 @@ export default function ProfilePage() {
         setUserId(userId);
 
         const res = await api.get(`/users/${userId}`);
-        const data = res.data;
-        setUser(data.user || data);
-        setForm({
-          fullName: data.user?.fullName || data.fullName,
-          email: data.user?.email || data.email,
-          phone: data.user?.phone || data.phone,
-          dob: data.user?.dob || data.dob,
-          gender: data.user?.gender || data.gender,
-        });
+        const data = res.data.user || res.data;
+
+        // Nếu dữ liệu mới khác dữ liệu cũ, cập nhật user và form
+        if (JSON.stringify(data) !== JSON.stringify(user)) {
+          setUser(data);
+          setForm({
+            fullName: data.fullName,
+            email: data.email,
+            phone: data.phone,
+            dob: data.dob,
+            gender: data.gender,
+          });
+        }
       } catch (err: any) {
         console.error(err);
-        alert(err.response?.data?.message || "Lỗi khi tải thông tin user");
-      } finally {
-        setLoading(false);
       }
     };
 
-    fetchProfileAndUser();
-  }, []);
+    fetchProfileAndUser(); // lần đầu load
+    interval = setInterval(fetchProfileAndUser, 3000); // polling mỗi 3s
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   // =================== XỬ LÝ INPUT ===================
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -92,13 +100,12 @@ export default function ProfilePage() {
   // =================== CẬP NHẬT THÔNG TIN ===================
   const handleSubmit = async () => {
     const { fullName, email, phone, dob } = form;
-    setError(""); // reset lỗi cũ nếu có
+    setError("");
 
     try {
       setLoading(true);
       setLoadingMessage("Đang kiểm tra thông tin...");
 
-      // === 3. Kiểm tra Họ và tên ===
       if (!fullName) {
         setError("Vui lòng nhập họ và tên.");
         setLoading(false);
@@ -116,7 +123,6 @@ export default function ProfilePage() {
         return;
       }
 
-      // === 4. Kiểm tra Email ===
       if (!email) {
         setError("Vui lòng nhập email.");
         setLoading(false);
@@ -134,7 +140,6 @@ export default function ProfilePage() {
         return;
       }
 
-      // === 5. Kiểm tra Số điện thoại ===
       if (phone) {
         const phoneRegex = /^(0|\+84)\d{9,10}$/;
         if (!phoneRegex.test(phone) || phone.length > 20) {
@@ -144,7 +149,6 @@ export default function ProfilePage() {
         }
       }
 
-      // === 6. Kiểm tra Ngày sinh ===
       if (dob) {
         const today = new Date();
         const birthDate = new Date(dob);
@@ -156,7 +160,6 @@ export default function ProfilePage() {
         }
       }
 
-      // === Nếu tất cả OK, gọi API ===
       setLoadingMessage("Đang cập nhật thông tin...");
       const res = await api.patch(`/users/${userId}`, form);
       const data = res.data;
@@ -170,8 +173,6 @@ export default function ProfilePage() {
       setLoading(false);
     }
   };
-
-
 
   // =================== UPLOAD AVATAR ===================
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,8 +192,15 @@ export default function ProfilePage() {
       alert("Upload avatar thành công");
       setUser((prev) => (prev ? { ...prev, avatar: data.avatarUrl } : prev));
     } catch (err: any) {
-      console.error(err);
-      alert(err.response?.data?.message || "Upload avatar thất bại");
+      let message = "Upload avatar thất bại";
+      if (err.response?.data) {
+        if (typeof err.response.data === "string") {
+          message = err.response.data;
+        } else if (err.response.data.message) {
+          message = err.response.data.message;
+        }
+      }
+      alert(message);
     } finally {
       setLoading(false);
     }
@@ -223,8 +231,8 @@ export default function ProfilePage() {
           <InfoItem label="Quyền" value={user.role} />
           <InfoItem label="Điểm trung thành" value={user.loyaltyPoints?.toLocaleString() ?? 0} />
           <InfoItem label="Cấp độ thành viên" value={user.membershipLevel ?? "0"} />
-          <InfoItem label="created_at" value={user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"} />
-          <InfoItem label="updated_at" value={user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : "-"} />
+          <InfoItem label="created_at" value={formatDateUTC(user.createdAt)} />
+          <InfoItem label="updated_at" value={formatDateUTC(user.updatedAt)} />
         </div>
       </div>
 
@@ -239,10 +247,6 @@ export default function ProfilePage() {
             {error}
           </div>
         )}
-
-        <div className="text-sm text-red-600 font-medium mb-2 hidden">
-          Thông báo lỗi
-        </div>
 
         <FormField
           label="Tên truy cập"
@@ -308,7 +312,6 @@ export default function ProfilePage() {
       )}
     </div>
   );
-
 }
 
 function InfoItem({ label, value }: { label: string; value: any }) {
@@ -351,4 +354,3 @@ function FormField({
     </div>
   );
 }
-

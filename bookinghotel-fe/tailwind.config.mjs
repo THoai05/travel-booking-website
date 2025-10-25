@@ -1,10 +1,19 @@
 /** @type {import('tailwindcss').Config} */
-import formsPlugin from "@tailwindcss/forms";
-import lineClampPlugin from "@tailwindcss/line-clamp";
-import animatePlugin from "tailwindcss-animatecss";
+
+// --- SỬA LỖI Ở ĐÂY ---
+const formsPlugin = require("@tailwindcss/forms");
+const lineClampPlugin = require("@tailwindcss/line-clamp");
+const animatePlugin = require("tailwindcss-animatecss");
+// --------------------
 
 module.exports = {
-  content: ["./app/**/*.{ts,tsx,js,jsx}", "./components/**/*.{ts,tsx,js,jsx}"],
+  // Mảng content này của bro BÂY GIỜ ĐÃ ĐÚNG.
+  // Nó sẽ quét HẾT thư mục 'src', 'app', và 'components'
+  content: [
+    "./app/**/*.{ts,tsx,js,jsx}", 
+    "./components/**/*.{ts,tsx,js,jsx}",
+    './src/**/*.{js,ts,jsx,tsx,mdx}' // Dòng này sẽ bắt hết các component UI của bro
+  ],
   theme: {
     screens: {
       sm: "480px",

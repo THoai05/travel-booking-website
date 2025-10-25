@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { GetAllDataCitiesRequest } from '../dtos/req/GetAllDataCitiesRequest.dto';
 import { GetDataCitiesFilterRequest } from '../dtos/req/GetDataCitiesFilterRequest.dto';
 import { NearSpot } from '../entities/nearSpot.entity';
+import { Hotel } from 'src/managements/hotels/entities/hotel.entity';
 
 @Injectable()
 export class CityService {
@@ -12,7 +13,9 @@ export class CityService {
         @InjectRepository(City)
         private readonly cityRepo: Repository<City>,
         @InjectRepository(NearSpot)
-        private readonly nearSpotRepo:Repository<NearSpot>
+        private readonly nearSpotRepo: Repository<NearSpot>,
+        @InjectRepository(Hotel)
+        private readonly hotelRepo:Repository<Hotel>
     ) {
     }
 
@@ -91,4 +94,81 @@ export class CityService {
         })
         return dataCityNearSpots
     }
+
+    async getAllDataCitiesTitle() {
+        const hotels = await this.cityRepo.find({
+            select: {
+                id: true,
+                title:true
+            }
+        })
+        return hotels
+    }
+
+   async getDataCitiesHotelForAccByRegionId(regionId: number): Promise<any> {
+    
+    // --- BƯỚC 1: TẠO SUBQUERY ĐỂ LẤY 10 ID KHÁCH SẠN TỐT NHẤT ---
+    // Subquery này sẽ chạy trước, nó chỉ lấy ra 10 ID
+    const subQuery = this.hotelRepo
+        .createQueryBuilder('sub_hotel') // Dùng alias khác, ví dụ sub_hotel
+        .leftJoin('sub_hotel.city', 'sub_city')
+        .leftJoin('sub_hotel.reviews', 'sub_reviews')
+        .select('sub_hotel.id') // Chỉ cần lấy ID
+        .where('sub_city.regionId = :regionId', { regionId }) // Lọc theo regionId
+        .groupBy('sub_hotel.id')
+        .orderBy('AVG(sub_reviews.rating)', 'DESC') // Sắp xếp theo rating
+        .take(10) // Lấy 10
+        .getQuery(); // Lấy ra chuỗi SQL, chứ không chạy
+
+    // --- BƯỚC 2: TẠO QUERY CHÍNH, LẤY DATA DỰA TRÊN 10 ID ĐÓ ---
+    const hotels = await this.hotelRepo
+        .createQueryBuilder('hotel')
+        .leftJoin('hotel.city', 'city')
+        .leftJoin('hotel.reviews', 'reviews')
+        .select([
+            'hotel.id AS id',
+            'hotel.name AS name',
+            'hotel.address AS address',
+            'hotel.avgPrice AS avgPrice',
+            'hotel.phone AS phone',
+            'city.id AS cityId',
+            'city.title AS cityName',
+            'AVG(reviews.rating) AS avgRating',
+            'COUNT(DISTINCT reviews.id) AS reviewCount',
+        ])
+        
+        // DÙNG SUBQUERY: Chỉ lấy hotel có ID nằm trong 10 ID tốt nhất
+        .where(`hotel.id IN (${subQuery})`) 
+        
+        // Gán biến :regionId cho subQuery bên trong
+        .setParameter('regionId', regionId) 
+
+        .groupBy('hotel.id')
+        .addGroupBy('hotel.name')
+        .addGroupBy('hotel.address')
+        .addGroupBy('hotel.avgPrice')
+        .addGroupBy('hotel.phone')
+        .addGroupBy('city.id')
+        .addGroupBy('city.title')
+
+        // SẮP XẾP MỘT LẦN NỮA:
+        // Vì WHERE IN không đảm bảo thứ tự, ta phải orderBy lại
+        // để 10 record cuối cùng được sắp xếp đúng.
+        .orderBy('avgRating', 'DESC')
+        
+        // Không cần .take(10) ở đây nữa vì đã lọc bằng WHERE IN
+        .getRawMany();
+
+    // Phần map vẫn y hệt
+    return hotels.map(h => ({
+        id: h.id,
+        name: h.name,
+        address: h.address,
+        avgPrice: h.avgPrice,
+        phone: h.phone,
+        city: { id: h.cityId, title: h.cityName },
+        avgRating: Number(Number(h.avgRating || 0).toFixed(2)),
+        reviewCount: Number(h.reviewCount || 0)
+    }));
+}
 }
