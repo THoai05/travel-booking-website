@@ -8,6 +8,7 @@ import { User } from 'src/managements/users/entities/users.entity';
 import { PostResponseDto } from './dtos/post-response.dto';
 import { City } from 'src/managements/city/entities/city.entity';
 import slugify from 'slugify';
+import { Brackets } from 'typeorm';
 
 @Injectable()
 export class PostsService {
@@ -22,7 +23,7 @@ export class PostsService {
     private readonly cityRepo: Repository<City>,
   ) { }
 
-   async create(createPostDto: CreatePostDto) {
+  async create(createPostDto: CreatePostDto) {
     const { title, content, author_id, image, slug, city_id } = createPostDto;
 
     // Tạo slug tự động nếu chưa có
@@ -53,7 +54,7 @@ export class PostsService {
     });
 
     await this.postRepo.save(newPost);
-    
+
     const response = {
       id: newPost.id,
       title: newPost.title,
@@ -69,10 +70,10 @@ export class PostsService {
       },
       city: city
         ? {
-            id: city.id,
-            title: city.title,
-            image: city.image,
-          }
+          id: city.id,
+          title: city.title,
+          image: city.image,
+        }
         : null,
     };
 
@@ -139,17 +140,47 @@ export class PostsService {
     return { message: 'Xóa bài viết thành công' };
   }
 
-  async search(keyword: string) {
-    const posts = await this.postRepo
+  async search(keyword?: string, cityName?: string) {
+    if (!keyword?.trim() && !cityName?.trim()) {
+      return [];
+    }
+
+    const query = this.postRepo
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.author', 'author')
-      .where('post.title ILIKE :keyword', { keyword: `%${keyword}%` })
-      .orWhere('post.content ILIKE :keyword', { keyword: `%${keyword}%` })
-      .orWhere('author.username ILIKE :keyword', { keyword: `%${keyword}%` })
-      .orderBy('post.created_at', 'DESC')
-      .getMany();
+      .leftJoinAndSelect('post.city', 'city')
+      .where('post.is_public = true');
 
-    return posts.map((post) => new PostResponseDto(post));
+    // Nếu có từ khóa
+    if (keyword) {
+      // Bỏ dấu tiếng Việt
+      const normalizedKeyword = keyword
+        .normalize('NFD') // tách dấu
+        .replace(/[\u0300-\u036f]/g, '') // xoá dấu
+        .toLowerCase();
+
+      query.andWhere(
+        new Brackets((qb) => {
+          qb.where('LOWER(post.title) LIKE :keyword')
+            .orWhere('LOWER(post.content) LIKE :keyword');
+        }),
+        { keyword: `%${normalizedKeyword}%` },
+      );
+    }
+
+    if (cityName) {
+      const normalizedCity = cityName
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+
+      query.andWhere('LOWER(city.title) LIKE :cityName', {
+        cityName: `%${normalizedCity}%`,
+      });
+    }
+
+    const posts = await query.orderBy('post.created_at', 'DESC').getMany();
+    console.log(posts);
+    return posts;
   }
-
 }
