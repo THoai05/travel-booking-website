@@ -71,7 +71,7 @@ export class UsersController {
     FileInterceptor('avatar', {
       storage: diskStorage({
         destination: (req, file, cb) => {
-          const uploadPath = path.join(__dirname, '../../../../../bookinghotel-fe/public/avatars');
+          const uploadPath = path.join(__dirname, '../../../../uploads/tmp');
           if (!fs.existsSync(uploadPath)) {
             fs.mkdirSync(uploadPath, { recursive: true });
           }
@@ -83,57 +83,73 @@ export class UsersController {
           cb(null, name);
         },
       }),
-      limits: { fileSize: 5 * 1024 * 1024 }, // 2MB
+      limits: { fileSize: 5 * 1024 * 1024 },
       fileFilter: (req, file, cb) => {
         if (!file.mimetype.startsWith('image/')) {
-          cb(new BadRequestException('Only image files are allowed'), false);
+          cb(new BadRequestException('Chỉ cho phép upload file hình ảnh'), false);
         } else {
           cb(null, true);
         }
       },
     }),
   )
-
-
   async uploadAvatar(
     @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    if (!file) throw new BadRequestException('File is required');
+    if (!file) throw new BadRequestException('Vui lòng chọn file');
 
     try {
-      const uploadPath = path.join(process.cwd(), '../bookinghotel-fe/public/avatars');
-      const filePath = path.join(uploadPath, file.filename);
-      const resizedFilePath = path.join(uploadPath, `resized-${file.filename}`);
+      const tmpPath = file.path; // file tạm
+      const avatarsPath = path.join(process.cwd(), '../bookinghotel-fe/public/avatars');
+      const resizedFileName = `resized-${file.filename.split('.')[0]}.webp`;
+      const resizedFilePath = path.join(avatarsPath, resizedFileName);
 
-      // ====== XÓA AVATAR CŨ ======
+      // Tạo thư mục public/avatars nếu chưa có
+      if (!fs.existsSync(avatarsPath)) fs.mkdirSync(avatarsPath, { recursive: true });
+
+      // Không cho phép upload ảnh đã xử lý
+      if (file.originalname.startsWith('resized-')) {
+        fs.unlinkSync(tmpPath);
+        throw new BadRequestException('Ảnh này đã được xử lý, vui lòng chọn ảnh khác!');
+      }
+
+      // Kiểm tra kích thước
+      const metadata = await sharp(tmpPath).metadata();
+      if (metadata.width < 200 || metadata.height < 200) {
+        fs.unlinkSync(tmpPath);
+        throw new BadRequestException('Ảnh quá nhỏ (tối thiểu 200x200 pixel)');
+      }
+
+      // Xóa avatar cũ
       const user = await this.usersService.findById(id);
       if (user?.avatar) {
-        const oldFile = path.join(uploadPath, path.basename(user.avatar));
+        const oldFile = path.join(avatarsPath, path.basename(user.avatar));
         if (fs.existsSync(oldFile)) fs.unlinkSync(oldFile);
       }
 
-      // Resize ảnh mới
-      await sharp(filePath)
+      // Resize ảnh mới và chuyển vào public/avatars
+      await sharp(tmpPath)
         .resize(200, 200)
         .toFormat('webp')
         .webp({ quality: 80 })
         .toFile(resizedFilePath);
 
-      fs.unlinkSync(filePath); // xóa file gốc
+      // Xóa file tạm
+      fs.unlinkSync(tmpPath);
 
-      const avatarUrl = `/avatars/resized-${file.filename}`;
+      // Cập nhật DB
+      const avatarUrl = `/avatars/${resizedFileName}`;
       const updatedUser = await this.usersService.updateUser(id, { avatar: avatarUrl });
       const { password, ...result } = updatedUser;
 
       return { message: 'Upload avatar thành công', user: result, avatarUrl };
-
     } catch (err: any) {
-      console.error(err);
+      console.error('❌ Lỗi xử lý ảnh:', err);
       if (err.code === 'LIMIT_FILE_SIZE') {
         throw new BadRequestException('Kích thước ảnh không được vượt quá 5 MB');
       }
-      throw new BadRequestException('Không thể xử lý ảnh');
+      throw new BadRequestException(err.message || 'Không thể xử lý ảnh');
     }
   }
 
