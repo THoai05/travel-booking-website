@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import api from "@/axios/axios";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
@@ -11,9 +12,12 @@ export default function ResetPasswordPage() {
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState(""); // ✅ Thêm message
+  const [loadingMessage, setLoadingMessage] = useState("");
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
+  const [error, setError] = useState(""); // ⚠️ Thêm error state
 
   useEffect(() => {
     const verifyToken = async () => {
@@ -39,8 +43,16 @@ export default function ResetPasswordPage() {
   }, [token]);
 
   const handleResetPassword = async () => {
-    if (password !== confirmPassword)
-      return alert("Mật khẩu xác nhận không khớp");
+    setError("");
+
+    if (password !== confirmPassword) {
+      setError("Mật khẩu xác nhận không khớp");
+      return;
+    }
+    if (password.length < 8 || password.length > 255) {
+      setError("Mật khẩu phải từ 8 đến 255 ký tự");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -50,14 +62,13 @@ export default function ResetPasswordPage() {
       router.push("/");
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.message || "Có lỗi khi đặt lại mật khẩu");
+      setError(err.response?.data?.message || "Có lỗi khi đặt lại mật khẩu");
     } finally {
       setLoading(false);
       setLoadingMessage("");
     }
   };
 
-  // ================== Render giao diện ==================
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4 relative">
       {/* Loading overlay */}
@@ -70,9 +81,7 @@ export default function ResetPasswordPage() {
         </div>
       )}
 
-      {tokenValid === null && !loading && (
-        <p className="text-gray-600">Đang kiểm tra liên kết...</p>
-      )}
+      {tokenValid === null && !loading && <p className="text-gray-600">Đang kiểm tra liên kết...</p>}
 
       {tokenValid === false && !loading && (
         <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md space-y-3 text-center">
@@ -90,22 +99,47 @@ export default function ResetPasswordPage() {
       )}
 
       {tokenValid && !loading && (
-        <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+        <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md space-y-4">
           <h2 className="text-xl font-semibold mb-4">Đặt lại mật khẩu</h2>
-          <input
-            type="password"
-            placeholder="Mật khẩu mới"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full border rounded-md p-2 mb-4"
-          />
-          <input
-            type="password"
-            placeholder="Xác nhận mật khẩu"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full border rounded-md p-2 mb-4"
-          />
+
+          {error && (
+            <div className="bg-red-100 text-red-700 px-3 py-2 rounded text-sm font-medium">
+              {error}
+            </div>
+          )}
+
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Mật khẩu mới"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full border rounded-md p-2 pr-10"
+            />
+            <div
+              className="absolute top-1/2 right-2 -translate-y-1/2 cursor-pointer text-gray-500"
+              onClick={() => setShowPassword((prev) => !prev)}
+            >
+              {showPassword ? <FiEyeOff /> : <FiEye />}
+            </div>
+          </div>
+
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Xác nhận mật khẩu"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full border rounded-md p-2 pr-10"
+            />
+            <div
+              className="absolute top-1/2 right-2 -translate-y-1/2 cursor-pointer text-gray-500"
+              onClick={() => setShowConfirmPassword((prev) => !prev)}
+            >
+              {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+            </div>
+          </div>
+
           <button
             onClick={handleResetPassword}
             disabled={loading || !password || !confirmPassword}
