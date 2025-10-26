@@ -49,7 +49,7 @@ export default function CouponSection() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-6 font-sans">
+    <div className="w-full max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 font-sans">
       <h2 className="text-2xl font-bold text-gray-900 mb-2">Mã giảm cho bạn</h2>
       <p className="text-sm text-gray-600 mb-6">Chỉ áp dụng trên App!</p>
 

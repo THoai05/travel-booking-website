@@ -1,18 +1,15 @@
 /** @type {import('tailwindcss').Config} */
+import { heroui } from "@heroui/react";
+import formsPlugin from "@tailwindcss/forms";
+import lineClampPlugin from "@tailwindcss/line-clamp";
+import animatePlugin from "tailwindcss-animatecss";
 
-// --- SỬA LỖI Ở ĐÂY ---
-const formsPlugin = require("@tailwindcss/forms");
-const lineClampPlugin = require("@tailwindcss/line-clamp");
-const animatePlugin = require("tailwindcss-animatecss");
-// --------------------
-
-module.exports = {
-  // Mảng content này của bro BÂY GIỜ ĐÃ ĐÚNG.
-  // Nó sẽ quét HẾT thư mục 'src', 'app', và 'components'
+export default {
   content: [
-    "./app/**/*.{ts,tsx,js,jsx}", 
+    "./app/**/*.{ts,tsx,js,jsx}",
     "./components/**/*.{ts,tsx,js,jsx}",
-    './src/**/*.{js,ts,jsx,tsx,mdx}' // Dòng này sẽ bắt hết các component UI của bro
+    "./src/**/*.{ts,tsx,js,jsx,mdx}",
+    "./node_modules/@heroui/react/dist/**/*.{js,ts,jsx,tsx}"
   ],
   theme: {
     screens: {
@@ -27,20 +24,12 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: [
-          "var(--font-inter)",
-          "ui-sans-serif",
-          "system-ui",
-          "-apple-system",
-          "Segoe UI",
-          "Roboto",
-          "Helvetica Neue",
-          "Arial",
-        ],
+        sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "-apple-system"],
         heading: ["var(--font-poppins)", "var(--font-inter)", "ui-sans-serif"],
       },
     },
   },
+  darkMode: "class",
   plugins: [
     formsPlugin,
     lineClampPlugin,
@@ -48,5 +37,6 @@ module.exports = {
       classes: ["bounce", "bounceIn"],
       variants: ["responsive"],
     }),
+    heroui(),
   ],
 };

@@ -6,6 +6,7 @@ import AccommodationCard from './card/AccommodationCard';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { useHandleGetTitleCities } from '@/service/city/cityService';
 import { useHandleGetHotelsByRegionId, useHandleSimilarHotelByCityId } from '@/service/hotels/hotelService';
+import { useRouter } from 'next/navigation';
 
 interface AccommodationSectionProps { /** Section title – e.g. "Chơi cuối tuần gần nhà" */
  title: string;
@@ -101,6 +102,8 @@ export default function AccommodationSection({
       behavior: 'smooth',
     });
   };
+
+  const router = useRouter()
 
   return (
     <section className="py-8 bg-white">

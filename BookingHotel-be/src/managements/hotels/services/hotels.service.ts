@@ -83,11 +83,25 @@ export class HotelsService {
       }
 
       if (star) {
-        queryBuilder.andHaving('AVG(reviews.rating) BETWEEN :minStar AND :maxStar', {
-          minStar: star - 1,
-          maxStar: star,
-        });
+      let minStar: number;
+      let maxStar: number;
+
+      if (star === 1) {
+        minStar = 0;
+        maxStar = 1.49;
+      } else if (star === 5) {
+        minStar = 4.5;
+        maxStar = 5.0;
+      } else {
+        minStar = star - 0.5;
+        maxStar = star + 0.49;
       }
+      
+      queryBuilder.andHaving('AVG(reviews.rating) BETWEEN :minStar AND :maxStar', {
+        minStar: minStar,
+        maxStar: maxStar,
+      });
+    }
 
       const countQuery = queryBuilder.clone();
       countQuery.skip(undefined).take(undefined);
@@ -199,47 +213,5 @@ export class HotelsService {
    
    
 }
-  async getDataCitiesHotelForAccByRegionId(regionId: number): Promise<any> {
-    const hotels = await this.hotelRepo // <-- BẮT ĐẦU TỪ HOTEL
-        .createQueryBuilder('hotel') // Alias là 'hotel'
-        .leftJoin('hotel.city', 'city') // Join vào city
-        .leftJoin('hotel.reviews', 'reviews') // Join vào reviews
-
-        .select([
-            'hotel.id AS id', // Dùng alias 'hotel'
-            'hotel.name AS name',
-            'hotel.address AS address',
-            'hotel.avgPrice AS avgPrice',
-            'hotel.phone AS phone',
-            'city.id AS cityId', // Dùng alias 'city'
-            'city.title AS cityName',
-            'AVG(reviews.rating) AS avgRating',
-            'COUNT(DISTINCT reviews.id) AS reviewCount',
-        ])
-        .where('city.regionId = :regionId', { regionId }) // Lọc trên city đã join
-        
-        // Group by tất cả các cột không phải aggregate
-        .groupBy('hotel.id')
-        .addGroupBy('hotel.name')
-        .addGroupBy('hotel.address')
-        .addGroupBy('hotel.avgPrice')
-        .addGroupBy('hotel.phone')
-        .addGroupBy('city.id')
-        .addGroupBy('city.title')
-
-        .getRawMany();
-
-    // Phần map vẫn y hệt
-    return hotels.map(h => ({
-        id: h.id,
-        name: h.name,
-        address: h.address,
-        avgPrice: h.avgPrice,
-        phone: h.phone,
-        city: { id: h.cityId, title: h.cityName },
-        avgRating: Number(Number(h.avgRating || 0).toFixed(2)),
-        reviewCount: Number(h.reviewCount || 0)
-    }));
-}
-
+ 
 }

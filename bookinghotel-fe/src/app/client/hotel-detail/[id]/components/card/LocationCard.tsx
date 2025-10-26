@@ -58,7 +58,7 @@ export default function LocationCard({
           className="bg-gradient-to-r from-blue-100 to-sky-100 text-sky-700 font-medium shadow-sm"
         >
           <Star className="w-4 h-4 mr-2 fill-yellow-400 text-yellow-400" />
-          Địa điểm lận cận
+          Địa điểm lận cận2
         </Badge>
       </div>
 

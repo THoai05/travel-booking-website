@@ -10,6 +10,7 @@ import FaqSection from "./home/FaqSection";
 import TravelTips from "./home/TravelTips";
 import BackgroundSub from "./home/BackgroundSub";
 
+
 export default function Home() {
     return (
         <>
