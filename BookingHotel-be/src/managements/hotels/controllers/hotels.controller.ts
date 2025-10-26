@@ -26,4 +26,5 @@ export class HotelsController {
     const hotels = await this.hotelsService.getSimilarHotelByCityId(id)
     return hotels
   }
+
 }

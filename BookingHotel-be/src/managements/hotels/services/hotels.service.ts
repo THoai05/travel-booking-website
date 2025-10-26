@@ -83,11 +83,25 @@ export class HotelsService {
       }
 
       if (star) {
-        queryBuilder.andHaving('AVG(reviews.rating) BETWEEN :minStar AND :maxStar', {
-          minStar: star - 1,
-          maxStar: star,
-        });
+      let minStar: number;
+      let maxStar: number;
+
+      if (star === 1) {
+        minStar = 0;
+        maxStar = 1.49;
+      } else if (star === 5) {
+        minStar = 4.5;
+        maxStar = 5.0;
+      } else {
+        minStar = star - 0.5;
+        maxStar = star + 0.49;
       }
+      
+      queryBuilder.andHaving('AVG(reviews.rating) BETWEEN :minStar AND :maxStar', {
+        minStar: minStar,
+        maxStar: maxStar,
+      });
+    }
 
       const countQuery = queryBuilder.clone();
       countQuery.skip(undefined).take(undefined);
@@ -196,10 +210,7 @@ export class HotelsService {
   }));
    
    
-   
-   
-}
-  async getDataCitiesHotelForAccByRegionId(regionId: number): Promise<any> {
+    async getDataCitiesHotelForAccByRegionId(regionId: number): Promise<any> {
     const hotels = await this.hotelRepo // <-- BẮT ĐẦU TỪ HOTEL
         .createQueryBuilder('hotel') // Alias là 'hotel'
         .leftJoin('hotel.city', 'city') // Join vào city
@@ -217,7 +228,7 @@ export class HotelsService {
             'COUNT(DISTINCT reviews.id) AS reviewCount',
         ])
         .where('city.regionId = :regionId', { regionId }) // Lọc trên city đã join
-        
+
         // Group by tất cả các cột không phải aggregate
         .groupBy('hotel.id')
         .addGroupBy('hotel.name')
@@ -241,5 +252,7 @@ export class HotelsService {
         reviewCount: Number(h.reviewCount || 0)
     }));
 }
-
+   
+}
+ 
 }

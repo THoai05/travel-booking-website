@@ -73,7 +73,7 @@ export default function PropertySummaryCard({
 
         <div className="ml-5">
           <p className="text-lg font-semibold text-gray-800">
-            {getRatingText(averageRating)}
+            {getRatingText(averageRating * 2)}
           </p>
           <a
             href="#reviews"
