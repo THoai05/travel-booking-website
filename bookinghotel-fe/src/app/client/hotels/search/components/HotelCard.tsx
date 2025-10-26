@@ -5,6 +5,7 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Bookmark, MapPin, Star, Ticket } from 'lucide-react';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import { useRouter } from 'next/navigation';
 
 
 // -----------------------------------------------------------------
@@ -84,6 +85,7 @@ export const HotelCard: React.FC<HotelCardProps> = ({ hotel: backendHotel, onSel
     roomsLeft: 3, // <-- Text cứng
   };
 
+  const router = useRouter()
 
   // --- Logic của component (giữ nguyên) ---
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -103,7 +105,7 @@ export const HotelCard: React.FC<HotelCardProps> = ({ hotel: backendHotel, onSel
   // Toàn bộ JSX bên dưới đã khớp với object 'hotel' (kiểu HotelDisplay)
   // mà chúng ta vừa tạo ra ở trên.
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+    <div onClick={()=>router.push(`/hotel-detail/${hotel.id}`)} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
       <div className="flex flex-col sm:flex-row">
         {/* Image Gallery Section */}
         <div className="relative w-full sm:w-80 flex-shrink-0">
