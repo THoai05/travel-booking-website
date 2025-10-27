@@ -76,3 +76,17 @@ export const useUploadAvatar = (userId: number) => {
     },
   });
 };
+
+// =================== GET ALL USERS ===================
+export const getUsers = async () => {
+  const response = await api.get("/users");
+  return response.data.users; // ✅ chỉ trả về mảng users
+};
+
+
+// =================== DELETE USER ===================
+// Hàm xóa user thuần
+export const deleteUser = async (userId: number) => {
+  const res = await api.delete(`/users/${userId}`);
+  return res.data;
+};

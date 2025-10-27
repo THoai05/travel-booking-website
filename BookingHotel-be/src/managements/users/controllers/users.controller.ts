@@ -10,6 +10,7 @@ import {
   BadRequestException,
   ParseIntPipe,
   NotFoundException,
+  Delete,
 } from '@nestjs/common';
 import { UsersService } from '../services/users.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -151,6 +152,20 @@ export class UsersController {
       }
       throw new BadRequestException(err.message || 'Không thể xử lý ảnh');
     }
+  }
+
+
+  // Lấy tất cả người dùng
+  @Get()
+  async getAllUsers() {
+    const users = await this.usersService.findAll();
+    return { message: 'Danh sách người dùng', users };
+  }
+
+  // Xóa người dùng ra khỏi danh sách
+  @Delete(':id')
+  async deleteUser(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.deleteUser(id);
   }
 
 }
