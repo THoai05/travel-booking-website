@@ -16,5 +16,5 @@ export class ImageAttachment {
 
   // ID của entity đó
   @Column()
-  targetId: number;
+  targetId: number; 
 }

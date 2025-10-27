@@ -47,8 +47,8 @@ const FeaturedDestinations = () => {
   { name: "Quảng Ninh", img: "/quangninh.png", subtitle: "356 Tours" },
   { name: "Đà Nẵng", img: "/danang.png", subtitle: "356 Tours" },
   { name: "Đà Lạt", img: "/dalat.png", subtitle: "356 Tours" },
-  // {name: "Thừa Thiên Huế", img: "/hue.png",subtitle: "356 Tours"},
-  // {name: "Phú Quốc", img: "/phuquoc.png", subtitle: "356 Tours" },
+  {name: "Thừa Thiên Huế", img: "/hue.png",subtitle: "356 Tours"},
+  {name: "Phú Quốc", img: "/phuquoc.png", subtitle: "356 Tours" },
 ];
 
   return (

@@ -68,7 +68,7 @@ export default function Hotel() {
               <AccommodationSection title="Đi chơi gần nhà " isDisplayNavbar={true}/>
               <AccommodationSection title="Vi vu miền Nam" isDisplayNavbar={false} regionId={3}/>
               <AccommodationSection title="Khám phá miền Bắc "isDisplayNavbar={false} regionId={1}/>
-              <AccommodationSection title="Đậm đà miền trung"isDisplayNavbar={false} regionId={2}/>
+              <AccommodationSection title="Đậm đà miền Trung"isDisplayNavbar={false} regionId={2}/>
               <div className="w-full flex justify-center py-10">
         <CoverflowSlider items={cities} />
       </div>

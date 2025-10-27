@@ -11,5 +11,4 @@ export class GetAllDataCitiesRequest{
     @IsOptional()
     limit?: string
 
-  
 }
