@@ -158,17 +158,34 @@ export default function ProfilePage() {
         }
       }
 
+      // 6. Kiểm tra Ngày sinh (dob)
       if (dob) {
         const today = new Date();
         const birthDate = new Date(dob);
-        today.setHours(0, 0, 0, 0);
+
+        today.setHours(0, 0, 0, 0); // Bỏ qua giờ để so sánh ngày
+        birthDate.setHours(0, 0, 0, 0);
+
+        // Nếu ngày sinh trong tương lai
         if (birthDate > today) {
           setError("Ngày sinh không được lớn hơn ngày hiện tại.");
           setLoading(false);
           return;
         }
-      }
 
+        // Tính tuổi
+        const age =
+          today.getFullYear() -
+          birthDate.getFullYear() -
+          (today < new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate()) ? 1 : 0);
+
+        if (age < 16) {
+          setError("Bạn phải đủ 16 tuổi trở lên.");
+          setLoading(false);
+          return;
+        }
+      }
+      
       setLoadingMessage("Đang cập nhật thông tin...");
       const res = await api.patch(`/users/${userId}`, form);
       const data = res.data;
@@ -386,9 +403,8 @@ function FormField({
         value={value}
         disabled={disabled}
         onChange={onChange}
-        className={`border rounded w-full p-2 ${
-          disabled ? "bg-gray-100 cursor-not-allowed" : ""
-        } ${className}`}
+        className={`border rounded w-full p-2 ${disabled ? "bg-gray-100 cursor-not-allowed" : ""
+          } ${className}`}
       />
     </div>
   );

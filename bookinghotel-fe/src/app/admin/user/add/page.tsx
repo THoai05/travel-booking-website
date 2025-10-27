@@ -8,7 +8,7 @@ const Register = () => {
 
   const [formData, setFormData] = useState({
     username: "",
-    full_name: "",
+    fullName: "",
     email: "",
     phone: "",
     dob: "",
@@ -35,12 +35,12 @@ const Register = () => {
     setLoading(true);
     setLoadingMessage("Đang tạo tài khoản...");
 
-    const { username, full_name, email, phone, dob, password, gender, confirmPassword } = formData;
+    const { username, fullName, email, phone, dob, password, gender, confirmPassword } = formData;
 
     // --- BẮT ĐẦU VALIDATION ---
 
     // 1. Kiểm tra trường bắt buộc
-    if (!username || !full_name || !email || !password || !confirmPassword) {
+    if (!username || !fullName || !email || !password || !confirmPassword) {
       setError("Vui lòng nhập đầy đủ thông tin bắt buộc!");
       setLoading(false);
       return;
@@ -64,14 +64,14 @@ const Register = () => {
       return;
     }
 
-    // 3. Kiểm tra Họ và tên (full_name)
-    if (full_name.length > 100) {
+    // 3. Kiểm tra Họ và tên (fullName)
+    if (fullName.length > 100) {
       setError("Họ và tên không được quá 100 ký tự.");
       setLoading(false);
       return;
     }
     const fullNameRegex = /^[a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+$/;
-    if (!fullNameRegex.test(full_name)) {
+    if (!fullNameRegex.test(fullName)) {
       setError("Họ và tên không có số, ký tự đặc biệt.");
       setLoading(false);
       return;
@@ -104,9 +104,25 @@ const Register = () => {
     if (dob) {
       const today = new Date();
       const birthDate = new Date(dob);
+
       today.setHours(0, 0, 0, 0); // Bỏ qua giờ để so sánh ngày
+      birthDate.setHours(0, 0, 0, 0);
+
+      // Nếu ngày sinh trong tương lai
       if (birthDate > today) {
         setError("Ngày sinh không được lớn hơn ngày hiện tại.");
+        setLoading(false);
+        return;
+      }
+
+      // Tính tuổi
+      const age =
+        today.getFullYear() -
+        birthDate.getFullYear() -
+        (today < new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate()) ? 1 : 0);
+
+      if (age < 16) {
+        setError("Bạn phải đủ 16 tuổi trở lên.");
         setLoading(false);
         return;
       }
@@ -138,7 +154,7 @@ const Register = () => {
         body: JSON.stringify({
           action: "register",
           username,
-          full_name,
+          fullName,
           email,
           phone,
           password,
@@ -190,9 +206,9 @@ const Register = () => {
             <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              name="full_name"
+              name="fullName"
               placeholder="Họ và tên"
-              value={formData.full_name}
+              value={formData.fullName}
               onChange={handleChange}
               className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0068ff] outline-none"
               required
