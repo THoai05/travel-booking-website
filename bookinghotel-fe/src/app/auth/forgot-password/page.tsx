@@ -12,6 +12,12 @@ export default function ChooseMethod() {
     router.push(`/auth/forgot-password/enter-email?method=${method}`);
   };
 
+  const handleClickContact = (e: React.MouseEvent) => {
+    e.preventDefault(); // tránh reload trang
+    localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
+    router.push("/contact"); // chuyển trang
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 p-4">
       <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
@@ -63,12 +69,12 @@ export default function ChooseMethod() {
             <p className="font-semibold text-gray-800 mb-1">Bạn cần cách khác?</p>
             <p className="text-gray-600 text-sm">
               Nhằm bảo vệ tài khoản của bạn, bạn có thể{" "}
-              <a
-                href="/contact"
-                className="text-blue-600 font-medium hover:underline hover:text-blue-700 transition-colors"
+              <span
+                onClick={handleClickContact}
+                className="text-blue-600 font-medium hover:underline hover:text-blue-700 cursor-pointer transition-colors"
               >
                 liên hệ với chúng tôi
-              </a>
+              </span>
             </p>
           </div>
         </div>

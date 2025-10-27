@@ -20,6 +20,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface SidebarProps {
     activeTab: string;
@@ -29,6 +30,10 @@ interface SidebarProps {
 export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     const pathname = usePathname();
     const [openBlog, setOpenBlog] = useState(false);
+    const router = useRouter();
+    const handleClickProfile = () => {
+        router.push("/auth/profile");
+      };
 
     const menuItems = [
         { icon: Home, label: "Dashboard", path: '/admin' },
@@ -132,7 +137,7 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
             </nav>
 
             {/* User Profile */}
-            <div className="p-4 border-t border-gray-200">
+            <div className="p-4 border-t border-gray-200"  onClick={handleClickProfile}>
                 <div className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900 truncate">Vo Duc Thanh Hoai</p>

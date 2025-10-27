@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import api from "@/axios/axios";
+import { useRouter } from "next/navigation";
 
 interface User {
   id: number;
@@ -34,7 +35,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [error, setError] = useState("");
-
+  const router = useRouter();
   // =================== Sử dụng toLocaleDateString với UTC ===================
   const formatDateUTC = (dateStr?: string) => {
     if (!dateStr) return "-";
@@ -49,7 +50,9 @@ export default function ProfilePage() {
     const fetchProfileAndUser = async () => {
       try {
         const tokenData = localStorage.getItem("token");
-        if (!tokenData) throw new Error("Không tìm thấy token trong localStorage");
+        if (!tokenData) {
+          router.push("/client"); // hoặc "/"
+        }
 
         const parsed = JSON.parse(tokenData);
         const token = parsed.token;
@@ -224,7 +227,14 @@ export default function ProfilePage() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.push("/client"); // hoặc "/"
+  };
+
+  //if (!localStorage.getItem("token")) return <p>Không tìm thấy token...</p>;
   if (!user) return <p>Đang tải...</p>;
+  
 
   return (
     <div className="relative flex flex-col md:grid md:grid-cols-2 gap-6 p-4 md:p-8 bg-gray-50 min-h-screen">
@@ -315,6 +325,13 @@ export default function ProfilePage() {
             className="bg-gray-300 px-4 py-2 rounded-lg hover:bg-gray-400 transition"
           >
             Hủy thay đổi
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="bg-gray-300 px-4 py-2 rounded-lg hover:bg-gray-400 transition text-gray-800 font-medium"
+          >
+            Đăng xuất
           </button>
         </div>
       </div>
