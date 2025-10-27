@@ -147,9 +147,12 @@ export default function AccommodationSection({
         {/* Carousel */}
         <div className="relative">
           {/* Nút trái (giữ nguyên) */}
-          <button onClick={() => scroll('left')} >
-            <ChevronLeft className="w-5 h-5 text-gray-700" />
-          </button>
+        <button
+          onClick={() => scroll('left')}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white shadow-lg rounded-full p-2 backdrop-blur-sm transition"
+        >
+    <ChevronLeft className="w-5 h-5 text-gray-700" />
+  </button>
 
           {/* Cards Container */}
           <div
@@ -186,7 +189,10 @@ export default function AccommodationSection({
           </div>
 
           {/* Nút phải (giữ nguyên) */}
-          <button onClick={() => scroll('right')} >
+          <button
+            onClick={() => scroll('right')}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white shadow-lg rounded-full p-2 backdrop-blur-sm transition"
+          >
             <ChevronRight className="w-5 h-5 text-gray-700" />
           </button>
         </div>

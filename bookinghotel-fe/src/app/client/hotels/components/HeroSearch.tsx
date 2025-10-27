@@ -28,6 +28,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useRouter } from 'next/navigation';
 // ---
 
 // ... (Toàn bộ code còn lại của Types, Constants, Subcomponents... giữ nguyên) ...
@@ -220,6 +221,9 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
 
    // --- CHANGED: Thêm state cho Popover Lịch ---
    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+   const router = useRouter()
+
    // ---
 
    // --- CHANGED: Thêm useEffect để tự động cập nhật Check-out ---
@@ -236,15 +240,10 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
 
   const handleSearch = () => {
    setIsDestinationFocused(false);
+   router.push(`/hotels/search?cityTitle=${destination}`)
 
      // --- CHANGED: Format Date object về string khi search ---
-   onSearch?.({
-    destination,
-    checkIn: format(checkIn, 'EEE, dd MMM yyyy'),
-    duration,
-    checkOut: format(checkOut, 'EEE, dd MMM yyyy'),
-    guests,
-   });
+   
      // ---
   };
 

@@ -155,6 +155,7 @@ export class CityService {
         // Vì WHERE IN không đảm bảo thứ tự, ta phải orderBy lại
         // để 10 record cuối cùng được sắp xếp đúng.
         .orderBy('avgRating', 'DESC')
+        .limit(15)
         
         // Không cần .take(10) ở đây nữa vì đã lọc bằng WHERE IN
         .getRawMany();
