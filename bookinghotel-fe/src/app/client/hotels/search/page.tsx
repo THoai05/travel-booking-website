@@ -9,18 +9,23 @@ import PriceRange from './components/PriceRange';
 import StarFilter from './components/StarFilter';
 import { useHandleHotels } from '@/service/hotels/hotelService';
 import { useInView } from 'react-intersection-observer'; // <-- 1. Import hook
+import { useSearchParams } from 'next/navigation';
 
 const MIN_PRICE = 100000;
 const MAX_PRICE = 10000000;
 
 export default function SearchResultPage() {
   
+   const searchParams = useSearchParams();
+
+  // Lấy cityTitle từ query string
+  const cityTitleParam = searchParams.get('cityTitle') || '';
   // ===== 1. XÓA STATE `page` =====
   // const [page, setPage] = useState(1); // <-- XÓA
   const [limit, setLimit] = useState(10); 
   
   // (Giữ nguyên tất cả state filter: cityTitle, hotelName, priceRange...)
-  const [cityTitle, setCityTitle] = useState('');
+  const [cityTitle, setCityTitle] = useState(cityTitleParam);
   const [hotelName, setHotelName] = useState('');
   const [priceRange, setPriceRange] = useState<number[]>([MIN_PRICE, MAX_PRICE]);
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
@@ -68,10 +73,10 @@ export default function SearchResultPage() {
 
 
   // (Hàm handleSearch giữ nguyên)
-  const handleSearch = (searchParams: { city: string, name: string }) => {
+  const handleSearch = ( city: string) => {
     // setPage(1); // <-- XÓA
-    setCityTitle(searchParams.city);
-    setHotelName(searchParams.name);
+    setCityTitle(city);
+  
   };
   
   // (Các hàm filter KHÔNG CẦN reset page nữa, React Query tự lo)
@@ -84,6 +89,8 @@ export default function SearchResultPage() {
   const handleStarChange = (value: string) => { // Giả sử StarFilter trả về string
     setSelectedStar(value);
   }
+
+
 
   // ===== 4. GỘP DỮ LIỆU =====
   // 'data.pages' là một mảng của các 'HotelApiResponse'

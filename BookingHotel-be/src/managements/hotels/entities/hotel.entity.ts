@@ -15,6 +15,7 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Expose } from 'class-transformer';
+import { RoomType } from 'src/managements/rooms/entities/roomType.entity';
 
 @Entity({ name: 'hotels' })
 export class Hotel {
@@ -80,6 +81,9 @@ export class Hotel {
     nullable: true,
   })
   avgPrice: number | null;
+
+  @OneToMany(() => RoomType, (roomType) => roomType.hotel)
+  roomTypes:RoomType[]
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;

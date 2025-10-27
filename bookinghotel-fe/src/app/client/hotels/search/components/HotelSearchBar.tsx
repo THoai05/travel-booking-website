@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 // ---
 
 interface HotelSearchBarProps {
@@ -191,18 +192,11 @@ export default function HotelSearchBar({ onSearch, className = '' }: HotelSearch
     return [adultsText, childrenText, roomsText].filter(Boolean).join(', ');
   };
 
+  const router = useRouter()
+
   // --- CHANGED: Cập nhật handleSearch để dùng state 'range' mới ---
   const handleSearch = () => {
-    if (onSearch) {
-      onSearch({
-        location,
-        checkIn: range?.from || null,
-        checkOut: range?.to || null,
-        adults,
-        children,
-        rooms,
-      });
-    }
+    onSearch(location)
   };
 
   const handleDestinationSelect = (location: string) => {
@@ -226,6 +220,7 @@ export default function HotelSearchBar({ onSearch, className = '' }: HotelSearch
             // Delay onBlur để event onMouseDown của SuggestionItem kịp chạy
             setTimeout(() => setIsDestinationFocused(false), 200);
           }}
+        
           placeholder="Where are you going?"
           className="w-full outline-none bg-transparent text-gray-800"
         />

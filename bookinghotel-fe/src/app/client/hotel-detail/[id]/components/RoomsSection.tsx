@@ -1,7 +1,12 @@
+import { useHandleGetRoomTypeAndRatePlan } from '@/service/hotels/hotelService';
 import { rooms } from '../data/mockData';
 import RoomCard from './RoomCard';
 
-export default function RoomsSection() {
+interface RoomSectionProps {
+  hotelId:number
+}
+
+export default function RoomsSection({id}:RoomSectionProps) {
    const sampleRoom: Room = {
     id: '1',
     name: 'Superior Double',
@@ -13,6 +18,8 @@ export default function RoomsSection() {
     hasWifi: false,
   };
 
+  const {data,isLoading,isError} = useHandleGetRoomTypeAndRatePlan(id)
+  console.log(data)
   return (
     <div className="min-h-screen bg-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -21,7 +28,9 @@ export default function RoomsSection() {
           <p className="text-gray-600">Select your preferred room option</p>
         </div>
 
-        <RoomCard room={sampleRoom} />
+        {data?.map(item => (
+          <RoomCard key={item.id} room={item}/>
+        ))}
       </div>
     </div>
   );

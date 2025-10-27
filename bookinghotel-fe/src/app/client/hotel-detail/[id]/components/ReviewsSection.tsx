@@ -92,7 +92,7 @@ export default function ReviewsSection({ data,hotelId }: ReviewSectionProbs) {
               {/* Cột 1: Điểm tổng quan */}
               <div className="flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 rounded-lg p-6 shadow-md border border-blue-100">
                 <div className="text-7xl font-bold text-sky-600 mb-2">{Number(data?.avgRating * 2).toFixed(1)}</div>
-                <div className="text-2xl font-semibold mb-2">{ getRatingText(Number(data?.avgRating)) }</div>
+                <div className="text-2xl font-semibold mb-2">{ getRatingText(Number(data?.avgRating*2)) }</div>
                 <p className="text-gray-600 text-sm mb-4">Đến từ {data?.reviewCount} đánh giá</p>
                 <div className="flex items-center gap-1 text-xs text-gray-500">
                   <span>Được cung cấp bởi</span>

@@ -41,14 +41,14 @@ const FeaturedDestinations = () => {
   // }, []); // Vẫn giữ dependency rỗng để gọi 1 lần
 
   const cities = [
-  {name: "Hồ Chí Minh", img: "/hcm.png", subtitle: "342 khách sạn lân cận"},
-  { name: "Lào Cai", img: "/laocai.png", subtitle: "356 Tours" },
-  { name: "Hà Nội", img: "/hanoi.png", subtitle: "356 Tours" },
-  { name: "Quảng Ninh", img: "/quangninh.png", subtitle: "356 Tours" },
-  { name: "Đà Nẵng", img: "/danang.png", subtitle: "356 Tours" },
-  { name: "Đà Lạt", img: "/dalat.png", subtitle: "356 Tours" },
-  {name: "Thừa Thiên Huế", img: "/hue.png",subtitle: "356 Tours"},
-  {name: "Phú Quốc", img: "/phuquoc.png", subtitle: "356 Tours" },
+  {id:1,name: "Hồ Chí Minh", img: "/hcm.png", subtitle: "342 khách sạn lân cận"},
+  { id:2,name: "Lào Cai", img: "/laocai.png", subtitle: "356 Tours" },
+  { id:3,name: "Hà Nội", img: "/hanoi.png", subtitle: "356 Tours" },
+  { id:4,name: "Quảng Ninh", img: "/quangninh.png", subtitle: "356 Tours" },
+  { id:5,name: "Đà Nẵng", img: "/danang.png", subtitle: "356 Tours" },
+  { id:6,name: "Đà Lạt", img: "/dalat.png", subtitle: "356 Tours" },
+  {id:7,name: "Thừa Thiên Huế", img: "/hue.png",subtitle: "356 Tours"},
+  {id:8,name: "Phú Quốc", img: "/phuquoc.png", subtitle: "356 Tours" },
 ];
 
   return (
