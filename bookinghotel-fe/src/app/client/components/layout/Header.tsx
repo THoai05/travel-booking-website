@@ -37,10 +37,30 @@ const Header = () => {
     const fetchProfile = async () => {
       try {
         const tokenData = localStorage.getItem("token");
-        if (!tokenData) throw new Error("Không tìm thấy token trong localStorage");
+        if (!tokenData) {
+          console.warn("Không tìm thấy token trong localStorage");
+          return;
+        }
 
-        const parsed = JSON.parse(tokenData);
-        const token = parsed.token;
+        // Parse token an toàn
+        let parsedToken: { token: string } | null = null;
+        try {
+          parsedToken = JSON.parse(tokenData);
+        } catch {
+          parsedToken = { token: tokenData };
+        }
+
+        // ✅ Kiểm tra null trước khi dùng
+        if (!parsedToken?.token) {
+          console.warn("Token không hợp lệ");
+          return;
+        }
+
+        const token = parsedToken.token;
+        if (!token) {
+          console.warn("Token không hợp lệ");
+          return;
+        }
 
         const res = await fetch("/api/auth", {
           method: "GET",
@@ -60,7 +80,6 @@ const Header = () => {
 
     fetchProfile();
   }, []);
-
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-white border-b border-gray-200 
