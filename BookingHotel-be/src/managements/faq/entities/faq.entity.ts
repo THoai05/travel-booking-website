@@ -12,7 +12,7 @@ export class Faq {
     answer: string;
 
     @Column({ type: 'varchar', length: 100 })
-    categories: string; // ví dụ: 'Đặt phòng khách sạn' hoặc 'Tour du lịch'
+    categories: string;
 
     @Column({ type: 'varchar', length: 20, default: 'active' })
     status: string;

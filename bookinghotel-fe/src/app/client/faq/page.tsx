@@ -60,14 +60,12 @@ export default function FAQPage() {
     }, []);
 
     const filteredFAQs = useMemo(() => {
-        let result = faqs;
+        let result = faqs.filter(faq => faq.status === "active"); // ✅ chỉ lấy FAQ đang hiển thị
 
-        // lọc theo category nếu có chọn
         if (selectedCategory) {
             result = result.filter(faq => faq.categories === selectedCategory);
         }
 
-        // lọc theo từ khóa tìm kiếm
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase().trim();
             result = result.filter(
@@ -79,6 +77,7 @@ export default function FAQPage() {
 
         return result;
     }, [faqs, searchQuery, selectedCategory]);
+
 
 
     // 🟥 Nếu lỗi
