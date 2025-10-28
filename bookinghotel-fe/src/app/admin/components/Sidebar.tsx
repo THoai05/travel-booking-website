@@ -32,7 +32,7 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     const [openBlog, setOpenBlog] = useState(false);
     const router = useRouter();
     const handleClickProfile = () => {
-        router.push("/auth/profile");
+        router.push("/admin/auth/profile");
       };
 
     const menuItems = [
