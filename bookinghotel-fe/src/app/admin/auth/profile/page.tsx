@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation"; // ✅ thêm dòng này
 import api from "@/axios/axios";
+import { useRouter } from "next/navigation";
 
 interface User {
   id: number;
@@ -35,9 +35,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [error, setError] = useState("");
-  const router = useRouter(); // ✅ khởi tạo router
-
-  // =================== sử dụng toLocaleDateString với UTC ===================
+  const router = useRouter();
+  // =================== Sử dụng toLocaleDateString với UTC ===================
   const formatDateUTC = (dateStr?: string) => {
     if (!dateStr) return "-";
     const d = new Date(dateStr);
@@ -50,16 +49,30 @@ export default function ProfilePage() {
 
     const fetchProfileAndUser = async () => {
       try {
-        const storedId = localStorage.getItem("editUserId");
-        if (!storedId) return;
+        const tokenData = localStorage.getItem("token");
+        if (!tokenData) {
+          router.push("/client"); // hoặc "/"
+        }
 
-        const userId = Number(storedId);
+        const parsed = JSON.parse(tokenData);
+        const token = parsed.token;
+
+        const profileRes = await fetch("/api/auth", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const profileData = await profileRes.json();
+        const userId = Number(profileData.id);
         setUserId(userId);
 
         const res = await api.get(`/users/${userId}`);
         const data = res.data.user || res.data;
 
-        // Nếu dữ liệu mới khác dữ liệu cũ thì cập nhật
+        // Nếu dữ liệu mới khác dữ liệu cũ, cập nhật user và form
         if (JSON.stringify(data) !== JSON.stringify(user)) {
           setUser(data);
           setForm({
@@ -71,20 +84,7 @@ export default function ProfilePage() {
           });
         }
       } catch (err: any) {
-        //console.error(err); //hiển thị lỗi không tìm thấy người dùng hoặc Có lỗi xảy ra khi tải thông tin người dùng
-
-        // ✅ Nếu server trả về 404 -> chuyển hướng về /admin/user
-        const message =
-          err.response?.data?.message ||
-          err.message ||
-          "Có lỗi xảy ra khi tải thông tin người dùng";
-
-        if (
-          message === "Người dùng không tồn tại" ||
-          err.response?.status === 404
-        ) {
-          router.replace("/admin/user");
-        }
+        //console.error(err);
       }
     };
 
@@ -92,12 +92,10 @@ export default function ProfilePage() {
     interval = setInterval(fetchProfileAndUser, 3000); // polling mỗi 3s
 
     return () => clearInterval(interval);
-  }, [user, router]);
+  }, [user]);
 
   // =================== XỬ LÝ INPUT ===================
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -121,8 +119,7 @@ export default function ProfilePage() {
         setLoading(false);
         return;
       }
-      const fullNameRegex =
-        /^[a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+$/;
+      const fullNameRegex = /^[a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+$/;
       if (!fullNameRegex.test(fullName)) {
         setError("Họ và tên không có số, ký tự đặc biệt.");
         setLoading(false);
@@ -134,8 +131,7 @@ export default function ProfilePage() {
         setLoading(false);
         return;
       }
-      const emailRegex =
-        /^[a-zA-Z0-9._%+-]+@(?!(?:[0-9]+\.)+[a-zA-Z]{2,})[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@(?!(?:[0-9]+\.)+[a-zA-Z]{2,})[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (!emailRegex.test(email)) {
         setError("Sai định dạng email.");
         setLoading(false);
@@ -150,9 +146,7 @@ export default function ProfilePage() {
       if (phone) {
         const phoneRegex = /^(0|\+84)\d{9,10}$/;
         if (!phoneRegex.test(phone) || phone.length > 20) {
-          setError(
-            "Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có từ 10–11 chữ số."
-          );
+          setError("Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có từ 10–11 chữ số.");
           setLoading(false);
           return;
         }
@@ -185,7 +179,8 @@ export default function ProfilePage() {
           return;
         }
       }
-      
+
+
       setLoadingMessage("Đang cập nhật thông tin...");
       const res = await api.patch(`/users/${userId}`, form);
       const data = res.data;
@@ -201,9 +196,7 @@ export default function ProfilePage() {
   };
 
   // =================== UPLOAD AVATAR ===================
-  const handleAvatarUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return;
     const file = e.target.files[0];
 
@@ -234,11 +227,18 @@ export default function ProfilePage() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.replace("/client"); // hoặc "/"
+  };
+
+  //if (!localStorage.getItem("token")) return <p>Không tìm thấy token...</p>;
   if (!user) return <p>Đang tải...</p>;
+  
 
   return (
     <div className="relative flex flex-col md:grid md:grid-cols-2 gap-6 p-4 md:p-8 bg-gray-50 min-h-screen">
-      {/* ========== giữ nguyên toàn bộ phần UI ========== */}
+      {/* --- CỘT TRÁI --- */}
       <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-gradient-to-b from-blue-400 to-blue-200 shadow-md">
         <img
           src={user.avatar || "https://via.placeholder.com/150"}
@@ -257,19 +257,14 @@ export default function ProfilePage() {
 
         <div className="w-full max-w-xs md:max-w-sm space-y-2 text-left text-gray-800 bg-white/50 p-3 rounded-lg shadow-inner">
           <InfoItem label="Quyền" value={user.role} />
-          <InfoItem
-            label="Điểm trung thành"
-            value={user.loyaltyPoints?.toLocaleString() ?? 0}
-          />
-          <InfoItem
-            label="Cấp độ thành viên"
-            value={user.membershipLevel ?? "0"}
-          />
+          <InfoItem label="Điểm trung thành" value={user.loyaltyPoints?.toLocaleString() ?? 0} />
+          <InfoItem label="Cấp độ thành viên" value={user.membershipLevel ?? "0"} />
           <InfoItem label="created_at" value={formatDateUTC(user.createdAt)} />
           <InfoItem label="updated_at" value={formatDateUTC(user.updatedAt)} />
         </div>
       </div>
 
+      {/* --- CỘT PHẢI --- */}
       <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
         <h2 className="text-xl font-semibold mb-4 text-center md:text-left text-gray-800">
           Thông tin cá nhân
@@ -289,36 +284,14 @@ export default function ProfilePage() {
           className="font-semibold text-gray-800 bg-gray-100"
         />
 
-        <FormField
-          label="Họ và tên"
-          name="fullName"
-          value={form.fullName || ""}
-          onChange={handleChange}
-        />
-        <FormField
-          label="Email"
-          name="email"
-          value={form.email || ""}
-          onChange={handleChange}
-        />
-        <FormField
-          label="Phone"
-          name="phone"
-          value={form.phone || ""}
-          onChange={handleChange}
-        />
-        <FormField
-          label="Ngày sinh"
-          type="date"
-          name="dob"
-          value={form.dob?.split("T")[0] || ""}
-          onChange={handleChange}
-        />
+        <FormField label="Họ và tên" name="fullName" value={form.fullName || ""} onChange={handleChange} />
+        <FormField label="Email" name="email" value={form.email || ""} onChange={handleChange} />
+        <FormField label="Phone" name="phone" value={form.phone || ""} onChange={handleChange} />
+        <FormField label="Ngày sinh" type="date" name="dob" value={form.dob?.split("T")[0] || ""} onChange={handleChange} />
 
+        {/* Giới tính */}
         <div className="mb-4">
-          <label className="block mb-1 font-medium text-gray-700">
-            Giới tính
-          </label>
+          <label className="block mb-1 font-medium text-gray-700">Giới tính</label>
           <select
             name="gender"
             value={form.gender || ""}
@@ -353,9 +326,17 @@ export default function ProfilePage() {
           >
             Hủy thay đổi
           </button>
+
+          <button
+            onClick={handleLogout}
+            className="bg-gray-300 px-4 py-2 rounded-lg hover:bg-gray-400 transition text-gray-800 font-medium"
+          >
+            Đăng xuất
+          </button>
         </div>
       </div>
 
+      {/* Loading overlay */}
       {loading && (
         <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-2xl">
           <div className="flex flex-col items-center">
@@ -403,8 +384,7 @@ function FormField({
         value={value}
         disabled={disabled}
         onChange={onChange}
-        className={`border rounded w-full p-2 ${disabled ? "bg-gray-100 cursor-not-allowed" : ""
-          } ${className}`}
+        className={`border rounded w-full p-2 ${disabled ? "bg-gray-100 cursor-not-allowed" : ""} ${className}`}
       />
     </div>
   );

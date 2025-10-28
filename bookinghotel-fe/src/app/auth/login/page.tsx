@@ -43,7 +43,7 @@ const Login = ({
   useEffect(() => {
     if (!redirectTo) return;
     const timer = setTimeout(() => {
-      router.push(redirectTo);
+      router.replace(redirectTo);
       localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
     }, 500);
     return () => clearTimeout(timer);
