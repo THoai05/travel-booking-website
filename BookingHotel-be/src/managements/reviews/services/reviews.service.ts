@@ -1,10 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Review } from '../entities/review.entity';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { CreateReviewDto } from '../dtos/create-review.dto';
 import { User } from 'src/managements/users/entities/users.entity';
 import { Hotel } from 'src/managements/hotels/entities/hotel.entity';
+import { SubmitRatingDto } from '../dtos/submit-rating.dto';
+import { UpdateReviewDto } from '../dtos/update-review.dto';
 
 @Injectable()
 export class ReviewsService {
@@ -74,6 +76,66 @@ export class ReviewsService {
             reviewType: dto.reviewType,
             images: dto.images ? JSON.stringify(dto.images) : null,
         });
+
+        console.log('🟡 [Before Save] Review object:', review);
+
+        const saved = await this.reviewRepo.save(review);
+
+        console.log('🟢 [After Save] Saved review:', saved);
+
+        return saved;
+    }
+
+    async updateReview(reviewId: number, dto: UpdateReviewDto, userId: number) {
+        const review = await this.reviewRepo.findOne({
+            where: { id: reviewId },
+            relations: ['user']
+        });
+
+        if (!review) {
+            throw new NotFoundException('Review not found');
+        }
+
+        if (review.user.id !== userId) {
+            throw new ForbiddenException('You can only update your own review');
+        }
+
+        Object.assign(review, dto); // cập nhật rating/comment
+        return await this.reviewRepo.save(review);
+    }
+
+    async deleteReview(reviewId: number, userId: number) {
+        const review = await this.reviewRepo.findOne({
+            where: { id: reviewId },
+            relations: ['user']
+        });
+
+        if (!review) {
+            throw new NotFoundException('Review not found');
+        }
+
+        if (review.user.id !== userId) {
+            throw new ForbiddenException('You can only delete your own review');
+        }
+
+        return await this.reviewRepo.remove(review);
+    }
+
+
+    async submitRating(dto: SubmitRatingDto, userId: number) {
+        const user = await this.userRepo.findOne({ where: { id: userId } });
+        const hotel = await this.hotelRepo.findOne({ where: { id: dto.hotelId } });
+
+        if (!user || !hotel) {
+            throw new NotFoundException('User or Hotel not found');
+        }
+
+        const review = this.reviewRepo.create({
+            user,
+            hotel,
+            rating: dto.rating,
+            reviewType: 'hotel',
+        } as DeepPartial<Review>);
 
         return await this.reviewRepo.save(review);
     }
