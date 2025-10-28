@@ -34,7 +34,7 @@ export class ReviewsService {
         }
     }
 
-    async getReviewsByHotelId(hotelId: number): Promise<{ data: Review[]; total: number }> {
+    async getReviewsByHotelId(hotelId: number, page = 1, limit = 10): Promise<{ data: Review[]; total: number; page: number; limit: number }> {
         const query = this.reviewRepo
             .createQueryBuilder('review')
             .leftJoinAndSelect('review.user', 'user')
@@ -48,12 +48,15 @@ export class ReviewsService {
             ])
             .where('review.reviewType = :type', { type: 'hotel' })
             .andWhere('review.hotelId = :hotelId', { hotelId })
-            .orderBy('review.createdAt', 'DESC');
+            .orderBy('review.createdAt', 'DESC')
+            .skip((page - 1) * limit) //bỏ các review trước trang hiện tại.
+            .take(limit); //lấy số review bằng với limit.
 
         const [data, total] = await query.getManyAndCount();
 
-        return { data, total };
+        return { data, total, page, limit };
     }
+
 
     async createReview(dto: CreateReviewDto, userId: number) {
         const user = await this.userRepo.findOne({ where: { id: userId } });

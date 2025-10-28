@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { ReviewsService } from '../services/reviews.service';
 import { CreateReviewDto } from '../dtos/create-review.dto';
 import { Request } from 'express';
@@ -14,8 +14,16 @@ export class ReviewsController {
 
 
   @Get('hotel/:id')
-  async handleGetReviewsByHotelId(@Param('id', ParseIntPipe) id: number) {
-    return await this.reviewsService.getReviewsByHotelId(id);
+  async handleGetReviewsByHotelId(
+    @Param('id', ParseIntPipe) hotelId: number,
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ) {
+    // parse page & limit từ string sang number
+    const pageNum = Math.max(parseInt(page), 1);
+    const limitNum = Math.max(parseInt(limit), 1);
+
+    return await this.reviewsService.getReviewsByHotelId(hotelId, pageNum, limitNum);
   }
 
   @UseGuards(JwtAuthGuard)
