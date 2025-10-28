@@ -84,7 +84,7 @@ const Header = () => {
 
       // 🔹 Nếu là admin, tự động chuyển sang /admin
       if (data.role === "admin") {
-        router.push("/admin");
+        router.replace("/admin");
       }
 
       return data;
@@ -150,7 +150,7 @@ const Header = () => {
 
 
   const handleClickProfile = () => {
-    router.push("/client/auth/profile");
+    router.replace("/client/auth/profile");
   };
 
   const handleLogout = () => {

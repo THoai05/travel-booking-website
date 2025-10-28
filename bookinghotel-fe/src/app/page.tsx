@@ -9,7 +9,7 @@ export default function Home() {
   useEffect(() => {
     const timer = setTimeout(() => {
       // Thực hiện chuyển hướng, nhưng KHÔNG ẩn splash ngay
-      router.push("/client");
+      router.replace("/client");
     }, 1500);
 
     return () => clearTimeout(timer);

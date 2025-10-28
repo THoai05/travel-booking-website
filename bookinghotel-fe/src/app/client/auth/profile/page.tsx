@@ -51,7 +51,7 @@ export default function ProfilePage() {
       try {
         const tokenData = localStorage.getItem("token");
         if (!tokenData) {
-          router.push("/client"); // hoặc "/"
+          router.replace("/client"); // hoặc "/"
         }
 
         const parsed = JSON.parse(tokenData);
@@ -229,7 +229,7 @@ export default function ProfilePage() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    router.push("/client"); // hoặc "/"
+    router.replace("/client"); // hoặc "/"
   };
 
   //if (!localStorage.getItem("token")) return <p>Không tìm thấy token...</p>;

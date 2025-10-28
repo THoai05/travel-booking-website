@@ -229,7 +229,7 @@ export default function ProfilePage() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    router.push("/client"); // hoặc "/"
+    router.replace("/client"); // hoặc "/"
   };
 
   //if (!localStorage.getItem("token")) return <p>Không tìm thấy token...</p>;
