@@ -104,10 +104,10 @@ export class ReviewsService {
         return await this.reviewRepo.save(review);
     }
 
-    async deleteReview(reviewId: number, userId: number) {
+    async deleteReview(id: number, userId: number) {
         const review = await this.reviewRepo.findOne({
-            where: { id: reviewId },
-            relations: ['user']
+            where: { id },
+            relations: ['user'],
         });
 
         if (!review) {
@@ -118,8 +118,16 @@ export class ReviewsService {
             throw new ForbiddenException('You can only delete your own review');
         }
 
-        return await this.reviewRepo.remove(review);
+        await this.reviewRepo.remove(review);
+        console.log(`🗑️ [Deleted Review ID]: ${id}`);
+
+        return {
+            success: true,
+            message: 'Review deleted successfully',
+            deletedReviewId: id
+        };
     }
+
 
 
     async submitRating(dto: SubmitRatingDto, userId: number) {

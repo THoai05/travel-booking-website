@@ -50,7 +50,7 @@ export class ReviewsController {
     return this.reviewsService.updateReview(id, dto, userId);
   }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deleteReview(
     @Param('id', ParseIntPipe) id: number,
