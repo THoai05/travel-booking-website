@@ -24,8 +24,8 @@ export default function RoomsSection({id}:RoomSectionProps) {
     <div className="min-h-screen bg-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="mb-8">
-          <h1 className="text-gray-900 mb-2">Available Rooms</h1>
-          <p className="text-gray-600">Select your preferred room option</p>
+          <h1 className="text-gray-900 mb-2">Phòng hiện có</h1>
+          <p className="text-gray-600">Lựa chọn kiểu phòng yêu thích của bạn</p>
         </div>
 
         {data?.map(item => (

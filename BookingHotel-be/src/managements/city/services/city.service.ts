@@ -64,17 +64,6 @@ export class CityService {
             .select(['city.id', 'city.title', 'city.image', 'city.description', 'city.isFeatured'])
             .leftJoin('city.hotels', 'hotels')
             .where('city.title Like :title', { title:`%${title}%`})    
-            .addSelect([
-                'hotels.id',
-                'hotels.name',
-                'hotels.description',
-                'hotels.address',
-                'hotels.phone',
-                'hotels.policies',
-                'hotels.checkInTime',
-                'hotels.checkOutTime',
-                'hotels.isFeatured'
-            ])
         const [data, total] = await queryBuilder.getManyAndCount()
         return {
               data,total

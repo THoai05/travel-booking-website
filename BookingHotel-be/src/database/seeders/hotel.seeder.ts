@@ -101,7 +101,7 @@ export default class HotelSeeder implements Seeder {
         roomType.total_inventory = fakerVI.number.int({ min: 5, max: 30 });
         roomType.area = `${fakerVI.number.int({ min: 20, max: 60 })} m²`;
         roomType.bed_type = fakerVI.helpers.arrayElement([
-          '1 double bed', '2 single beds', '1 king bed', '3 single beds'
+          '1 giường đôi', '2 giường đơn', '1 giường cỡ đại', '3 giường đơn'
         ]);
         roomTypes.push(roomType);
       }
@@ -121,9 +121,26 @@ for (const roomType of savedRoomTypes) {
     plan.roomType = roomType;
     plan.roomTypeId = roomType.id;
 
-    plan.name = fakerVI.helpers.arrayElement([
-      'Standard Rate', 'Non-refundable', 'Breakfast Included', 'Early Bird', 'Last Minute'
-    ]);
+ plan.name = fakerVI.helpers.arrayElement([
+  'View biển',
+  'Ban công riêng',
+  'Bồn tắm lớn',
+  'Tầng cao yên tĩnh',
+  'Gần hồ bơi',
+  'View thành phố',
+  'Cửa sổ lớn',
+  'Khu vực làm việc riêng',
+  'Phù hợp cho gia đình',
+  'Giường cỡ lớn',
+  'Phòng góc nhiều ánh sáng',
+  'Sân hiên riêng',
+  'Gần thang máy',
+  'Giường đôi kết nối',
+  'Không gian mở',
+  'Trang trí hiện đại',
+  'Tiện nghi cao cấp',
+]);
+
 
     // ✅ Thay vì plan.description, dùng các trường thật
     const basePrice = fakerVI.number.int({ min: 500000, max: 5000000 });
