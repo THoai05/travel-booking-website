@@ -2,6 +2,8 @@ import { City } from 'src/managements/city/entities/city.entity';
 import { Review } from 'src/managements/reviews/entities/review.entity';
 import { Room } from 'src/managements/rooms/entities/rooms.entity';
 import { Amenity } from 'src/managements/amenities/entities/amenities.entity';
+import { Favourite } from 'src/managements/favourite/entities/favourite.entity';
+
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -49,6 +51,10 @@ export class Hotel {
   @ManyToOne(() => City, (city) => city.hotels)
   @JoinColumn({ name: 'cityId' })
   city: City;
+
+  @OneToMany(() => Favourite, favourite => favourite.hotel)
+  favourites: Favourite[];
+
 
   @Column({ type: 'bit', default: true })
   isFeatured: boolean;
