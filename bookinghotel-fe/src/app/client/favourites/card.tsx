@@ -1,6 +1,6 @@
-import { Star, MapPin, Phone } from 'lucide-react';
-import Image from 'next/image';
-// Định nghĩa kiểu dữ liệu cho 1 khách sạn
+import { Star, MapPin, Check } from "lucide-react";
+import Image from "next/image";
+
 export interface Accommodation {
     id: number;
     name: string;
@@ -21,80 +21,64 @@ interface AccommodationCardProps {
 }
 
 export default function AccommodationCard({ accommodation }: AccommodationCardProps) {
-    // Tính rating trên thang điểm 10
     const rating = Number((accommodation.avgRating * 2).toFixed(1));
-
-    // Placeholder image nếu không có
-    const defaultImage = "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBob3RlbCUyMHJvb218ZW58MXx8fHwxNzYxMTg3NTI1fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral";
+    const defaultImage =
+        "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBob3RlbCUyMHJvb218ZW58MXx8fHwxNzYxMTg3NTI1fDA&ixlib=rb-4.1.0&q=80&w=1080";
 
     return (
-        <div className="flex-shrink-0 w-72 bg-white rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 group">
-            {/* Image Section */}
-            <div className="relative h-48 overflow-hidden">
+        <div className="flex w-200 max-w-3xl bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer relative">
+            {/* Image */}
+            <div className="w-40 h-40 flex-shrink-0 relative">
                 <Image
                     src={accommodation.imageUrl || defaultImage}
                     alt={accommodation.name}
-                    width={200}
-                    height={100}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    width={160}
+                    height={160}
+                    className="border border-lg rounded-xl m-2 w-full h-full object-cover"
                 />
-
-                {/* Rating Badge */}
-                <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-1.5 shadow-lg">
-                    <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                        <span className="text-gray-900">{rating}</span>
-                        <span className="text-gray-500 text-sm">/10</span>
-                    </div>
-                </div>
             </div>
 
-            {/* Content Section */}
-            <div className="p-4">
-                {/* Hotel Name */}
-                <h3
-                    className="text-gray-900 mb-2 line-clamp-1 group-hover:text-sky-600 transition-colors"
-                    title={accommodation.name}
-                >
+            {/* Content */}
+            <div className="flex flex-col justify-center p-4 flex-1">
+                <p className="text-sm text-gray-500 mb-1">Khách sạn</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-sky-600 transition-colors">
                     {accommodation.name}
                 </h3>
 
-                {/* Location */}
-                <div className="flex items-center gap-1.5 text-gray-600 mb-1">
-                    <MapPin className="w-4 h-4 text-sky-500 flex-shrink-0" />
-                    <span className="text-sm truncate">{accommodation.city.title}</span>
-                </div>
-
-                {/* Review Count */}
-                <div className="text-sm text-gray-500 mb-3">
-                    {accommodation.reviewCount} đánh giá
-                </div>
-
-                {/* Divider */}
-                <div className="border-t border-gray-200 pt-3 mt-3">
-                    {/* Price Section */}
-                    <div className="flex items-end justify-between">
-                        <div>
-                            <p className="text-sm text-gray-500 mb-1">Giá trung bình/đêm</p>
-                            <div className="flex items-baseline gap-1">
-                                <span className="text-orange-600">
-                                    {Number(accommodation.avgPrice).toLocaleString('vi-VN')}
-                                </span>
-                                <span className="text-sm text-gray-500">VND</span>
-                            </div>
-                        </div>
-
-                        {/* View Details Button */}
-                        <button className="px-4 py-2 bg-sky-500 text-white text-sm rounded-lg hover:bg-sky-700 transition-colors">
-                            Xem chi tiết
-                        </button>
+                {/* Rating */}
+                <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-0.5">
+                        {[...Array(5)].map((_, i) => (
+                            <Star
+                                key={i}
+                                className={`w-4 h-4 ${i < 4 ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
+                                    }`}
+                            />
+                        ))}
                     </div>
-
-                    {/* Tax Notice */}
-                    <p className="text-xs text-gray-400 mt-2">
-                        *Chưa bao gồm thuế và phí
-                    </p>
+                    <span className="text-sky-600 font-medium">{rating} / 10</span>
+                    <span className="text-gray-500 text-sm">({accommodation.reviewCount})</span>
                 </div>
+
+                {/* Location */}
+                <div className="flex items-center gap-1 text-gray-600 mb-3">
+                    <MapPin className="w-4 h-4 text-sky-500 flex-shrink-0" />
+                    <span className="text-sm">{accommodation.city.title}</span>
+                </div>
+
+                {/* Price */}
+                <div className="flex items-baseline gap-2">
+                    <span className="text-orange-600 text-lg font-semibold">
+                        {Number(accommodation.avgPrice).toLocaleString("vi-VN")}
+                    </span>
+                    <span className="text-gray-500 text-sm">VND</span>
+                    <span className="text-gray-600 text-sm">(1 khách, 1 phòng, 1 đêm)</span>
+                </div>
+            </div>
+
+            {/* Check icon (góc trên bên phải) */}
+            <div className="absolute top-3 right-3 bg-sky-500 p-1.5 rounded-md">
+                <Check className="w-4 h-4 text-white" />
             </div>
         </div>
     );

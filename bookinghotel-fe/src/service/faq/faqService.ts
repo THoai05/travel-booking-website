@@ -1,0 +1,57 @@
+import axios from "@/axios/axios";
+
+
+// 🟦 Lấy danh sách tất cả FAQ
+export const getAllFaqs = async () => {
+    try {
+        const res = await axios.get(`/faq`);
+        return res.data;
+    } catch (error) {
+        console.error("Lỗi khi lấy danh sách FAQ:", error);
+        throw error;
+    }
+};
+
+// 🟩 Lấy chi tiết 1 FAQ theo id
+export const getFaqById = async (id: number) => {
+    try {
+        const res = await axios.get(`/faq/${id}`);
+        return res.data;
+    } catch (error) {
+        console.error("Lỗi khi lấy chi tiết FAQ:", error);
+        throw error;
+    }
+};
+
+// 🟧 Tạo mới FAQ (dành cho admin)
+export const createFaq = async (faqData: { question: string; answer: string }) => {
+    try {
+        const res = await axios.post(`/faq`, faqData);
+        return res.data;
+    } catch (error) {
+        console.error("Lỗi khi tạo FAQ:", error);
+        throw error;
+    }
+};
+
+// 🟨 Cập nhật FAQ (dành cho admin)
+export const updateFaq = async (id: number, faqData: { question?: string; answer?: string }) => {
+    try {
+        const res = await axios.put(`/faq/${id}`, faqData);
+        return res.data;
+    } catch (error) {
+        console.error("Lỗi khi cập nhật FAQ:", error);
+        throw error;
+    }
+};
+
+// 🟥 Xóa FAQ (dành cho admin)
+export const deleteFaq = async (id: number) => {
+    try {
+        const res = await axios.delete(`/faq/${id}`);
+        return res.data;
+    } catch (error) {
+        console.error("Lỗi khi xóa FAQ:", error);
+        throw error;
+    }
+};
