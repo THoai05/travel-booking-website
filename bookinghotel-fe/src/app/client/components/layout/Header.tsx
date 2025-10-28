@@ -101,7 +101,7 @@ const Header = () => {
     if (!localStorage.getItem("methodShowLoginregister")) {
       localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
     }
-    const timer = setTimeout(() => fetchProfile(), 100);
+    const timer = setTimeout(() => fetchProfile(), 1000);
     return () => clearTimeout(timer);
   }, []);
 
