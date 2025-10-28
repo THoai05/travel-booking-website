@@ -2,21 +2,21 @@
 import { useEffect, useState } from "react";
 import { getFavouritesByUser } from "@/service/favourite/favouriteService";
 import AccommodationCard, { Accommodation } from "./card";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
+import { Heart } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function FavouritePage() {
     const [favourites, setFavourites] = useState<Accommodation[]>([]);
     const [loading, setLoading] = useState(true);
-    const userId = 3; // ✅ Tạm thời fix cứng, sau này lấy từ Auth
+    const userId = 3;
 
     useEffect(() => {
         const fetchFavourites = async () => {
             try {
                 const data = await getFavouritesByUser(userId);
-
-                // map dữ liệu từ API sang dạng AccommodationCard
                 const formatted = data.map((fav: any) => {
-                    const item = fav.hotel || fav.room?.hotel; // ưu tiên hotel
+                    const item = fav.hotel || fav.room?.hotel;
                     return {
                         id: item.id,
                         name: item.name,
@@ -44,23 +44,62 @@ export default function FavouritePage() {
         fetchFavourites();
     }, []);
 
-    if (loading) return <p className="text-center mt-10">Đang tải danh sách yêu thích...</p>;
+    if (loading)
+        return (
+            <div className="flex flex-col items-center justify-center h-screen">
+                <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                >
+                    <Heart className="w-10 h-10 text-sky-500" />
+                </motion.div>
+                <p className="text-gray-600 mt-4">Đang tải danh sách yêu thích...</p>
+            </div>
+        );
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
-            <h2 className="text-2xl font-semibold mb-4 text-gray-800">Danh sách yêu thích</h2>
+        <div className="p-6 mt-13 !bg-gradient-to-b from-sky-50 to-white min-h-screen">
+            {/* Header */}
+            <div className="flex items-center justify-center mb-8">
+                <motion.div
+                    initial={{ opacity: 0, y: -30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="flex items-center gap-3 bg-white shadow-md rounded-2xl px-6 py-3"
+                >
+                    <Heart className="w-6 h-6 text-rose-500 fill-rose-500" />
+                    <h2 className="text-2xl font-semibold text-gray-800">
+                        Danh sách yêu thích của bạn
+                    </h2>
+                </motion.div>
+            </div>
 
+            {/* Nội dung */}
             {favourites.length === 0 ? (
-                <p>Bạn chưa có khách sạn nào trong danh sách yêu thích.</p>
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex flex-col items-center justify-center mt-20 text-gray-500"
+                >
+                    <Heart className="w-12 h-12 text-gray-400 mb-2" />
+                    <p>Bạn chưa có khách sạn nào trong danh sách yêu thích.</p>
+                </motion.div>
             ) : (
-                <div className="flex flex-wrap gap-6">
+                <motion.div
+                    layout
+                    className="grid grid-cols-1 gap-6 place-items-center"
+                >
                     {favourites.map((item) => (
-                        <AccommodationCard
+                        <motion.div
                             key={uuidv4()}
-                            accommodation={item}
-                        />
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4 }}
+                        >
+                            <AccommodationCard accommodation={item} />
+                        </motion.div>
                     ))}
-                </div>
+                </motion.div>
             )}
         </div>
     );
