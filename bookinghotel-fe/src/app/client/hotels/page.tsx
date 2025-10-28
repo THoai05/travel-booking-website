@@ -9,6 +9,7 @@ import banner2 from "../../../../public/banner/banner2.jpg"
 import banner3 from "../../../../public/banner/banner3.jpg" 
 import banner4 from "../../../../public/banner/banner4.jpg" 
 import banner5 from "../../../../public/banner/bannner5.jpg" 
+import { Sparkles, Sun, Mountain, Landmark } from 'lucide-react';
 
 
 
@@ -65,10 +66,29 @@ export default function Hotel() {
       */}
       <main className="container mx-auto max-w-7xl px-4 py-6 pt-100">
               <CouponSection />
-              <AccommodationSection title="Đi chơi gần nhà " isDisplayNavbar={true}/>
-              <AccommodationSection title="Vi vu miền Nam" isDisplayNavbar={false} regionId={3}/>
-              <AccommodationSection title="Khám phá miền Bắc "isDisplayNavbar={false} regionId={1}/>
-              <AccommodationSection title="Đậm đà miền Trung"isDisplayNavbar={false} regionId={2}/>
+             <AccommodationSection 
+              title="Đi chơi gần nhà" 
+              icon={<Sparkles className="w-6 h-6 text-yellow-500" />} // <-- 🔥 THÊM PROP NÀY
+              isDisplayNavbar={true}
+            />
+            <AccommodationSection 
+              title="Vi vu miền Nam" 
+              icon={<Sun className="w-6 h-6 text-orange-500" />} // <-- 🔥 THÊM PROP NÀY
+              isDisplayNavbar={false} 
+              regionId={3}
+            />
+            <AccommodationSection 
+              title="Khám phá miền Bắc" 
+              icon={<Mountain className="w-6 h-6 text-blue-500" />} // <-- 🔥 THÊM PROP NÀY
+              isDisplayNavbar={false} 
+              regionId={1}
+            />
+            <AccommodationSection 
+              title="Đậm đà miền Trung" 
+              icon={<Landmark className="w-6 h-6 text-green-500" />} // <-- 🔥 THÊM PROP NÀY
+              isDisplayNavbar={false} 
+              regionId={2}
+            />
               <div className="w-full flex justify-center py-10">
         <CoverflowSlider items={cities} />
       </div>

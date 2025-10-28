@@ -45,6 +45,23 @@ export default function RoomCard({ room }: RoomCardProps) {
     ratePlans: [],
   };
 
+  const roomTypeName = new Map([
+    ['deluxe double', "Phòng đôi sang trọng",],
+    ['deluxe_family', "Phòng gia đình sang trọng",],
+    ['grand family', "Phòng đại gia đình",],
+    ['deluxe triple', "Phòng ba sang trọng",],
+    ['standard', "Phòng tiêu chuẩn",],
+    ['double room', "Phòng đôi tiêu chuẩn ",],
+    ['triple room', "Phòng ba tiêu chuẩn",],
+    
+  ])
+
+  const paymentPolicyName = new Map([
+    ['FREE_CANCELLATION','Hoàn trả phòng miễn phí'],
+    ['NON_REFUNDABLE','Không cho phép hoàn trả'],
+    ['PAY_AT_HOTEL','Hỗ trợ thanh toán tại khách sạn'],
+  ])
+
   const safeRatePlans = Array.isArray(safeRoom.ratePlans)
     ? safeRoom.ratePlans
     : [];
@@ -58,7 +75,7 @@ export default function RoomCard({ room }: RoomCardProps) {
       {/* Room Name Header */}
       <div className="px-6 py-4 border-b bg-gray-50">
         <h3 className="text-lg font-bold text-gray-800 mb-3">
-          {safeRoom.name || 'Unnamed Room'}
+          {roomTypeName.get(safeRoom.name) || 'Phòng tiêu chuẩn'}
         </h3>
       </div>
 
@@ -69,7 +86,7 @@ export default function RoomCard({ room }: RoomCardProps) {
             <div className="relative rounded-lg overflow-hidden group">
               <ImageWithFallback
                 src={safeRoom.image || '/placeholder-room.jpg'}
-                alt={safeRoom.name || 'Room Image'}
+                alt={roomTypeName.get(safeRoom.name) || 'Room Image'}
                 className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300"
               />
             </div>
@@ -106,9 +123,9 @@ export default function RoomCard({ room }: RoomCardProps) {
           {/* RIGHT: Room Options Table */}
           <div className="lg:col-span-9">
             <div className="hidden md:grid md:grid-cols-12 gap-4 pb-3 border-b text-sm text-gray-700 mb-4">
-              <div className="col-span-6">Room Option(s)</div>
-              <div className="col-span-2">Guest(s)</div>
-              <div className="col-span-4 text-right">Price/room/night</div>
+              <div className="col-span-6">Tùy chọn phòng</div>
+              <div className="col-span-2">Số khách</div>
+              <div className="col-span-4 text-right">Giá mỗi đêm</div>
             </div>
 
             <div className="space-y-4">
@@ -126,7 +143,7 @@ export default function RoomCard({ room }: RoomCardProps) {
                         {option?.name || 'Standard Option'}
                       </p>
                       <p className="text-sm text-gray-800 font-bold">
-                        {option?.includes || 'Breakfast not included'}
+                        {option?.includes || 'Phục vụ bữa sáng miễn phí'}
                       </p>
 
                       <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -137,7 +154,7 @@ export default function RoomCard({ room }: RoomCardProps) {
                       <div className="flex items-start gap-2 text-sm font-bold text-green-700">
                         <Check className="w-4 h-4 mt-0.5 flex-shrink-0" />
                         <span>
-                          {option?.cancellationPolicy ||
+                          {paymentPolicyName.get(option?.cancellationPolicy) ||
                             'No cancellation policy info'}
                         </span>
                         {(option?.cancellationPolicy || '').includes(
@@ -194,18 +211,18 @@ export default function RoomCard({ room }: RoomCardProps) {
                       </p>
 
                       <p className="text-xs text-gray-500">
-                        Exclude taxes & fees
+                        Chưa bao gồm thuế và phí
                       </p>
 
                       <Button className="w-full md:w-24 bg-sky-500 hover:bg-sky-700 text-white mt-2">
-                        Choose
+                        Chọn phòng
                       </Button>
                     </div>
                   </div>
                 ))
               ) : (
                 <p className="text-sm text-gray-500 italic">
-                  No available rate plans for this room.
+                  Không còn tùy chọn phòng cho khách sạn 
                 </p>
               )}
             </div>

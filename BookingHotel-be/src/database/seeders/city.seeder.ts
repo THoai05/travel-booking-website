@@ -58,6 +58,7 @@ export default class CitySeeder implements Seeder {
         description: 'Thành phố ngàn hoa mộng mơ',
         region: savedRegions.find((r) => r.title === 'Miền Nam'),
       },
+      
     ];
 
     await cityRepo.save(cities);

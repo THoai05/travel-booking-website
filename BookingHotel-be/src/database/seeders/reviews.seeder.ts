@@ -41,7 +41,7 @@ export default class ReviewSeeder implements Seeder {
       null
     ];
 
-    const totalReviews = 150;
+    const totalReviews = 1500;
     const reviews: Partial<Review>[] = [];
 
     for (let i = 0; i < totalReviews; i++) {
