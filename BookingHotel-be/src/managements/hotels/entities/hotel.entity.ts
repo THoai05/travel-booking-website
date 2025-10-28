@@ -2,6 +2,8 @@ import { City } from 'src/managements/city/entities/city.entity';
 import { Review } from 'src/managements/reviews/entities/review.entity';
 import { Room } from 'src/managements/rooms/entities/rooms.entity';
 import { Amenity } from 'src/managements/amenities/entities/amenities.entity';
+import { Favourite } from 'src/managements/favourite/entities/favourite.entity';
+
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -15,6 +17,7 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Expose } from 'class-transformer';
+import { RoomType } from 'src/managements/rooms/entities/roomType.entity';
 
 @Entity({ name: 'hotels' })
 export class Hotel {
@@ -49,6 +52,10 @@ export class Hotel {
   @JoinColumn({ name: 'cityId' })
   city: City;
 
+  @OneToMany(() => Favourite, favourite => favourite.hotel)
+  favourites: Favourite[];
+
+
   @Column({ type: 'bit', default: true })
   isFeatured: boolean;
 
@@ -80,6 +87,9 @@ export class Hotel {
     nullable: true,
   })
   avgPrice: number | null;
+
+  @OneToMany(() => RoomType, (roomType) => roomType.hotel)
+  roomTypes:RoomType[]
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;

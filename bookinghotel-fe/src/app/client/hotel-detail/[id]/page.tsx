@@ -191,7 +191,7 @@ import { useHandleHotelById, useHandleSimilarHotelByCityId } from '@/service/hot
               {/* ================================ */}
 
               {/* Các section còn lại xếp chồng bên dưới 3 card này */}
-              <RoomsSection />
+              <RoomsSection id={dataHotel?.id} />
 
               <SimilarAccommodations
                 city={dataHotel?.city.title }

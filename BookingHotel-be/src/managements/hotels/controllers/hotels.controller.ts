@@ -27,4 +27,12 @@ export class HotelsController {
     return hotels
   }
 
+  @Get(':id/room-options')
+  async handleGetDataRoomTypeAndRatePlan(@Param('id', ParseIntPipe) id: number) {
+    const data = await this.hotelsService.findRoomTypeAndRatePlanByHotelId(id)
+    return {
+      data
+    }
+  }
+
 }

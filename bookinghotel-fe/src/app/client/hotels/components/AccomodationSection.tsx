@@ -8,10 +8,12 @@ import { useHandleGetTitleCities } from '@/service/city/cityService';
 import { useHandleGetHotelsByRegionId, useHandleSimilarHotelByCityId } from '@/service/hotels/hotelService';
 import { useRouter } from 'next/navigation';
 
-interface AccommodationSectionProps { /** Section title – e.g. "Chơi cuối tuần gần nhà" */
- title: string;
+interface AccommodationSectionProps {
+  /** Section title – e.g. "Chơi cuối tuần gần nhà" */
+  title: string;
   isDisplayNavbar: boolean,
-  regionId?: number // <<< FIX: Đổi thành optional để component đầu tiên không cần truyền
+  regionId?: number
+  icon?: React.ReactNode; // <-- 🔥 THÊM DÒNG NÀY
 }
 
 /* -------------------------------------------------------------------------- */
@@ -48,7 +50,8 @@ function SkeletonCard() {
 export default function AccommodationSection({
   title,
   isDisplayNavbar,
-  regionId
+  regionId,
+  icon
 }: AccommodationSectionProps) {
 
   const [activeCity, setActiveCity] = useState(null);
@@ -110,7 +113,8 @@ export default function AccommodationSection({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Title */}
         <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-900 mb-6">
-          {title}
+          {icon} {/* Thêm icon vào đây */}
+          <span>{title}</span>
         </h2>
 
         {/* City Tabs */}
@@ -147,9 +151,12 @@ export default function AccommodationSection({
         {/* Carousel */}
         <div className="relative">
           {/* Nút trái (giữ nguyên) */}
-          <button onClick={() => scroll('left')} >
-            <ChevronLeft className="w-5 h-5 text-gray-700" />
-          </button>
+        <button
+          onClick={() => scroll('left')}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white shadow-lg rounded-full p-2 backdrop-blur-sm transition"
+        >
+    <ChevronLeft className="w-5 h-5 text-gray-700" />
+  </button>
 
           {/* Cards Container */}
           <div
@@ -186,7 +193,10 @@ export default function AccommodationSection({
           </div>
 
           {/* Nút phải (giữ nguyên) */}
-          <button onClick={() => scroll('right')} >
+          <button
+            onClick={() => scroll('right')}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white shadow-lg rounded-full p-2 backdrop-blur-sm transition"
+          >
             <ChevronRight className="w-5 h-5 text-gray-700" />
           </button>
         </div>

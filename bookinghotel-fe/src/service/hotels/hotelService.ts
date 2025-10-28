@@ -118,5 +118,17 @@ export const useHandleGetHotelsByRegionId = (id: number) => {
     })
 }
 
+export const useHandleGetRoomTypeAndRatePlan = (id: number) => {
+  return useQuery({
+    queryKey: ['roomTypeAndRatePlan', id],
+    queryFn: async () => {
+      const response = await api.get(`hotels/${id}/room-options`)
+      return response.data.data
+    },
+    enabled: !!id,
+    staleTime: 1000 * 60 * 10
+  })
+}
+
    
 

@@ -59,7 +59,9 @@ export default function ResetPasswordPage() {
       setLoadingMessage("Đang đặt lại mật khẩu...");
       await api.post("/reset-password/reset", { token, newPassword: password });
       alert("Mật khẩu đã được đặt lại thành công!");
+      localStorage.setItem("methodShowLoginregister", JSON.stringify("showLogin"));
       router.push("/");
+      
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.message || "Có lỗi khi đặt lại mật khẩu");

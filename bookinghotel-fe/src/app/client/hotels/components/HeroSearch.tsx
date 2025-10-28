@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useMemo } from 'react';
 import { Search, MapPin, Calendar, Clock, Users, Navigation,Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useRouter } from 'next/navigation';
+import { useHandleFilterTitleCity } from '@/service/city/cityService';
 // ---
 
 // ... (Toàn bộ code còn lại của Types, Constants, Subcomponents... giữ nguyên) ...
@@ -51,7 +53,7 @@ interface HeroSearchProps {
 }
 
 // Constants
-const LAST_SEARCHES: Suggestion[] = [
+const LAST_SEARCHES: Suggestion[] = [ 
   { name: 'Da Nang', details: 'Location' },
   { name: 'Da Lat', details: 'Lam Dong Province, Lam Dong, Vietnam', count: 1679 },
   { name: 'Quang Ninh Province', details: 'Vietnam', count: 920 },
@@ -63,9 +65,11 @@ const POPULAR_DESTINATIONS: Suggestion[] = [
   { name: 'Vung Tau City', details: 'Ba Ria - Vung Tau Ho Chi Minh City, Vietnam', count: 938 },
 ];
 
+
+
 const DURATION_OPTIONS = Array.from({ length: 30 }, (_, i) => {
   const nights = i + 1;
-  return `${nights} night${nights > 1 ? 's' : ''}`;
+  return `${nights} ngày`;
 });
 
 // Subcomponents
@@ -74,7 +78,8 @@ const SuggestionItem = ({ suggestion, onClick }: { suggestion: Suggestion; onCli
    className="flex justify-between items-center p-3 -mx-2 rounded-lg hover:bg-sky-50 cursor-pointer transition-colors"
    onMouseDown={onClick}
   >
-   <div className="flex-1 min-w-0">
+      <MapPin className="w-5 h-5 text-sky-500 mr-3 flex-shrink-0" />
+    <div className="flex-1 min-w-0">
     <div className="font-semibold text-gray-900 truncate">{suggestion.name}</div>
     <div className="text-sm text-gray-500 truncate">{suggestion.details}</div>
    </div>
@@ -86,48 +91,101 @@ const SuggestionItem = ({ suggestion, onClick }: { suggestion: Suggestion; onCli
   </div>
 );
 
-const SuggestionBox = ({ onSelect }: { onSelect: (location: string) => void }) => (
+interface SuggestionBoxProps {
+  onSelect: (location: string) => void;
+  apiSuggestions: Suggestion[];
+  isLoading: boolean;
+  hasQuery: boolean; // True nếu người dùng đã gõ chữ
+}
+
+const SuggestionBox = ({ 
+  onSelect, 
+  apiSuggestions, 
+  isLoading, 
+  hasQuery 
+}: SuggestionBoxProps) => (
   <div className="absolute top-full left-0 w-full bg-white rounded-lg shadow-xl mt-2 border border-gray-200 z-50 max-h-96 overflow-y-auto">
-   {/* Near Me Button */}
-   <div
-    className="flex items-center p-4 hover:bg-sky-50 cursor-pointer border-b border-gray-200 transition-colors"
-    onMouseDown={() => onSelect('Near me')}
-   >
-    <Navigation className="w-5 h-5 text-sky-500 mr-3 flex-shrink-0" />
-    <span className="font-semibold text-sky-500">Near me</span>
-   </div>
+    
+    {/* Sử dụng logic có điều kiện:
+      - Nếu user đã gõ (hasQuery = true) -> Hiển thị kết quả API.
+      - Nếu user chưa gõ (hasQuery = false) -> Hiển thị mock data cũ.
+    */}
 
-   {/* Last Searches */}
-   <div className="p-4">
-    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
-     Your Last Search Result
-    </h3>
-    <div className="space-y-1">
-     {LAST_SEARCHES.map((item, idx) => (
-       <SuggestionItem
-        key={`last-${idx}`}
-        suggestion={item}
-        onClick={() => onSelect(item.name)}
-       />
-     ))}
-    </div>
-   </div>
+    {hasQuery ? (
+      // --- PHẦN 1: HIỂN THỊ KHI USER ĐÃ GÕ TÌM KIẾM ---
+      <div className="p-4">
+        {isLoading && (
+          // Đang loading
+          <div className="text-center text-gray-500 py-3">
+            Đang tìm...
+          </div>
+        )}
 
-   {/* Popular Destinations */}
-   <div className="p-4 border-t border-gray-200">
-    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
-     Popular Destination
-    </h3>
-    <div className="space-y-1">
-     {POPULAR_DESTINATIONS.map((item, idx) => (
-       <SuggestionItem
-        key={`popular-${idx}`}
-        suggestion={item}
-        onClick={() => onSelect(item.name)}
-       />
-     ))}
-    </div>
-   </div>
+        {!isLoading && apiSuggestions.length > 0 && (
+          // Đã load xong và có kết quả
+          <div className="space-y-1">
+            {apiSuggestions.map((item, idx) => (
+              <SuggestionItem
+                key={`api-${idx}`}
+                suggestion={item}
+                onClick={() => onSelect(item.name)}
+              />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && apiSuggestions.length === 0 && (
+          // Đã load xong nhưng không có kết quả
+          <div className="text-center text-gray-500 py-3">
+            Không tìm thấy kết quả.
+          </div>
+        )}
+      </div>
+    ) : (
+      // --- PHẦN 2: HIỂN THỊ MẶC ĐỊNH (CODE CŨ CỦA BRO) ---
+      <>
+        {/* Near Me Button */}
+        <div
+          className="flex items-center p-4 hover:bg-sky-50 cursor-pointer border-b border-gray-200 transition-colors"
+          onMouseDown={() => onSelect('Near me')}
+        >
+          <Navigation className="w-5 h-5 text-sky-500 mr-3 flex-shrink-0" />
+          <span className="font-semibold text-sky-500">Near me</span>
+        </div>
+
+        {/* Last Searches */}
+        <div className="p-4">
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+            Your Last Search Result
+          </h3>
+          <div className="space-y-1">
+            {LAST_SEARCHES.map((item, idx) => (
+              <SuggestionItem
+                key={`last-${idx}`}
+                suggestion={item}
+                onClick={() => onSelect(item.name)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Popular Destinations */}
+        <div className="p-4 border-t border-gray-200">
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+            Popular Destination
+          </h3>
+          <div className="space-y-1">
+            {POPULAR_DESTINATIONS.map((item, idx) => (
+              <SuggestionItem
+                key={`popular-${idx}`}
+                suggestion={item}
+                onClick={() => onSelect(item.name)}
+              />
+            ))}
+          </div>
+        </div>
+      </>
+    )}
   </div>
 );
 
@@ -200,26 +258,29 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
 
    // --- CHANGED: Đổi state ngày tháng sang 'Date' object ---
   const [checkIn, setCheckIn] = useState<Date>(new Date(2025, 10, 3)); // Nov 3, 2025 (JS month là 0-11)
-  const [duration, setDuration] = useState('5 nights');
+  const [duration, setDuration] = useState('');
   const [checkOut, setCheckOut] = useState<Date>(new Date(2025, 10, 8)); // Nov 8, 2025
    // ---
 
   const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(0);
+  const [children, setChildren] = useState(1);
   const [rooms, setRooms] = useState(1);
   const [isGuestsOpen, setIsGuestsOpen] = useState(false)
 
-  const [guests, setGuests] = useState('2 Adult(s), 0 Child, 1 Room'); // Vẫn giữ state này để hiển thị
+  const [guests, setGuests] = useState('2 người lớn, 1 trẻ em, 1 phòng'); // Vẫn giữ state này để hiển thị
   
   useEffect(() => {
     // Tự động cập nhật lại text mỗi khi số lượng thay đổi
-    const newGuestsText = `${adults} Adult(s), ${children} Child${children !== 1 ? 'ren' : ''}, ${rooms} Room${rooms > 1 ? 's' : ''}`;
+    const newGuestsText = `${adults} người lớn, ${children} trẻ em, ${rooms} phòng${rooms > 1 ? 's' : ''}`;
     setGuests(newGuestsText);
   }, [adults, children, rooms]);
   const [isDestinationFocused, setIsDestinationFocused] = useState(false);
 
    // --- CHANGED: Thêm state cho Popover Lịch ---
    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+   const router = useRouter()
+
    // ---
 
    // --- CHANGED: Thêm useEffect để tự động cập nhật Check-out ---
@@ -232,19 +293,30 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
         console.error("Error calculating checkout date:", error);
      }
    }, [checkIn, duration]);
-   // ---
+  // ---
+  
+  const { data,isError,isLoading } = useHandleFilterTitleCity(destination)
+  console.log(data)
+
+  const apiSuggestions: Suggestion[] = useMemo(() => {
+    // Kiểm tra xem data và data.data có tồn tại không
+    if (data  && Array.isArray(data)) {
+      return data?.map((city: any) => ({
+        name: city.title,       // Ánh xạ 'title' từ API -> 'name'
+        details: city.description // Ánh xạ 'description' từ API -> 'details'
+        // 'count' là optional, nên ta có thể bỏ qua
+      }));
+    }
+    // Nếu không có data thì trả về mảng rỗng
+    return [];
+  }, [data]);
 
   const handleSearch = () => {
    setIsDestinationFocused(false);
+   router.push(`/hotels/search?cityTitle=${destination}`)
 
      // --- CHANGED: Format Date object về string khi search ---
-   onSearch?.({
-    destination,
-    checkIn: format(checkIn, 'EEE, dd MMM yyyy'),
-    duration,
-    checkOut: format(checkOut, 'EEE, dd MMM yyyy'),
-    guests,
-   });
+   
      // ---
   };
 
@@ -268,10 +340,10 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
 
      {/* Destination Field (Giữ nguyên) */}
      <div className="relative">
-       <FormField id="destination" label="City, destination, or hotel name" icon={MapPin}>
+       <FormField id="destination" label="Thành phố , tên khách sạn" icon={MapPin}>
         <Input
          id="destination"
-         placeholder="E.g., Da Nang"
+         placeholder="Hồ Chí Minh , Đà Nẵng ..."
          className="pl-11 h-12 text-base border-gray-300 focus:border-sky-500 focus:ring-sky-500"
          value={destination}
          onChange={(e) => setDestination(e.target.value)}
@@ -281,8 +353,14 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
        </FormField>
 
        {isDestinationFocused && (
-        <SuggestionBox onSelect={handleDestinationSelect} />
-       )}
+            <SuggestionBox
+              onSelect={handleDestinationSelect}
+              // Props mới:
+              apiSuggestions={apiSuggestions}
+              isLoading={isLoading}
+              hasQuery={destination.length > 0} // Báo cho SuggestionBox biết là user đã gõ gì đó
+            />
+          )}
      </div>
 
      {/* Date and Duration Fields */}
@@ -290,7 +368,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
 
        {/* --- CHANGED: Check-in (Dùng Popover + Calendar) --- */}
        <div className="sm:col-span-1 lg:col-span-2">
-        <FormField id="checkin" label="Check-in" icon={CalendarIcon}> {/* Đổi tên icon */}
+        <FormField id="checkin" label="Ngày đăt phòng" icon={CalendarIcon}> {/* Đổi tên icon */}
                   <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                     <PopoverTrigger asChild>
                        <Button
@@ -323,7 +401,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
 
        {/* Duration (Giữ nguyên) */}
       <div className="sm:col-span-1 lg:col-span-1">
-  <FormField id="duration" label="Duration" icon={Clock}>
+  <FormField id="duration" label="Số ngày đặt" icon={Clock}>
     
     {/* Bỏ <select> cũ, dùng <Select> của shadcn */}
     <Select
@@ -337,8 +415,8 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
         {/* SelectValue sẽ tự động hiển thị giá trị (duration)
           hoặc placeholder nếu chưa chọn 
         */}
-        <SelectValue placeholder="Select duration" />
-      </SelectTrigger>
+        <SelectValue placeholder="Số ngày" />
+      </SelectTrigger>  
 
       {/* SelectContent là cái box pop-up.
         Nó sẽ TỰ ĐỘNG CÓ SCROLL nếu nội dung quá dài.
@@ -360,7 +438,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
 
        {/* --- CHANGED: Check-out (Tự động cập nhật) --- */}
        <div className="sm:col-span-2 lg:col-span-2">
-        <FormField id="checkout" label="Check-out" icon={CalendarIcon}> {/* Đổi tên icon */}
+        <FormField id="checkout" label="Ngày kết thúc (dự kiến)" icon={CalendarIcon}> {/* Đổi tên icon */}
          <Input
           id="checkout"
           className="pl-11 h-12 bg-gray-50 border-gray-300 cursor-not-allowed"
@@ -374,7 +452,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
      </div>
 
      {/* Guests Field (Giữ nguyên) */}
-    <FormField id="guests" label="Guests and Rooms" icon={Users}>
+    <FormField id="guests" label="Số khách và số phòng" icon={Users}>
         <Popover open={isGuestsOpen} onOpenChange={setIsGuestsOpen}>
           <PopoverTrigger asChild>
             {/* Dùng Button style như Input, giống cái Calendar */}
@@ -394,21 +472,21 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
           >
             <div className="space-y-2 p-2">
               <GuestCounter
-                label="Adults"
+                label="Người lớn"
                 value={adults}
                 onIncrease={() => setAdults(a => a + 1)}
                 onDecrease={() => setAdults(a => a - 1)}
                 disableDecrease={adults <= 1} // Phải có ít nhất 1 người lớn
               />
               <GuestCounter
-                label="Children"
+                label="Trẻ em"
                 value={children}
                 onIncrease={() => setChildren(c => c + 1)}
                 onDecrease={() => setChildren(c => c - 1)}
                 disableDecrease={children <= 0} // Trẻ em có thể = 0
               />
               <GuestCounter
-                label="Rooms"
+                label="Phòng"
                 value={rooms}
                 onIncrease={() => setRooms(r => r + 1)}
                 onDecrease={() => setRooms(r => r - 1)}
@@ -425,7 +503,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
        onClick={handleSearch}
      >
        <Search className="w-5 h-5 mr-2" />
-       Search
+       Tìm kiếm
      </Button>
 
     </div>
