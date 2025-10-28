@@ -98,6 +98,12 @@ const Header = () => {
 
   // --- useEffect mount
   useEffect(() => {
+    const tokenData = localStorage.getItem("token");
+    if (!tokenData) {
+      setProfile(null);
+      setLoading(false);
+    }
+
     if (!localStorage.getItem("methodShowLoginregister")) {
       localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
     }

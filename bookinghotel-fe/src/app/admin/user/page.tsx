@@ -89,7 +89,7 @@ export default function UserPage() {
           <h1 className="text-2xl font-bold text-gray-800">👥 Quản lý người dùng</h1>
           <button
             className="px-4 py-2 bg-green-400 text-white rounded-xl hover:bg-green-600 transition"
-            onClick={() => router.replace("/admin/user/add")}
+            onClick={() => router.push("/admin/user/add")}
           >
             ➕ Thêm User
           </button>
