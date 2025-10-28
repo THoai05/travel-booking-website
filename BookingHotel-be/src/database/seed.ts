@@ -18,6 +18,8 @@ import HotelAmenitiesSeeder from './seeders/hotel_amenities.seeder';
 import NearSpotSeeder from './seeders/nearSpot.seeder';
 import HotelImageSeeder from './seeders/imagesHotel.seeder';
 import FavouriteSeeder from './seeders/favourite.seeder';
+import FaqSeeder from './seeders/faq.seeder';
+import { Faq } from 'src/managements/faq/entities/faq.entity';
 
 async function clearDatabase(dataSource: DataSource) {
   const entities = dataSource.entityMetadatas;
@@ -46,22 +48,7 @@ async function run() {
 
   // 🌱 Chạy seeders
   await runSeeders(AppDataSource, {
-    seeds: [
-      CitySeeder,
-      HotelSeeder,
-      RoomSeeder,
-      UserSeeder,
-      BookingSeeder,
-      PaymentSeeder,
-      ReviewSeeder,
-      CouponSeeder,
-      NotificationSeeder,
-      AmenitySeeder,
-      HotelAmenitiesSeeder,
-      NearSpotSeeder,
-      HotelImageSeeder,
-      FavouriteSeeder,
-    ],
+    seeds: [CitySeeder, HotelSeeder, RoomSeeder, UserSeeder, BookingSeeder, PaymentSeeder, ReviewSeeder, CouponSeeder, NotificationSeeder, AmenitySeeder, HotelAmenitiesSeeder, NearSpotSeeder, HotelImageSeeder, FavouriteSeeder, FaqSeeder],
   });
 
   await AppDataSource.destroy();

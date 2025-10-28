@@ -139,7 +139,7 @@ const Header = () => {
           <div className="flex-1 max-w-[500px]">
             <Link href="/" className="inline-block">
               <div className="w-[160px] md:w-[100px]">
-                <Image src="/logo.png" alt="logo" width={300} height={150} className="w-100 h-auto object-contain"/>
+                <Image src="/logo.png" alt="logo" width={300} height={150} className="w-100 h-auto object-contain" />
               </div>
             </Link>
           </div>
@@ -188,15 +188,15 @@ const Header = () => {
               <div className="flex gap-2 items-center">
                 <button
                   onClick={openLogin}
-                  className="border border-[#0068ff] text-[#0068ff] font-medium px-3 py-1.5 rounded-[5px] hover:bg-[#e8f1ff] transition-all duration-200 text-sm"
+                  className="w-26 h-10 border border-[#0068ff] text-[#0068ff] font-medium px-3 py-1.5 rounded-[5px] hover:bg-[#e8f1ff] transition-all duration-200 text-sm"
                 >
-                  Login
+                  Đăng Nhập
                 </button>
                 <button
                   onClick={openRegister}
-                  className="bg-[#0068ff] text-white font-medium px-3 py-1.5 rounded-[5px] hover:bg-[#0053cc] transition-all duration-200 text-sm shadow-sm"
+                  className="w-26 h-10 bg-[#0068ff] text-white font-medium px-3 py-1.5 rounded-[5px] hover:bg-[#0053cc] transition-all duration-200 text-sm shadow-sm"
                 >
-                  Register
+                  Đăng ký
                 </button>
               </div>
             )}

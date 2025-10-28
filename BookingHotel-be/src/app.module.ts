@@ -10,6 +10,7 @@ import { UsersModule } from './managements/users/modules/users.module';
 import { PostsModule } from './managements/posts/posts.module';
 import { CommentsModule } from './managements/comments/comments.module';
 import { ResetPasswordModule } from './managements/reset_Password/modules/reset_password.module';
+import { FaqModule } from './managements/faq/faq.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { ResetPasswordModule } from './managements/reset_Password/modules/reset_
   TypeOrmModule.forRoot(databaseConfig()),
   PostsModule,
   CommentsModule,
-  ResetPasswordModule
+  ResetPasswordModule,
+  FaqModule
   ],
   controllers: [AppController],
   providers: [AppService],
