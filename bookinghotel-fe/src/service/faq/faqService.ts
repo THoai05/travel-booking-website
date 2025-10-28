@@ -1,5 +1,12 @@
 import axios from "@/axios/axios";
 
+// 🧩 Định nghĩa kiểu dữ liệu chung cho FAQ
+interface FaqPayload {
+    question?: string;
+    answer?: string;
+    categories?: string;
+    status?: string;
+}
 
 // 🟦 Lấy danh sách tất cả FAQ
 export const getAllFaqs = async () => {
@@ -24,7 +31,7 @@ export const getFaqById = async (id: number) => {
 };
 
 // 🟧 Tạo mới FAQ (dành cho admin)
-export const createFaq = async (faqData: { question: string; answer: string }) => {
+export const createFaq = async (faqData: FaqPayload) => {
     try {
         const res = await axios.post(`/faq`, faqData);
         return res.data;
@@ -35,7 +42,7 @@ export const createFaq = async (faqData: { question: string; answer: string }) =
 };
 
 // 🟨 Cập nhật FAQ (dành cho admin)
-export const updateFaq = async (id: number, faqData: { question?: string; answer?: string }) => {
+export const updateFaq = async (id: number, faqData: FaqPayload) => {
     try {
         const res = await axios.put(`/faq/${id}`, faqData);
         return res.data;
