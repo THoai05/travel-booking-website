@@ -1,47 +1,87 @@
 import api from "@/axios/axios"
 import { useQuery } from "@tanstack/react-query"
 
-export const useHandleHotels = (
-    page: number = 1,
-    limit: number,
-    minPrice?: number,
-    maxPrice?: number,
-    star?: number,
-    amenities?:string[],
-    cityTitle:string,
-    hotelName:string
-) => {
-    return useQuery({
-        queryKey: ['hotels',
-            page,
-            limit,
-            minPrice,
-            maxPrice,
-            star,
-            amenities,
-            cityTitle,
-            hotelName
-        ],
-        queryFn: async () => {
-            console.log(page,limit,minPrice,maxPrice,star,amenities)
-            const response = await api.get('hotels', {
-                params: {
-                    page,
-                    limit,
-                    minPrice,
-                    maxPrice,
-                    star,
-                    amenities,
-                    cityTitle,
-                    hotelName
-                }
-            })
-            return response.data
-        },
-        staleTime: 1000 * 60 * 10
-        
-   })
+// Thay thế 'useQuery' bằng 'useInfiniteQuery'
+import { useInfiniteQuery } from '@tanstack/react-query';
+
+
+// GetAllHotelRequest từ backend của bro
+interface GetAllHotelRequest {
+  page?: number;
+  limit?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  star?: number;
+  amenities?: string[];
+  cityTitle?: string;
+  hotelName?: string;
 }
+
+// Kiểu trả về từ API của bro
+interface HotelApiResponse {
+  data: any[]; // Hoặc BackendHotel[]
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export const useHandleHotels = (
+  limit: number,
+  minPrice?: number,
+  maxPrice?: number,
+  star?: number,
+  amenities?: string[],
+  cityTitle?: string,
+  hotelName?: string
+) => {
+  return useInfiniteQuery<HotelApiResponse, Error>({
+    // 1. queryKey KHÔNG CÒN `page`
+    // Khi key này thay đổi (do filter), nó sẽ tự động reset về trang 1
+    queryKey: ['hotels', limit, minPrice, maxPrice, star, amenities, cityTitle, hotelName],
+    
+    // 2. queryFn nhận `pageParam`
+    queryFn: async ({ pageParam = 1 }) => {
+      console.log(`Fetching page: ${pageParam}`); // Log để debug
+      const params: GetAllHotelRequest = {
+        page: pageParam,
+        limit,
+        minPrice,
+        maxPrice,
+        star,
+        amenities,
+        cityTitle,
+        hotelName
+      };
+      
+      const response = await api.get('hotels', { params });
+      
+      // 3. Phải return toàn bộ data API (để getNextPageParam dùng)
+      return response.data; 
+    },
+    
+    // 4. Trang bắt đầu
+    initialPageParam: 1,
+    
+    // 5. Logic quan trọng nhất:
+    // Báo cho React Query biết trang tiếp theo là trang nào
+    getNextPageParam: (lastPage) => {
+      // 'lastPage' chính là object 'response.data' trả về từ queryFn
+      
+      // Nếu trang hiện tại (lastPage.page) < tổng số trang (lastPage.totalPages)
+      if (lastPage.page < lastPage.totalPages) {
+        // Trả về số trang TIẾP THEO
+        return lastPage.page + 1;
+      }
+      
+      // Nếu đã là trang cuối, return undefined để báo hết
+      return undefined;
+    },
+    
+    staleTime: 1000 * 60 * 10 // Giữ nguyên staleTime
+  });
+}
+
 
 export const useHandleHotelById = (id:number) => {
     return useQuery({
@@ -76,6 +116,18 @@ export const useHandleGetHotelsByRegionId = (id: number) => {
         enabled: !!id,
         staleTime: 1000 * 60 * 10
     })
+}
+
+export const useHandleGetRoomTypeAndRatePlan = (id: number) => {
+  return useQuery({
+    queryKey: ['roomTypeAndRatePlan', id],
+    queryFn: async () => {
+      const response = await api.get(`hotels/${id}/room-options`)
+      return response.data.data
+    },
+    enabled: !!id,
+    staleTime: 1000 * 60 * 10
+  })
 }
 
    

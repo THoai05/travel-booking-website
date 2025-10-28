@@ -41,6 +41,7 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "sharp": "^0.34.4",
+    "slugify": "^1.6.6",
     "typeorm": "^0.3.27",
     "typeorm-extension": "^3.7.1"
   },

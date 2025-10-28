@@ -1,5 +1,6 @@
 import { Star, MapPin, Phone } from 'lucide-react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
+import { useRouter } from 'next/navigation';
 
 // Định nghĩa kiểu dữ liệu cho 1 khách sạn
 export interface Accommodation {
@@ -24,12 +25,15 @@ interface AccommodationCardProps {
 export default function AccommodationCard({ accommodation }: AccommodationCardProps) {
   // Tính rating trên thang điểm 10
   const rating = Number((accommodation.avgRating * 2).toFixed(1));
+  const router = useRouter()
   
   // Placeholder image nếu không có
   const defaultImage = "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBob3RlbCUyMHJvb218ZW58MXx8fHwxNzYxMTg3NTI1fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral";
 
   return (
-    <div className="flex-shrink-0 w-72 bg-white rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 group">
+    <div
+      onClick={()=>router.push(`/hotel-detail/${accommodation.id}`)}
+      className="flex-shrink-0 w-72 bg-white rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 group cursor-pointer">
       {/* Image Section */}
       <div className="relative h-48 overflow-hidden">
         <ImageWithFallback
@@ -52,7 +56,7 @@ export default function AccommodationCard({ accommodation }: AccommodationCardPr
       <div className="p-4">
         {/* Hotel Name */}
         <h3 
-          className="text-gray-900 mb-2 line-clamp-1 group-hover:text-sky-600 transition-colors" 
+          className="text-gray-900 mb-2 line-clamp-1 font-extrabold group-hover:text-sky-600 transition-colors" 
           title={accommodation.name}
         >
           {accommodation.name}
@@ -60,8 +64,8 @@ export default function AccommodationCard({ accommodation }: AccommodationCardPr
         
         {/* Location */}
         <div className="flex items-center gap-1.5 text-gray-600 mb-1">
-          <MapPin className="w-4 h-4 text-sky-500 flex-shrink-0" />
-          <span className="text-sm truncate">{accommodation.city.title}</span>
+          <MapPin className="w-4 h-4 text-sky-500  flex-shrink-0" />
+          <span className="text-sm font-bold truncate">{accommodation.city.title}</span>
         </div>
         
         {/* Review Count */}
@@ -70,27 +74,29 @@ export default function AccommodationCard({ accommodation }: AccommodationCardPr
         </div>
         
         {/* Divider */}
-        <div className="border-t border-gray-200 pt-3 mt-3">
-          {/* Price Section */}
-          <div className="flex items-end justify-between">
+         <div className="border-t border-gray-200 pt-3 mt-3">
+          <div className="flex items-center justify-between">
+            {/* Price Section */}
             <div>
               <p className="text-sm text-gray-500 mb-1">Giá trung bình/đêm</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-orange-600">
+                <span className="text-orange-600 font-semibold">
                   {Number(accommodation.avgPrice).toLocaleString('vi-VN')}
                 </span>
                 <span className="text-sm text-gray-500">VND</span>
               </div>
             </div>
-            
+
             {/* View Details Button */}
-            <button className="px-4 py-2 bg-sky-600 text-white text-sm rounded-lg hover:bg-sky-700 transition-colors">
+            <button
+              className="px-4 py-2 bg-sky-500 text-white text-sm rounded-lg hover:bg-sky-700 transition-colors"
+            >
               Xem chi tiết
             </button>
           </div>
-          
+
           {/* Tax Notice */}
-          <p className="text-xs text-gray-400 mt-2">
+          <p className="text-xs text-gray-400 mt-2 text-right">
             *Chưa bao gồm thuế và phí
           </p>
         </div>

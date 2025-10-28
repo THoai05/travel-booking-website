@@ -83,11 +83,25 @@ export class HotelsService {
       }
 
       if (star) {
-        queryBuilder.andHaving('AVG(reviews.rating) BETWEEN :minStar AND :maxStar', {
-          minStar: star - 1,
-          maxStar: star,
-        });
+      let minStar: number;
+      let maxStar: number;
+
+      if (star === 1) {
+        minStar = 0;
+        maxStar = 1.49;
+      } else if (star === 5) {
+        minStar = 4.5;
+        maxStar = 5.0;
+      } else {
+        minStar = star - 0.5;
+        maxStar = star + 0.49;
       }
+      
+      queryBuilder.andHaving('AVG(reviews.rating) BETWEEN :minStar AND :maxStar', {
+        minStar: minStar,
+        maxStar: maxStar,
+      });
+    }
 
       const countQuery = queryBuilder.clone();
       countQuery.skip(undefined).take(undefined);
@@ -135,6 +149,63 @@ export class HotelsService {
     };
   }
 
+ // service của bro
+async findRoomTypeAndRatePlanByHotelId(hotelId: number): Promise<any> {
+    const hotel = await this.hotelRepo.findOne({
+      where: {
+        id: hotelId
+      },
+      relations: [
+        'roomTypes',
+        'roomTypes.ratePlans'
+      ]
+    });
+
+    if (!hotel) {
+      throw new NotFoundException("Khong tim thay khach san");
+    }
+
+    // --- [BƯỚC BIẾN ĐỔI DATA] ---
+    // Đừng return hotel, hãy map nó
+    const roomOptions = hotel.roomTypes.map(roomType => {
+      
+      // 1. Map các RatePlan (con) trước
+      const ratePlans = roomType.ratePlans.map(plan => {
+        return {
+          id: plan.id,
+          name: plan.name,
+          originalPrice: plan.original_price, // Frontend thường thích camelCase
+          salePrice: plan.sale_price,
+          includesBreakfast: plan.includes_breakfast,
+          paymentPolicy: plan.payment_policy,
+          cancellationPolicy: plan.cancellation_policy,
+          cancellationDeadlineDays: plan.cancellation_deadline_days
+          // --- ĐÃ BỎ `roomTypeId` THỪA ---
+        };
+      });
+
+      // 2. Map RoomType (cha)
+      return {
+        id: roomType.id,
+        name: roomType.name,
+        description: roomType.description,
+        maxGuests: roomType.max_guests,
+        area: roomType.area,
+        bedType: roomType.bed_type,
+        totalInventory: roomType.total_inventory, // Giữ lại cái này, QUAN TRỌNG
+        // --- ĐÃ BỎ `hotelId` THỪA ---
+        
+        ratePlans: ratePlans // Gán mảng con đã được map
+      };
+    });
+
+    // 3. Trả về MẢNG roomOptions, không phải object hotel
+    return roomOptions; 
+    // Nếu bro có interceptor tự bọc { "data": ... } thì nó sẽ thành
+    // { "data": [ ...roomOptions... ] }
+    // Như vậy là CHUẨN!
+}
+
     
   async findBasicInfoHotel(hotelId: number): Promise<Hotel> {
     const hotel = await this.hotelRepo
@@ -181,9 +252,8 @@ export class HotelsService {
     .groupBy('hotels.id')
     .addGroupBy('city.id')
     .addGroupBy('city.title')
+    .limit(15) 
     .getRawMany();
-
-  // ép kiểu
   return hotels.map(h => ({
     id: h.id,
     name: h.name,
@@ -194,52 +264,48 @@ export class HotelsService {
     avgRating: Number(Number(h.avgRating || 0).toFixed(2)),
     reviewCount: Number(h.reviewCount || 0)
   }));
-   
-   
-   
-   
 }
-  async getDataCitiesHotelForAccByRegionId(regionId: number): Promise<any> {
-    const hotels = await this.hotelRepo // <-- BẮT ĐẦU TỪ HOTEL
-        .createQueryBuilder('hotel') // Alias là 'hotel'
-        .leftJoin('hotel.city', 'city') // Join vào city
-        .leftJoin('hotel.reviews', 'reviews') // Join vào reviews
+async getDataCitiesHotelForAccByRegionId(regionId: number): Promise<any> {
+const hotels = await this.hotelRepo // <-- BẮT ĐẦU TỪ HOTEL
+    .createQueryBuilder('hotel') // Alias là 'hotel'
+    .leftJoin('hotel.city', 'city') // Join vào city
+    .leftJoin('hotel.reviews', 'reviews') // Join vào reviews
 
-        .select([
-            'hotel.id AS id', // Dùng alias 'hotel'
-            'hotel.name AS name',
-            'hotel.address AS address',
-            'hotel.avgPrice AS avgPrice',
-            'hotel.phone AS phone',
-            'city.id AS cityId', // Dùng alias 'city'
-            'city.title AS cityName',
-            'AVG(reviews.rating) AS avgRating',
-            'COUNT(DISTINCT reviews.id) AS reviewCount',
-        ])
-        .where('city.regionId = :regionId', { regionId }) // Lọc trên city đã join
-        
-        // Group by tất cả các cột không phải aggregate
-        .groupBy('hotel.id')
-        .addGroupBy('hotel.name')
-        .addGroupBy('hotel.address')
-        .addGroupBy('hotel.avgPrice')
-        .addGroupBy('hotel.phone')
-        .addGroupBy('city.id')
-        .addGroupBy('city.title')
+    .select([
+        'hotel.id AS id', // Dùng alias 'hotel'
+        'hotel.name AS name',
+        'hotel.address AS address',
+        'hotel.avgPrice AS avgPrice',
+        'hotel.phone AS phone',
+        'city.id AS cityId', // Dùng alias 'city'
+        'city.title AS cityName',
+        'AVG(reviews.rating) AS avgRating',
+        'COUNT(DISTINCT reviews.id) AS reviewCount',
+    ])
+    .where('city.regionId = :regionId', { regionId }) // Lọc trên city đã join
 
-        .getRawMany();
+    // Group by tất cả các cột không phải aggregate
+    .groupBy('hotel.id')
+    .addGroupBy('hotel.name')
+    .addGroupBy('hotel.address')
+    .addGroupBy('hotel.avgPrice')
+    .addGroupBy('hotel.phone')
+    .addGroupBy('city.id')
+    .addGroupBy('city.title')
 
-    // Phần map vẫn y hệt
-    return hotels.map(h => ({
-        id: h.id,
-        name: h.name,
-        address: h.address,
-        avgPrice: h.avgPrice,
-        phone: h.phone,
-        city: { id: h.cityId, title: h.cityName },
-        avgRating: Number(Number(h.avgRating || 0).toFixed(2)),
-        reviewCount: Number(h.reviewCount || 0)
-    }));
+    .getRawMany();
+
+// Phần map vẫn y hệt
+return hotels.map(h => ({
+    id: h.id,
+    name: h.name,
+    address: h.address,
+    avgPrice: h.avgPrice,
+    phone: h.phone,
+    city: { id: h.cityId, title: h.cityName },
+    avgRating: Number(Number(h.avgRating || 0).toFixed(2)),
+    reviewCount: Number(h.reviewCount || 0)
+}));
 }
-
+ 
 }
