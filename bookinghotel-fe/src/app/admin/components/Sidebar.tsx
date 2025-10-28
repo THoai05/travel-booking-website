@@ -86,7 +86,7 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
         };
 
         fetchProfile(); // chạy ngay khi mount
-        const interval = setInterval(fetchProfile, 3000); // chạy mỗi 1s
+        const interval = setInterval(fetchProfile, 4000); // chạy mỗi 4s
         return () => clearInterval(interval);
     }, [router]);
 

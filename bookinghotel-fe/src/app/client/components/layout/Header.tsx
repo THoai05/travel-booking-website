@@ -101,7 +101,7 @@ const Header = () => {
     if (!localStorage.getItem("methodShowLoginregister")) {
       localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
     }
-    const timer = setTimeout(() => fetchProfile(), 1000);
+    const timer = setTimeout(() => fetchProfile(), 4000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -136,8 +136,8 @@ const Header = () => {
     // --- 1. Nghe sự kiện storage (tab khác)
     window.addEventListener("storage", handleStorageOrTokenCheck);
 
-    // --- 2. Interval kiểm tra token mỗi 1 giây (cùng tab)
-    const interval = setInterval(handleStorageOrTokenCheck, 1000);
+    // --- 2. Interval kiểm tra token mỗi 3 giây (cùng tab)
+    const interval = setInterval(handleStorageOrTokenCheck, 4000);
 
     // --- 3. Chạy ngay khi mount
     handleStorageOrTokenCheck();
