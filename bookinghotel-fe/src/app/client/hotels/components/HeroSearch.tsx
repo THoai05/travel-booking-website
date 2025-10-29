@@ -1,5 +1,15 @@
 'use client'
-import React, { useState, useEffect,useMemo } from 'react';
+
+import { useMemo,useState } from 'react'
+import { useAppDispatch, useAppSelector } from '@/reduxTK/hook'
+import {
+  setDestination,
+  setCheckIn,
+  setCheckOut,
+  setGuests,
+} from '@/reduxTK/features/searchSlice'
+import { differenceInCalendarDays } from 'date-fns'
+
 import { Search, MapPin, Calendar, Clock, Users, Navigation,Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -254,45 +264,43 @@ const GuestCounter = ({
 
 // Main Component
 export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
-  const [destination, setDestination] = useState('');
 
    // --- CHANGED: Đổi state ngày tháng sang 'Date' object ---
-  const [checkIn, setCheckIn] = useState<Date>(new Date(2025, 10, 3)); // Nov 3, 2025 (JS month là 0-11)
-  const [duration, setDuration] = useState('');
-  const [checkOut, setCheckOut] = useState<Date>(new Date(2025, 10, 8)); // Nov 8, 2025
    // ---
 
-  const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(1);
-  const [rooms, setRooms] = useState(1);
-  const [isGuestsOpen, setIsGuestsOpen] = useState(false)
 
-  const [guests, setGuests] = useState('2 người lớn, 1 trẻ em, 1 phòng'); // Vẫn giữ state này để hiển thị
+  const dispatch = useAppDispatch()
+  const {
+    destination,
+    checkIn: checkInString,
+    checkOut: checkOutString,
+    guests,
+  } = useAppSelector((state) => state.search)
+  const { adults, children, rooms } = guests
+
+  const checkIn = useMemo(() => new Date(checkInString), [checkInString])
+  const checkOut = useMemo(() => new Date(checkOutString), [checkOutString])
+
+  const duration = useMemo(() => {
+    const nights = differenceInCalendarDays(checkOut, checkIn)
+    return `${nights} ngày`
+  }, [checkIn, checkOut])
+
+
+  const [isGuestsOpen, setIsGuestsOpen] = useState(false)
+  const [isDestinationFocused, setIsDestinationFocused] = useState(false)
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
   
-  useEffect(() => {
-    // Tự động cập nhật lại text mỗi khi số lượng thay đổi
-    const newGuestsText = `${adults} người lớn, ${children} trẻ em, ${rooms} phòng${rooms > 1 ? 's' : ''}`;
-    setGuests(newGuestsText);
-  }, [adults, children, rooms]);
-  const [isDestinationFocused, setIsDestinationFocused] = useState(false);
+  
 
    // --- CHANGED: Thêm state cho Popover Lịch ---
-   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
    const router = useRouter()
 
    // ---
 
    // --- CHANGED: Thêm useEffect để tự động cập nhật Check-out ---
-   useEffect(() => {
-     try {
-        const nights = parseInt(duration.split(' ')[0]) || 0;
-        const newCheckOut = addDays(checkIn, nights);
-        setCheckOut(newCheckOut);
-     } catch (error) {
-        console.error("Error calculating checkout date:", error);
-     }
-   }, [checkIn, duration]);
+ 
   // ---
   
   const { data,isError,isLoading } = useHandleFilterTitleCity(destination)
@@ -312,26 +320,42 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
   }, [data]);
 
   const handleSearch = () => {
-   setIsDestinationFocused(false);
-   router.push(`/hotels/search?cityTitle=${destination}`)
+    setIsDestinationFocused(false)
+    // Giờ checkIn/checkOut/guests đã ở Redux,
+    // trang search chỉ cần đọc từ Redux là được.
+    router.push(`/hotels/search?cityTitle=${destination}`)
+  }
 
-     // --- CHANGED: Format Date object về string khi search ---
-   
-     // ---
-  };
-
-  const handleDestinationSelect = (location: string) => {
-   setDestination(location);
-   setIsDestinationFocused(false);
-  };
+ const handleDestinationSelect = (location: string) => {
+    dispatch(setDestination(location)) // <-- THAY ĐỔI
+    setIsDestinationFocused(false)
+  }
 
    // --- CHANGED: Thêm function xử lý khi chọn ngày ---
    const handleDateSelect = (date: Date | undefined) => {
-     if (date) {
-        setCheckIn(date);
-        setIsCalendarOpen(false); // Tự động đóng lịch
-     }
-   };
+    if (date) {
+      dispatch(setCheckIn(date.toISOString())) // <-- THAY ĐỔI
+      setIsCalendarOpen(false)
+    }
+  }
+
+  const handleDurationChange = (value: string) => {
+    try {
+      const nights = parseInt(value.split(' ')[0]) || 0
+      if (nights > 0) {
+        const newCheckOut = addDays(checkIn, nights) // 'checkIn' là Date object từ useMemo
+        dispatch(setCheckOut(newCheckOut.toISOString())) // <-- THAY ĐỔI
+      }
+    } catch (error) {
+      console.error('Error calculating checkout date:', error)
+    }
+  }
+
+  const guestsText = useMemo(() => {
+    return `${adults} người lớn, ${children} trẻ em, ${rooms} phòng${
+      rooms > 1 ? 's' : ''
+    }`
+  }, [adults, children, rooms])
    // ---
 
   return (
@@ -346,7 +370,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
          placeholder="Hồ Chí Minh , Đà Nẵng ..."
          className="pl-11 h-12 text-base border-gray-300 focus:border-sky-500 focus:ring-sky-500"
          value={destination}
-         onChange={(e) => setDestination(e.target.value)}
+        onChange={(e) => dispatch(setDestination(e.target.value))}
          onFocus={() => setIsDestinationFocused(true)}
          onBlur={() => setIsDestinationFocused(false)}
         />
@@ -406,7 +430,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
     {/* Bỏ <select> cũ, dùng <Select> của shadcn */}
     <Select
       value={duration}
-      onValueChange={(value) => setDuration(value)} // Đổi từ onChange sang onValueChange
+      onValueChange={handleDurationChange} // Đổi từ onChange sang onValueChange
     >
       <SelectTrigger 
         id="duration" 
@@ -461,7 +485,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
               variant={"outline"}
               className="w-full h-12 pl-11 justify-start text-left font-normal text-base border-gray-300 focus:border-sky-500 focus:ring-2 focus:ring-sky-500 focus:ring-offset-0"
             >
-              {guests} {/* Hiển thị text đã được useEffect cập nhật */}
+              {guestsText} {/* Hiển thị text đã được useEffect cập nhật */}
             </Button>
           </PopoverTrigger>
           <PopoverContent 
@@ -474,22 +498,22 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
               <GuestCounter
                 label="Người lớn"
                 value={adults}
-                onIncrease={() => setAdults(a => a + 1)}
-                onDecrease={() => setAdults(a => a - 1)}
+              onIncrease={() => dispatch(setGuests({ adults: adults + 1 }))} // <-- THAY ĐỔI
+                  onDecrease={() => dispatch(setGuests({ adults: adults - 1 }))}
                 disableDecrease={adults <= 1} // Phải có ít nhất 1 người lớn
               />
               <GuestCounter
                 label="Trẻ em"
                 value={children}
-                onIncrease={() => setChildren(c => c + 1)}
-                onDecrease={() => setChildren(c => c - 1)}
+               onIncrease={() => dispatch(setGuests({ children: children + 1 }))} // <-- THAY ĐỔI
+                  onDecrease={() => dispatch(setGuests({ children: children - 1 }))}
                 disableDecrease={children <= 0} // Trẻ em có thể = 0
               />
               <GuestCounter
                 label="Phòng"
                 value={rooms}
-                onIncrease={() => setRooms(r => r + 1)}
-                onDecrease={() => setRooms(r => r - 1)}
+               onIncrease={() => dispatch(setGuests({ rooms: rooms + 1 }))} // <-- THAY ĐỔI
+                  onDecrease={() => dispatch(setGuests({ rooms: rooms - 1 }))}
                 disableDecrease={rooms <= 1} // Phải có ít nhất 1 phòng
               />
             </div>

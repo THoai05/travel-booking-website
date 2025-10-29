@@ -6,6 +6,9 @@ import {
   Wifi, Shield, AlertCircle, Tag, CheckCircle2,MapPin,Coffee,Phone
 } from 'lucide-react';
 
+import HotelSummaryCard from './components/HotelSummaryCard';
+import PriceDetailsSection from './components/PriceDetailSection';
+
 // Types
 interface BookingForm {
   fullName: string;
@@ -25,14 +28,7 @@ interface SpecialRequest {
   checked: boolean;
 }
 
-interface PriceDetailsProps {
-  roomPrice: string;
-  taxes: string;
-  total: string;
-  oldTotal?: string;
-  nights?: number;
-  rooms?: number;
-}
+
 
 const hotelDetails: HotelDetails = {
     bookingId: '1296078565',
@@ -142,173 +138,9 @@ const Section: React.FC<{
   </div>
 );
 
-const HotelSummaryCard: React.FC<{ hotel: HotelDetails; guest: GuestDetails }> = ({ hotel, guest }) => (
-  <div className="bg-sky-50 rounded-lg p-5">
-    <div className="flex items-start gap-3 mb-4">
-      <div className="w-10 h-10 bg-sky-500 rounded-lg flex items-center justify-center text-white">
-        <MapPin size={20} />
-      </div>
-      <div>
-        <h3 className="font-semibold text-gray-800 text-sm">Hotel Summary</h3>
-        <p className="text-xs text-gray-600">Booking ID: {hotel.bookingId}</p>
-      </div>
-    </div>
 
-    <h2 className="font-bold text-gray-900 mb-4">{hotel.name}</h2>
 
-    <div className="grid grid-cols-3 gap-4 mb-4 text-center">
-      <div>
-        <p className="text-xs text-gray-600">Check-in</p>
-        <p className="font-semibold text-sm">{hotel.checkIn}</p>
-        <p className="text-xs text-gray-500">From 14:00</p>
-      </div>
-      <div>
-        <p className="text-xs text-gray-600">{hotel.nights} night</p>
-        <div className="my-1">→</div>
-      </div>
-      <div>
-        <p className="text-xs text-gray-600">Check-out</p>
-        <p className="font-semibold text-sm">{hotel.checkOut}</p>
-        <p className="text-xs text-gray-500">Before 12:00</p>
-      </div>
-    </div>
 
-    <div className="border-t pt-4 space-y-3">
-      <p className="font-semibold text-sm">{hotel.roomType}</p>
-      
-      <div className="flex items-center gap-2 text-sm text-gray-700">
-        <Users size={16} />
-        <span>{hotel.guests} Guests</span>
-      </div>
-      
-      <div className="flex items-center gap-2 text-sm text-gray-700">
-        <Bed size={16} />
-        <span>{hotel.bedType}</span>
-      </div>
-      
-      <div className="flex items-center gap-2 text-sm text-gray-700">
-        <Coffee size={16} />
-        <span>{hotel.breakfast ? 'Breakfast included' : 'Breakfast not included'}</span>
-      </div>
-      
-      <div className="flex items-center gap-2 text-sm text-gray-700">
-        <Wifi size={16} />
-        <span>Free WiFi</span>
-      </div>
-    </div>
-
-    <div className="mt-4 pt-4 border-t">
-      <p className="text-sm font-semibold mb-2">Guest(s)</p>
-      <p className="text-sm text-gray-700">{guest.name}</p>
-      <div className="flex gap-2 mt-2">
-        <span className="text-xs flex items-center gap-1">
-          <CheckCircle2 size={14} className="text-gray-500" />
-          Non-refundable
-        </span>
-        <span className="text-xs flex items-center gap-1">
-          <CheckCircle2 size={14} className="text-gray-500" />
-          Non-reschedulable
-        </span>
-      </div>
-    </div>
-
-    <div className="mt-4 pt-4 border-t">
-      <p className="text-sm font-semibold mb-2">Contact Details</p>
-      <p className="text-sm text-gray-700 flex items-center gap-2">
-        <Users size={14} />
-        {guest.name}
-      </p>
-      <p className="text-sm text-gray-700 flex items-center gap-2">
-        <Phone size={14} />
-        {guest.phone}
-      </p>
-      <p className="text-sm text-gray-600 flex items-center gap-2 break-all">
-        <Mail size={14} />
-        {guest.email}
-      </p>
-    </div>
-  </div>
-);
-
-const PriceDetailsSection: React.FC<PriceDetailsProps> = ({
-  roomPrice,
-  taxes,
-  total,
-  oldTotal,
-  nights = 1,
-  rooms = 1,
-}) => {
-  const [showPriceDetails, setShowPriceDetails] = useState(false);
-
-    return (
-      <div className="bg-white rounded-lg shadow-sm p-5 sticky top-4 mt-10">
-    <div className="border-t pt-4">
-        <button
-          onClick={() => setShowPriceDetails(!showPriceDetails)}
-          className="flex items-center justify-between w-full mb-3"
-        >
-          <div className="flex items-center gap-2">
-            <Tag size={18} className="text-gray-600" />
-            <span className="font-bold text-gray-900">Price details</span>
-          </div>
-          <ChevronDown size={20} className={`transition-transform ${showPriceDetails ? 'rotate-180' : ''}`} />
-        </button>
-
-        {showPriceDetails && (
-          <div className="space-y-3 mb-4 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Room Price</span>
-              <span className="font-semibold text-gray-900">359.036 VND</span>
-            </div>
-            <div className="text-xs text-gray-500">
-              (1x) Standard Room - Room Only (1 Night)
-            </div>
-            <div className="flex justify-between pt-2 border-t">
-              <span className="text-gray-600">Taxes and Fees</span>
-              <span className="font-semibold text-gray-900">55.650 VND</span>
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-2 mb-4">
-          <div className="flex justify-between items-baseline">
-            <span className="font-semibold text-gray-700">Total</span>
-            <span className="text-gray-400 line-through text-sm">432.363 VND</span>
-          </div>
-          <div className="flex justify-between items-baseline">
-            <span className="text-sm text-gray-600">1 room(s), 1 night</span>
-            <span className="text-xl font-bold text-red-500">414.686 VND</span>
-          </div>
-        </div>
-
-        <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-lg transition-colors mb-3">
-          Continue
-        </button>
-
-        <p className="text-xs text-center text-gray-600">
-          By continuing to payment, you have agreed to Traveloka's{' '}
-          <a href="#" className="text-blue-600 underline">Terms & Conditions</a>,{' '}
-          <a href="#" className="text-blue-600 underline">Privacy Policy</a>, and{' '}
-          <a href="#" className="text-blue-600 underline">Accommodation Refund Procedure</a>
-        </p>
-      </div>
-      <div className="mt-4 pt-4 border-t space-y-2">
-        <div className="flex items-center gap-2 text-sm">
-          <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center">
-            <Star size={12} fill="white" className="text-white" />
-          </div>
-          <span className="text-gray-700">Earn 1,451 Points</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <div className="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
-            <Star size={12} fill="white" className="text-white" />
-          </div>
-          <span className="text-gray-700">Earn 497,623 Priority Stars</span>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // Main Component
 const TravelokaBookingPage: React.FC = () => {
@@ -330,8 +162,7 @@ const TravelokaBookingPage: React.FC = () => {
     { id: 'high-floor', label: 'High Floor', checked: false },
   ]);
 
-  const [showAllPolicies, setShowAllPolicies] = useState(false);
-  const [insuranceSelected, setInsuranceSelected] = useState(false);
+
 
   const toggleRequest = (id: string) => {
     setSpecialRequests(requests =>
@@ -346,11 +177,11 @@ const TravelokaBookingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b mt-15">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="text-sky-600 font-bold text-2xl">traveloka</div>
+              <div className="text-sky-600 font-bold text-2xl">Bluevera</div>
               <div className="w-6 h-6 bg-sky-500 rounded-full"></div>
             </div>
             <div className="flex items-center gap-6">
