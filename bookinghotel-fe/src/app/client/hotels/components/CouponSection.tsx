@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Copy, Info, AlertTriangle } from 'lucide-react';
 import { useHandleRandomCouponByTitle } from '@/service/coupon/couponService';
+import Image from 'next/image';
 
 // Định nghĩa interface cho dữ liệu API trả về
 interface ApiCoupon {
@@ -14,10 +15,10 @@ interface ApiCoupon {
 
 // Danh sách các tab thanh toán
 const paymentTabs = [
-  { key: 'vnpay', display: 'VNPay' },
-  { key: 'momo', display: 'Momo' ,imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png'},
-  { key: 'zalopay', display: 'Zalo Pay' },
-  { key: 'stripe', display: 'Stripe' },
+  { key: 'vnpay', display: 'VNPay',imageUrl:'/coupon/vnpay.png' },
+  { key: 'momo', display: 'Momo' ,imageUrl: '/coupon/momo.png'},
+  { key: 'zalopay', display: 'Zalo Pay',imageUrl:'/coupon/zalopay.png' },
+  { key: 'stripe', display: 'Stripe', imageUrl:'/coupon/stripe.png'},
 ];
 
 // --- Component Skeleton Card ---
@@ -49,6 +50,7 @@ const CouponSkeleton = () => (
 export default function CouponSection() {
   const [activeTab, setActiveTab] = useState(paymentTabs[0].key);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [activeTabObject,setActiveTabObject] = useState(paymentTabs[0])
 
   const {
     data: apiCoupons,
@@ -85,7 +87,10 @@ export default function CouponSection() {
         {paymentTabs.map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
+            onClick={() => {
+              setActiveTabObject(tab)
+              setActiveTab(tab.key)
+            }}
             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
               activeTab === tab.key
                 ? 'bg-sky-600 text-white'
@@ -129,20 +134,17 @@ export default function CouponSection() {
                 {/* Icon */}
               <div className="flex items-center gap-4">
     {/* Icon */}
-    <div className="w-12 h-12 bg-sky-900 rounded-lg flex items-center justify-center flex-shrink-0">
-      <svg
-        className="w-8 h-8 text-white"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-        />
-      </svg>
+    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Image
+    src={activeTabObject.imageUrl || '/coupon/coupon.jpg'}
+    alt={activeTabObject.imageUrl ? `${activeTabObject.imageUrl} Logo` : 'Fallback Logo'}
+    width={48}
+    height={48}
+    className="w-full h-full object-contain"
+    onError={(e) => {
+      e.currentTarget.src = '/coupon/coupon.jpg'
+    }}
+  />
     </div>
 
     {/* Content */}
