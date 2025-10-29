@@ -83,7 +83,7 @@ export const HotelCard: React.FC<HotelCardProps> = ({ hotel: backendHotel, onSel
     // --- Data CHƯA CÓ (Text cứng) ---
     images: HARDCODED_IMAGES,
     ratingLabel: "Tuyệt vời", // <-- Text cứng
-    category: "Khách sạn", // <-- Text cứng
+    category: backendHotel.name.includes("Khách") ? "Khách sạn" : "Resort",
     stars: 4, // <-- Text cứng (Bro có thể dùng Math.round(Number(backendHotel.avgRating)) nếu muốn)
     badge: "Giảm giá đặc biệt", // <-- Text cứng
     points: 1222, // <-- Text cứng (tạm lấy theo giá)
