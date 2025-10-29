@@ -45,14 +45,7 @@ const Login = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  useEffect(() => {
-    if (!redirectTo) return;
-    const timer = setTimeout(() => {
-      router.push(redirectTo);
-      localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [redirectTo]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,16 +91,12 @@ const Login = ({
       const user = res.data.userWithoutPassword
 
       const isAdmin = user.role === "admin"
+      console.log(isAdmin)
       if (isAdmin) {
-        router.replace('/admin')
+        router.push('/admin')
       } else {
         router.replace('/client')
       }
-
-
-
-      localStorage.setItem("token", res.data.token);
-
       
     } catch (err: any) {
       setError(err.message || "Đăng nhập thất bại!");

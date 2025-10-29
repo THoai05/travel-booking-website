@@ -54,6 +54,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
 
   useEffect(() => {
+    console.log("useAuth chay")
     const checkAuth = async () => {
       try {
           const response = await api.get('auth/profile')
