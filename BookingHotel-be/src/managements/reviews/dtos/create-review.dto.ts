@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsArray, IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import { ReviewType } from '../entities/review.entity';
 
 export class CreateReviewDto {
@@ -18,5 +18,7 @@ export class CreateReviewDto {
   reviewType: ReviewType;
 
   @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
   images?: string[];
 }
