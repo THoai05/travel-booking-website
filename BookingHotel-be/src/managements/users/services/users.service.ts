@@ -15,7 +15,7 @@ export class UsersService {
   }
 
   async updateUser(id: number, data: Partial<User>): Promise<User> {
-    // ✅ Kiểm tra trùng email (nếu có cập nhật email)
+    // Kiểm tra trùng email (nếu có cập nhật email)
     if (data.email) {
       const existing = await this.usersRepository.findOne({
         where: { email: data.email },
@@ -33,7 +33,6 @@ export class UsersService {
     return updatedUser;
   }
 
-  // ======== LẤY DANH SÁCH NGƯỜI DÙNG ========
   async findAll(): Promise<User[]> {
     return this.usersRepository.find({
       order: { id: 'ASC' }, // sắp xếp theo id tăng dần, tuỳ chỉnh được
@@ -55,8 +54,6 @@ export class UsersService {
     });
   }
 
-
-  // ======== XÓA NGƯỜI DÙNG RA KHỎI DANH SÁCH ========
   async deleteUser(id: number): Promise<{ message: string }> {
     const user = await this.findById(id);
     if (!user) {

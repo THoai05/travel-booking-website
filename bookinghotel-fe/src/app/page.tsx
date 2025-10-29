@@ -7,16 +7,15 @@ export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    // Thời gian hiển thị splash (vd: 1.5s)
     const timer = setTimeout(() => {
-      setShowSplash(false);
-      router.push("/client"); // Chuyển hướng sau khi splash kết thúc
+      // Thực hiện chuyển hướng, nhưng KHÔNG ẩn splash ngay
+      router.replace("/client");
     }, 1500);
 
     return () => clearTimeout(timer);
   }, [router]);
 
-  if (!showSplash) return null;
+  // Không cần setShowSplash(false) nữa — splash tồn tại cho đến khi client page load
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-black text-white z-50 animate-fadeIn">

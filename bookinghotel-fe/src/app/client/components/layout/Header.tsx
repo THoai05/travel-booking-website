@@ -84,7 +84,7 @@ const Header = () => {
 
       // 🔹 Nếu là admin, tự động chuyển sang /admin
       if (data.role === "admin") {
-        router.push("/admin");
+        router.replace("/admin");
       }
 
       return data;
@@ -98,31 +98,65 @@ const Header = () => {
 
   // --- useEffect mount
   useEffect(() => {
+    const tokenData = localStorage.getItem("token");
+    if (!tokenData) {
+      setProfile(null);
+      setLoading(false);
+    }
+
     if (!localStorage.getItem("methodShowLoginregister")) {
       localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
     }
-    const timer = setTimeout(() => fetchProfile(), 100);
+    const timer = setTimeout(() => fetchProfile(), 4000);
     return () => clearTimeout(timer);
   }, []);
 
   // --- Track localStorage changes
+  // --- Track token & methodShowLoginregister changes
   useEffect(() => {
-    const handleStorage = () => {
+    const handleStorageOrTokenCheck = () => {
+      // --- Modal control
       const method = JSON.parse(localStorage.getItem("methodShowLoginregister") || '"none"');
       if (method === "showLogin") openLogin();
       else if (method === "showRegister") openRegister();
       else closeModal();
 
-      if (method === "none") fetchProfile();
+      // --- Check token
+      const tokenData = localStorage.getItem("token");
+      if (!tokenData) {
+        setProfile(null); // token bị xóa → đăng xuất
+      } else {
+        try {
+          const parsed = JSON.parse(tokenData);
+          if (parsed?.token) {
+            fetchProfile(); // token hợp lệ → fetch lại profile
+          } else {
+            setProfile(null);
+          }
+        } catch {
+          setProfile(null);
+        }
+      }
     };
 
-    window.addEventListener("storage", handleStorage);
-    handleStorage();
-    return () => window.removeEventListener("storage", handleStorage);
+    // --- 1. Nghe sự kiện storage (tab khác)
+    window.addEventListener("storage", handleStorageOrTokenCheck);
+
+    // --- 2. Interval kiểm tra token mỗi 3 giây (cùng tab)
+    const interval = setInterval(handleStorageOrTokenCheck, 4000);
+
+    // --- 3. Chạy ngay khi mount
+    handleStorageOrTokenCheck();
+
+    return () => {
+      window.removeEventListener("storage", handleStorageOrTokenCheck);
+      clearInterval(interval);
+    };
   }, []);
 
+
   const handleClickProfile = () => {
-    router.push("/auth/profile");
+    router.replace("/client/auth/profile");
   };
 
   const handleLogout = () => {
