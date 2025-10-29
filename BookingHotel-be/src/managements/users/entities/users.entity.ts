@@ -4,6 +4,7 @@ import { Review } from "src/managements/reviews/entities/review.entity";
 import { ResetPassword } from 'src/managements/reset_Password/entities/reset_Password.entity';
 import { Post } from 'src/managements/posts/entities/post.entity';
 import { Favourite } from 'src/managements/favourite/entities/favourite.entity';
+import { ReviewLike } from 'src/managements/reviews/entities/review-like.entity';
 
 import {
   Entity,
@@ -100,6 +101,9 @@ export class User {
 
   @OneToMany(() => Review, (review) => review.user)
   reviews: Review[]
+
+  @OneToMany(() => ReviewLike, (like) => like.user)
+  reviewLikes: ReviewLike[];
 
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification[]

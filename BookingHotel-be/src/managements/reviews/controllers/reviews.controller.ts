@@ -62,12 +62,20 @@ export class ReviewsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('hotel/rate')
-  async submitRating(@Body() dto: SubmitRatingDto, @Req() req: Request) {
+  @Post(':id/like')
+  async likeReview(@Param('id', ParseIntPipe) reviewId: number, @Req() req: Request) {
     const userId = req.user?.userId;
-    if (!userId) {
-      throw new UnauthorizedException('User not found in request');
-    }
-    return this.reviewsService.submitRating(dto, userId);
+    if (!userId) throw new UnauthorizedException('User not found in request');
+    return this.reviewsService.toggleLikeReview(reviewId, userId);
   }
+
+  // @UseGuards(JwtAuthGuard)
+  // @Post('hotel/rate')
+  // async submitRating(@Body() dto: SubmitRatingDto, @Req() req: Request) {
+  //   const userId = req.user?.userId;
+  //   if (!userId) {
+  //     throw new UnauthorizedException('User not found in request');
+  //   }
+  //   return this.reviewsService.submitRating(dto, userId);
+  // }
 }

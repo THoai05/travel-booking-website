@@ -6,9 +6,10 @@ import { Review } from '../entities/review.entity';
 import { User } from 'src/managements/users/entities/users.entity';
 import { Hotel } from 'src/managements/hotels/entities/hotel.entity';
 import { UsersModule } from 'src/managements/users/modules/users.module';
+import { ReviewLike } from '../entities/review-like.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Review, User, Hotel])
+  imports: [TypeOrmModule.forFeature([Review, User, Hotel, ReviewLike])
     , UsersModule
   ],
   controllers: [ReviewsController],

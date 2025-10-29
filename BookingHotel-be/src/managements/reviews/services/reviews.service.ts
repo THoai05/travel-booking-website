@@ -7,6 +7,7 @@ import { User } from 'src/managements/users/entities/users.entity';
 import { Hotel } from 'src/managements/hotels/entities/hotel.entity';
 import { SubmitRatingDto } from '../dtos/submit-rating.dto';
 import { UpdateReviewDto } from '../dtos/update-review.dto';
+import { ReviewLike } from '../entities/review-like.entity';
 
 @Injectable()
 export class ReviewsService {
@@ -18,7 +19,10 @@ export class ReviewsService {
         private readonly userRepo: Repository<User>,
 
         @InjectRepository(Hotel)
-        private readonly hotelRepo: Repository<Hotel>
+        private readonly hotelRepo: Repository<Hotel>,
+
+        @InjectRepository(ReviewLike)
+        private reviewLikeRepo: Repository<ReviewLike>,
     ) { }
 
     async getSummaryReviewByHotelId(hotelId: number): Promise<{ avgRating: number, reviewCount: number }> {
@@ -36,10 +40,15 @@ export class ReviewsService {
         }
     }
 
-    async getReviewsByHotelId(hotelId: number, page = 1, limit = 10): Promise<{ data: Review[]; total: number; page: number; limit: number }> {
+    async getReviewsByHotelId(
+        hotelId: number,
+        page = 1,
+        limit = 10,
+    ): Promise<{ data: any[]; total: number; page: number; limit: number }> {
         const query = this.reviewRepo
             .createQueryBuilder('review')
             .leftJoinAndSelect('review.user', 'user')
+            .leftJoin('review.likes', 'likes') // 👈 join bảng review_likes
             .select([
                 'review.id',
                 'review.rating',
@@ -48,17 +57,27 @@ export class ReviewsService {
                 'user.id',
                 'user.username',
             ])
+            .addSelect('COUNT(likes.id)', 'likeCount') // 👈 đếm số lượt like
             .where('review.reviewType = :type', { type: 'hotel' })
             .andWhere('review.hotelId = :hotelId', { hotelId })
+            .groupBy('review.id') // 👈 group theo review để COUNT hoạt động đúng
+            .addGroupBy('user.id')
             .orderBy('review.createdAt', 'DESC')
-            .skip((page - 1) * limit) //bỏ các review trước trang hiện tại.
-            .take(limit); //lấy số review bằng với limit.
+            .skip((page - 1) * limit)
+            .take(limit);
 
-        const [data, total] = await query.getManyAndCount();
+        const [data, total] = await Promise.all([
+            query.getRawAndEntities().then(({ raw, entities }) =>
+                entities.map((review, i) => ({
+                    ...review,
+                    likeCount: Number(raw[i].likeCount) || 0, // 👈 merge likeCount vào kết quả
+                })),
+            ),
+            query.getCount(),
+        ]);
 
         return { data, total, page, limit };
     }
-
 
     async createReview(dto: CreateReviewDto, userId: number) {
         const user = await this.userRepo.findOne({ where: { id: userId } });
@@ -128,8 +147,6 @@ export class ReviewsService {
         };
     }
 
-
-
     async submitRating(dto: SubmitRatingDto, userId: number) {
         const user = await this.userRepo.findOne({ where: { id: userId } });
         const hotel = await this.hotelRepo.findOne({ where: { id: dto.hotelId } });
@@ -146,6 +163,34 @@ export class ReviewsService {
         } as DeepPartial<Review>);
 
         return await this.reviewRepo.save(review);
+    }
+
+    async toggleLikeReview(reviewId: number, userId: number) {
+        const review = await this.reviewRepo.findOne({ where: { id: reviewId } });
+        if (!review) throw new NotFoundException('Review not found');
+
+        const user = await this.userRepo.findOne({ where: { id: userId } });
+        if (!user) throw new NotFoundException('User not found');
+
+        const existingLike = await this.reviewLikeRepo.findOne({
+            where: { user: { id: userId }, review: { id: reviewId } },
+        });
+
+        if (existingLike) {
+            await this.reviewLikeRepo.remove(existingLike);
+            return { message: 'Unliked review', reviewId };
+        } else {
+            const newLike = this.reviewLikeRepo.create({ user, review });
+            await this.reviewLikeRepo.save(newLike);
+            return { message: 'Liked review', reviewId };
+        }
+    }
+
+    async getReviewLikesCount(reviewId: number) {
+        const count = await this.reviewLikeRepo.count({
+            where: { review: { id: reviewId } },
+        });
+        return { reviewId, likeCount: count };
     }
 
 }
