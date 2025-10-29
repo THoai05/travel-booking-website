@@ -51,7 +51,7 @@ export class Review {
   reviewType: ReviewType;
 
   @Column({ type: 'text', nullable: true })
-  // 👉 Có thể chứa JSON string (["url1","url2",...])
+  // JSON string (["url1","url2",...])
   images: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })

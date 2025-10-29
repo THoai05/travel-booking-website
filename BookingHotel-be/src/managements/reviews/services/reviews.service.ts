@@ -8,6 +8,8 @@ import { Hotel } from 'src/managements/hotels/entities/hotel.entity';
 import { SubmitRatingDto } from '../dtos/submit-rating.dto';
 import { UpdateReviewDto } from '../dtos/update-review.dto';
 import { ReviewLike } from '../entities/review-like.entity';
+import { join } from 'path';
+import * as fs from 'fs/promises';
 
 type ReviewWithExtras = Review & {
     likeCount: number;
@@ -102,7 +104,6 @@ export class ReviewsService {
         return { data, total, page, limit };
     }
 
-
     async createReview(dto: CreateReviewDto, userId: number) {
         const user = await this.userRepo.findOne({ where: { id: userId } });
         const hotel = await this.hotelRepo.findOne({ where: { id: dto.hotelId } });
@@ -127,6 +128,17 @@ export class ReviewsService {
         console.log('🟢 [After Save] Saved review:', saved);
 
         return saved;
+    }
+
+    async uploadImages(files: Express.Multer.File[]): Promise<string[]> {
+        const urls: string[] = [];
+
+        for (const file of files) {
+            // Multer đã lưu file, chỉ cần tạo URL truy cập
+            urls.push(`/uploads/reviews/${file.filename}`);
+        }
+
+        return urls;
     }
 
     async updateReview(reviewId: number, dto: UpdateReviewDto, userId: number) {
