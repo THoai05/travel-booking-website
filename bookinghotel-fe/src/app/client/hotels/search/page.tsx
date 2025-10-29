@@ -22,6 +22,8 @@ export default function SearchResultPage() {
   const cityTitleParam = searchParams.get('cityTitle') || '';
   // ===== 1. XÓA STATE `page` =====
   // const [page, setPage] = useState(1); // <-- XÓA
+
+
   const [limit, setLimit] = useState(10); 
   
   // (Giữ nguyên tất cả state filter: cityTitle, hotelName, priceRange...)

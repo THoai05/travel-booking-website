@@ -4,9 +4,18 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { NAV_LINKS } from "../../../../constants/index";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react"; // <-- THÊM MỚI: useRef
 import Login from "@/app/auth/login/page";
 import Register from "@/app/auth/register/page";
+import { useAuth } from "@/context/AuthContext";
+import toast from "react-hot-toast";
+// --- THÊM MỚI: Icons (cần cài react-icons: npm install react-icons) ---
+import {
+  HiUserCircle,
+  HiOutlineHeart,
+  HiOutlineUser,
+  HiOutlineLogout,
+} from "react-icons/hi";
 
 interface UserProfile {
   id: number;
@@ -28,9 +37,13 @@ const Header = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+
+  // --- THÊM MỚI: State cho dropdown ---
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null); // Ref để detect click bên ngoài
 
   // --- Modal control
   const openLogin = () => {
@@ -51,119 +64,43 @@ const Header = () => {
     localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
   };
 
+  const { user, logout } = useAuth();
+
   // --- Fetch profile
-  const fetchProfile = async () => {
-    const tokenData = localStorage.getItem("token");
-    if (!tokenData) {
-      setProfile(null);
-      setLoading(false);
-      return null;
-    }
-
-    try {
-      const parsed = JSON.parse(tokenData);
-      const token = parsed.token;
-      if (!token) {
-        setProfile(null);
-        setLoading(false);
-        return null;
-      }
-
-      const res = await fetch("/api/auth", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) throw new Error("Lỗi khi lấy profile");
-      const data = await res.json();
-      setProfile(data);
-      setLoading(false);
-
-      // 🔹 Nếu là admin, tự động chuyển sang /admin
-      if (data.role === "admin") {
-        router.replace("/admin");
-      }
-
-      return data;
-    } catch (err) {
-      console.error("❌ Lỗi load profile:", err);
-      setProfile(null);
-      setLoading(false);
-      return null;
-    }
-  };
+  
 
   // --- useEffect mount
+  // --- THÊM MỚI: Click outside để đóng dropdown ---
   useEffect(() => {
-    const tokenData = localStorage.getItem("token");
-    if (!tokenData) {
-      setProfile(null);
-      setLoading(false);
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
     }
-
-    if (!localStorage.getItem("methodShowLoginregister")) {
-      localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
-    }
-    const timer = setTimeout(() => fetchProfile(), 4000);
-    return () => clearTimeout(timer);
-  }, []);
+    // Bind event listener
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      // Unbind event listener on clean up
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownRef]);
 
   // --- Track localStorage changes
   // --- Track token & methodShowLoginregister changes
-  useEffect(() => {
-    const handleStorageOrTokenCheck = () => {
-      // --- Modal control
-      const method = JSON.parse(localStorage.getItem("methodShowLoginregister") || '"none"');
-      if (method === "showLogin") openLogin();
-      else if (method === "showRegister") openRegister();
-      else closeModal();
-
-      // --- Check token
-      const tokenData = localStorage.getItem("token");
-      if (!tokenData) {
-        setProfile(null); // token bị xóa → đăng xuất
-      } else {
-        try {
-          const parsed = JSON.parse(tokenData);
-          if (parsed?.token) {
-            fetchProfile(); // token hợp lệ → fetch lại profile
-          } else {
-            setProfile(null);
-          }
-        } catch {
-          setProfile(null);
-        }
-      }
-    };
-
-    // --- 1. Nghe sự kiện storage (tab khác)
-    window.addEventListener("storage", handleStorageOrTokenCheck);
-
-    // --- 2. Interval kiểm tra token mỗi 3 giây (cùng tab)
-    const interval = setInterval(handleStorageOrTokenCheck, 4000);
-
-    // --- 3. Chạy ngay khi mount
-    handleStorageOrTokenCheck();
-
-    return () => {
-      window.removeEventListener("storage", handleStorageOrTokenCheck);
-      clearInterval(interval);
-    };
-  }, []);
-
+  
 
   const handleClickProfile = () => {
-    router.replace("/client/auth/profile");
+    router.push("/client/auth/profile");
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    setProfile(null);
-    localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
+    logout();
+    router.replace("/client");
   };
+  console.log(user);
 
   return (
     <>
@@ -173,7 +110,13 @@ const Header = () => {
           <div className="flex-1 max-w-[500px]">
             <Link href="/" className="inline-block">
               <div className="w-[160px] md:w-[100px]">
-                <Image src="/logo.png" alt="logo" width={300} height={150} className="w-100 h-auto object-contain" />
+                <Image
+                  src="/logo.png"
+                  alt="logo"
+                  width={300}
+                  height={150}
+                  className="w-100 h-auto object-contain"
+                />
               </div>
             </Link>
           </div>
@@ -190,7 +133,11 @@ const Header = () => {
                     after:content-[''] after:absolute after:left-0 after:bottom-0 after:h-[2px]
                     after:bg-gradient-to-r after:from-[#00C6FF] after:to-[#0072FF]
                     after:transition-all after:duration-300
-                    ${isActive ? "after:w-full text-[#0072FF]" : "after:w-0 hover:after:w-full"}`}
+                    ${
+                      isActive
+                        ? "after:w-full text-[#0072FF]"
+                        : "after:w-0 hover:after:w-full"
+                    }`}
                 >
                   {link.label}
                 </Link>
@@ -218,7 +165,7 @@ const Header = () => {
             </div>
 
             {/* Nếu chưa đăng nhập */}
-            {!loading && !profile && (
+            {!loading && !user && (
               <div className="flex gap-2 items-center">
                 <button
                   onClick={openLogin}
@@ -235,35 +182,88 @@ const Header = () => {
               </div>
             )}
 
-            {/* Nếu có profile */}
-            {!loading && profile && profile.role !== "admin" && (
-              <div className="flex gap-2 items-center">
-                <div
-                  className="flex gap-2 cursor-pointer items-center"
-                  onClick={handleClickProfile}
-                >
-                  <div className="avatar">
-                    <Image
-                      src={profile?.avatar || "/avatar.png"}
-                      alt={profile?.username || "avatar"}
-                      width={40}
-                      height={33}
-                      className="rounded-full"
-                    />
-                  </div>
-                  <div>
-                    <p className="text-[14px] font-medium text-gray-700">
-                      {profile?.fullName || "Người dùng"}
-                    </p>
-                    <Image src="/vip.png" alt="membership level" width={60} height={12} />
-                  </div>
-                </div>
+            {/* --- CHỈNH SỬA: KHI ĐÃ LOGIN (YÊU CẦU 1) --- */}
+            {/* Giờ chỉ hiển thị icon và tên, nút Đăng xuất đã chuyển vào dropdown */}
+            {!loading && user && (
+              <div className="flex items-center gap-2 font-medium text-sm text-gray-700">
+                <HiUserCircle className="w-6 h-6" />
+                <span className="hidden sm:inline">
+                  {user.name || user.username || "bạn"}
+                </span>
               </div>
             )}
 
-            <div className="menu-icon cursor-pointer">
-              <Image src="/menu.png" alt="menu icon" width={32} height={32} />
-            </div>
+            {/* Nếu có profile */}
+            
+
+            {/* --- CHỈNH SỬA: DROPDOWN MENU (YÊU CẦU 2) --- */}
+
+            {/* 1. Nếu CHƯA login, hiển thị icon menu (cho mobile) */}
+            {!loading && !user && (
+              <div className="menu-icon cursor-pointer">
+                <Image
+                  src="/menu.png"
+                  alt="menu icon"
+                  width={32}
+                  height={32}
+                />
+              </div>
+            )}
+
+            {/* 2. Nếu ĐÃ login, biến icon menu thành trigger cho dropdown */}
+            {!loading && user && (
+              <div className="relative" ref={dropdownRef}>
+                {/* Nút trigger */}
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="menu-icon cursor-pointer"
+                >
+                  <Image
+                    src="/menu.png"
+                    alt="menu icon"
+                    width={32}
+                    height={32}
+                  />
+                </button>
+
+                {/* Panel của dropdown */}
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100">
+                    <button
+                      onClick={() => {
+                        router.push("/favourites");
+                        setIsDropdownOpen(false);
+                      }}
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <HiOutlineHeart className="mr-3 w-5 h-5" />
+                      Yêu thích
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleClickProfile();
+                        setIsDropdownOpen(false);
+                      }}
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <HiOutlineUser className="mr-3 w-5 h-5" />
+                      Hồ sơ
+                    </button>
+                    <div className="border-t border-gray-100 my-1"></div>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsDropdownOpen(false);
+                      }}
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <HiOutlineLogout className="mr-3 w-5 h-5" />
+                      Đăng xuất
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </nav>
