@@ -24,3 +24,13 @@ export const deleteFavourite = async (id: number) => {
     const res = await api.delete(`/favourites/${id}`); // ✅ Dùng backtick + đúng endpoint (favourites)
     return res.data;
 };
+
+export const getFavouriteAnalytics = async () => {
+    try {
+        const response = await api.get(`/favourites/analytics`);
+        return response.data; // Trả về dữ liệu JSON
+    } catch (error) {
+        console.error("Lỗi khi gọi API analytics:", error);
+        throw error;
+    }
+};

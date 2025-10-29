@@ -5,6 +5,8 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import * as express from 'express';
 import { join } from 'path';
+import * as cookieParser from 'cookie-parser'
+
 
 async function bootstrap() {
   // ép kiểu về NestExpressApplication
@@ -27,6 +29,8 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {
     prefix: '/uploads/',
   });
+
+  app.use(cookieParser())
 
   app.use('/avatars', express.static(join(process.cwd(), 'uploads', 'avatars')));
 

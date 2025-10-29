@@ -3,6 +3,10 @@ import React, { useState, useEffect } from "react";
 import { FiUser, FiLock, FiEye, FiEyeOff, FiX } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import api from "@/axios/axios";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from 'react-hot-toast';
+
 
 const Login = ({
   onClose,
@@ -22,6 +26,7 @@ const Login = ({
   const [error, setError] = useState("");
   const [redirectTo, setRedirectTo] = useState("");
   const router = useRouter();
+  const { setUser } = useAuth()
 
   // --- Open/close theo methodShowLoginregister
   const [visible, setVisible] = useState(false);
@@ -40,14 +45,7 @@ const Login = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  useEffect(() => {
-    if (!redirectTo) return;
-    const timer = setTimeout(() => {
-      router.push(redirectTo);
-      localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [redirectTo]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,57 +77,32 @@ const Login = ({
     try {
       // Step 1: Login
       setLoadingMessage("Đang đăng nhập...");
-      const res = await fetch("/api/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "login",
-          usernameOrEmail: formData.emailOrUsername,
-          password: formData.password,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Đăng nhập thất bại!");
-
-      // Step 2: Lưu token
-      const expiresIn = rememberMe
-        ? 1 * 24 * 60 * 60 * 1000
-        : 1 * 60 * 60 * 1000;
-      const expiryTime = new Date().getTime() + expiresIn;
-      const tokenData = { token: data.token, expiry: expiryTime };
-      localStorage.setItem("token", JSON.stringify(tokenData));
-
-      // Step 3: Fetch profile
-      setLoadingMessage("Đang đăng nhập...");
-      const parsed = JSON.parse(localStorage.getItem("token")!);
-      const token = parsed.token;
-
-      const profileRes = await fetch("/api/auth", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const profileData = await profileRes.json();
-      if (!profileRes.ok) throw new Error(profileData.message || "Lấy profile thất bại!");
-
-      // 🔹 Step 4: Logic redirect theo role
-      if (profileData.role === "admin") {
-        setRedirectTo("/admin"); // admin → chuyển trang
-      } else if (profileData.role === "customer") {
-
-        localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
-        // customer → chỉ đóng modal
-        onClose(); // gọi prop để đóng modal
-
-        window.dispatchEvent(new Event("storage"));
+      const res = await api.post('auth/login', {
+        usernameOrEmail: formData.emailOrUsername,
+        password:formData.password
+      })
+      console.log(res)
+      if (res?.data.message === 'success') {
+        setUser(res?.data.userWithoutPassword)
+        toast.success("Đăng nhập thành công")
       }
+      else  throw new Error(data.message || "Đăng nhập thất bại!");
+
+      const user = res.data.userWithoutPassword
+
+      const isAdmin = user.role === "admin"
+      console.log(isAdmin)
+      if (isAdmin) {
+        router.push('/admin')
+      } else {
+        router.replace('/client')
+      }
+      
     } catch (err: any) {
       setError(err.message || "Đăng nhập thất bại!");
       setLoading(false);
+    } finally{
+      setLoading(false)
     }
   };
 

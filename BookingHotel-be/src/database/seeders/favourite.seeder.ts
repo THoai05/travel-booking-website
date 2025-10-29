@@ -22,6 +22,14 @@ export default class FavouriteSeeder implements Seeder {
 
         const favourites: Favourite[] = [];
 
+        // Hàm tạo ngày ngẫu nhiên trong vòng 30 ngày gần đây
+        const randomDateWithinLastNDays = (n: number) => {
+            const today = new Date();
+            const pastTime =
+                today.getTime() - Math.floor(Math.random() * n * 24 * 60 * 60 * 1000);
+            return new Date(pastTime);
+        };
+
         for (let i = 0; i < 500; i++) {
             const randomUser = users[Math.floor(Math.random() * users.length)];
             const randomHotel = hotels[Math.floor(Math.random() * hotels.length)];
@@ -36,12 +44,13 @@ export default class FavouriteSeeder implements Seeder {
                 user: { id: randomUser.id },
                 hotel: { id: randomHotel.id },
                 room: randomRoom ? { id: randomRoom.id } : undefined,
-                createdAt: new Date(),
+                createdAt: randomDateWithinLastNDays(30), // <-- Sửa ở đây
             } as Partial<Favourite>);
+
             favourites.push(favourite);
         }
 
         await favouriteRepo.save(favourites);
-        console.log(`🌱 Seeded ${favourites.length} favourites successfully (logic chính xác)!`);
+        console.log(`🌱 Seeded ${favourites.length} favourites successfully (với createdAt ngẫu nhiên trong 30 ngày)!`);
     }
 }

@@ -222,7 +222,7 @@ export default function ProfilePage() {
   if (!user) return <p>Đang tải...</p>;
 
   return (
-    <div className="relative flex flex-col md:grid md:grid-cols-2 gap-6 p-4 md:p-8 bg-gray-50 min-h-screen">
+    <div className="relative flex flex-col md:grid md:grid-cols-2 gap-6 p-4 md:p-8 bg-gray-50 min-h-screen mt-10">
       {/* --- CỘT TRÁI --- */}
       <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-gradient-to-b from-blue-400 to-blue-200 shadow-md">
         <img

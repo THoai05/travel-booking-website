@@ -13,6 +13,7 @@
 import { useParams } from 'next/navigation';
 import { useHandleHotelById, useHandleSimilarHotelByCityId } from '@/service/hotels/hotelService';
 
+
   const mockSummaryData = {
     averageRating: 8.6,
     reviewCount: 1077,
@@ -142,8 +143,7 @@ import { useHandleHotelById, useHandleSimilarHotelByCityId } from '@/service/hot
     
     // Thêm khách sạn khác nếu muốn test scroll
   ];
-
-
+  
   export default function HotelDetail() {
     const handleShowMapPopup = (city: string) => {
       alert(`Bro vừa click xem map của thành phố: ${city}`);

@@ -16,7 +16,7 @@ export enum CouponType {
     MOMO = 'momo',
     ZALOPAY = 'zalopay',
     STRIPE = 'stripe',
-}
+}   
 
 export enum CouponStatus {
     ACTIVE = 'active',
