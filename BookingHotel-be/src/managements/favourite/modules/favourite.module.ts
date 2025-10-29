@@ -6,9 +6,10 @@ import { FavouritesController } from '../controllers/favourite.controller';
 import { User } from '../../../managements/users/entities/users.entity';
 import { Hotel } from '../../hotels/entities/hotel.entity';
 import { Room } from '../../rooms/entities/rooms.entity';
+import { Review } from '../../reviews/entities/review.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Favourite, User, Hotel, Room])],
+  imports: [TypeOrmModule.forFeature([Favourite, User, Hotel, Room, Review])],
   controllers: [FavouritesController],
   providers: [FavouritesService],
 })
