@@ -4,6 +4,8 @@ import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import * as express from 'express';
 import { join } from 'path';
+import * as cookieParser from 'cookie-parser'
+
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,6 +18,8 @@ async function bootstrap() {
     whitelist: true,
     transform: true
   }))
+
+  app.use(cookieParser())
 
   app.use('/avatars', express.static(join(process.cwd(), 'uploads', 'avatars')));
   await app.listen(3636);

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import api from "@/axios/axios";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 interface User {
   id: number;
@@ -29,7 +30,6 @@ interface UpdateUserForm {
 }
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null);
   const [form, setForm] = useState<UpdateUserForm>({});
   const [userId, setUserId] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -43,59 +43,35 @@ export default function ProfilePage() {
     return d.toLocaleDateString("vi-VN", { timeZone: "UTC" });
   };
 
+  const { user, setUser } = useAuth();
+  console.log(user)
   // =================== LẤY THÔNG TIN NGƯỜI DÙNG VỚI POLLING ===================
   useEffect(() => {
-    let interval: NodeJS.Timer;
-
     const fetchProfileAndUser = async () => {
       try {
-        const tokenData = localStorage.getItem("token");
-        if (!tokenData) {
-          router.push("/client"); // hoặc "/"
+        const response = await api.get("auth/profile");
+        if (response.status !== 304) {
+          const profileData = response.data;
+          setUser(profileData);
         }
-
-        const parsed = JSON.parse(tokenData);
-        const token = parsed.token;
-
-        const profileRes = await fetch("/api/auth", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+        setForm({
+          fullName: user.fullName,
+          email: user.email,
+          phone: user.phone,
+          dob: user.dob,
+          gender: user.gender,
         });
-
-        const profileData = await profileRes.json();
-        const userId = Number(profileData.id);
-        setUserId(userId);
-
-        const res = await api.get(`/users/${userId}`);
-        const data = res.data.user || res.data;
-
-        // Nếu dữ liệu mới khác dữ liệu cũ, cập nhật user và form
-        if (JSON.stringify(data) !== JSON.stringify(user)) {
-          setUser(data);
-          setForm({
-            fullName: data.fullName,
-            email: data.email,
-            phone: data.phone,
-            dob: data.dob,
-            gender: data.gender,
-          });
-        }
       } catch (err: any) {
         console.error(err);
       }
     };
-
-    fetchProfileAndUser(); // lần đầu load
-    interval = setInterval(fetchProfileAndUser, 3000); // polling mỗi 3s
-
-    return () => clearInterval(interval);
-  }, [user]);
+    fetchProfileAndUser(); // lần đầu load // polling mỗi 3s
+  }, []);
 
   // =================== XỬ LÝ INPUT ===================
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -119,7 +95,8 @@ export default function ProfilePage() {
         setLoading(false);
         return;
       }
-      const fullNameRegex = /^[a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+$/;
+      const fullNameRegex =
+        /^[a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+$/;
       if (!fullNameRegex.test(fullName)) {
         setError("Họ và tên không có số, ký tự đặc biệt.");
         setLoading(false);
@@ -131,7 +108,8 @@ export default function ProfilePage() {
         setLoading(false);
         return;
       }
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@(?!(?:[0-9]+\.)+[a-zA-Z]{2,})[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      const emailRegex =
+        /^[a-zA-Z0-9._%+-]+@(?!(?:[0-9]+\.)+[a-zA-Z]{2,})[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (!emailRegex.test(email)) {
         setError("Sai định dạng email.");
         setLoading(false);
@@ -146,7 +124,9 @@ export default function ProfilePage() {
       if (phone) {
         const phoneRegex = /^(0|\+84)\d{9,10}$/;
         if (!phoneRegex.test(phone) || phone.length > 20) {
-          setError("Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có từ 10–11 chữ số.");
+          setError(
+            "Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có từ 10–11 chữ số."
+          );
           setLoading(false);
           return;
         }
@@ -171,7 +151,14 @@ export default function ProfilePage() {
         const age =
           today.getFullYear() -
           birthDate.getFullYear() -
-          (today < new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate()) ? 1 : 0);
+          (today <
+          new Date(
+            today.getFullYear(),
+            birthDate.getMonth(),
+            birthDate.getDate()
+          )
+            ? 1
+            : 0);
 
         if (age < 16) {
           setError("Bạn phải đủ 16 tuổi trở lên.");
@@ -179,7 +166,6 @@ export default function ProfilePage() {
           return;
         }
       }
-
 
       setLoadingMessage("Đang cập nhật thông tin...");
       const res = await api.patch(`/users/${userId}`, form);
@@ -234,7 +220,6 @@ export default function ProfilePage() {
 
   //if (!localStorage.getItem("token")) return <p>Không tìm thấy token...</p>;
   if (!user) return <p>Đang tải...</p>;
-  
 
   return (
     <div className="relative flex flex-col md:grid md:grid-cols-2 gap-6 p-4 md:p-8 bg-gray-50 min-h-screen">
@@ -257,8 +242,14 @@ export default function ProfilePage() {
 
         <div className="w-full max-w-xs md:max-w-sm space-y-2 text-left text-gray-800 bg-white/50 p-3 rounded-lg shadow-inner">
           <InfoItem label="Quyền" value={user.role} />
-          <InfoItem label="Điểm trung thành" value={user.loyaltyPoints?.toLocaleString() ?? 0} />
-          <InfoItem label="Cấp độ thành viên" value={user.membershipLevel ?? "0"} />
+          <InfoItem
+            label="Điểm trung thành"
+            value={user.loyaltyPoints?.toLocaleString() ?? 0}
+          />
+          <InfoItem
+            label="Cấp độ thành viên"
+            value={user.membershipLevel ?? "0"}
+          />
           <InfoItem label="created_at" value={formatDateUTC(user.createdAt)} />
           <InfoItem label="updated_at" value={formatDateUTC(user.updatedAt)} />
         </div>
@@ -284,14 +275,37 @@ export default function ProfilePage() {
           className="font-semibold text-gray-800 bg-gray-100"
         />
 
-        <FormField label="Họ và tên" name="fullName" value={form.fullName || ""} onChange={handleChange} />
-        <FormField label="Email" name="email" value={form.email || ""} onChange={handleChange} />
-        <FormField label="Phone" name="phone" value={form.phone || ""} onChange={handleChange} />
-        <FormField label="Ngày sinh" type="date" name="dob" value={form.dob?.split("T")[0] || ""} onChange={handleChange} />
+        <FormField
+          label="Họ và tên"
+          name="fullName"
+          value={form.fullName || ""}
+          onChange={handleChange}
+        />
+        <FormField
+          label="Email"
+          name="email"
+          value={form.email || ""}
+          onChange={handleChange}
+        />
+        <FormField
+          label="Phone"
+          name="phone"
+          value={form.phone || ""}
+          onChange={handleChange}
+        />
+        <FormField
+          label="Ngày sinh"
+          type="date"
+          name="dob"
+          value={form.dob?.split("T")[0] || ""}
+          onChange={handleChange}
+        />
 
         {/* Giới tính */}
         <div className="mb-4">
-          <label className="block mb-1 font-medium text-gray-700">Giới tính</label>
+          <label className="block mb-1 font-medium text-gray-700">
+            Giới tính
+          </label>
           <select
             name="gender"
             value={form.gender || ""}
@@ -384,7 +398,9 @@ function FormField({
         value={value}
         disabled={disabled}
         onChange={onChange}
-        className={`border rounded w-full p-2 ${disabled ? "bg-gray-100 cursor-not-allowed" : ""} ${className}`}
+        className={`border rounded w-full p-2 ${
+          disabled ? "bg-gray-100 cursor-not-allowed" : ""
+        } ${className}`}
       />
     </div>
   );

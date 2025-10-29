@@ -61,8 +61,9 @@ export class AuthService {
 
 		const payload = { sub: user.id, username: user.username, role: user.role };
 		const token = await this.jwtService.signAsync(payload);
+		const {password:_ , ...userWithoutPassword} = user
 
-		return { message: 'Đăng nhập thành công', token };
+		return { message: 'success', token,userWithoutPassword };
 	}
 
 	async getProfile(userId: number) {
