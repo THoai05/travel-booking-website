@@ -17,10 +17,10 @@ interface HotelGroup {
 }
 
 export default function RoomMonitorPage() {
-  //{ apiType, param }: { apiType: "all" | "hotel" | "user", param?: string | number }
-
   const [apiType, setApiType] = useState<"all" | "hotel" | "user">("all");
   const [param, setParam] = useState<string | number>();
+  const [showAll, setShowAll] = useState<"all" | "none">("none");
+  const [userId, setUserId] = useState<number | null>(null);
 
   const [rooms, setRooms] = useState<Room[]>([]);
   const [search, setSearch] = useState("");
@@ -30,55 +30,53 @@ export default function RoomMonitorPage() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const groupsPerPage = 6;
-
-  const currentPageRef = useRef(currentPage); // giữ trạng thái trang khi auto refresh
-
+  const currentPageRef = useRef(currentPage);
   useEffect(() => { currentPageRef.current = currentPage }, [currentPage]);
 
-
+  // --- Fetch userId on mount, prioritize user rooms ---
   useEffect(() => {
-    const fetchRooms = async () => {
-
+    const fetchUserId = async () => {
       try {
         const response = await api.get("auth/profile");
-        let storedId = null;
-
-        if (response.status !== 304) {
-          const profileData = response.data;
-          storedId = profileData.id;
-          setApiType("user");
-          setParam(storedId);
+        if (response.status !== 304 && response.data.id) {
+          const id = response.data.id;
+          setUserId(id);
+          if (showAll === "none") {
+            setApiType("user");
+            setParam(id);
+          }
+          return; // stop, don't fetch all
         }
       } catch (error) {
-        
+        console.warn("Không lấy được userId, chuyển sang xem tất cả");
       }
+      // fallback all
+      setApiType("all");
+      setParam(undefined);
+      setShowAll("all");
+    };
+    fetchUserId();
+  }, []);
 
+  // --- Fetch rooms with auto-refresh ---
+  useEffect(() => {
+    const fetchRooms = async () => {
       try {
-
-        let url = "/rooms/roomAvailabilityMonitor"; // mặc định all
-
-        if (apiType === "hotel" && param) {
-          url = `/rooms/roomAvailabilityMonitor/byHotel?search=${param}`; // query param
-        }
-
-        if (apiType === "user" && param) {
-          url = `/rooms/roomAvailabilityMonitor/byUser/${param}`; // path param
-        }
-
+        let url = "/rooms/roomAvailabilityMonitor"; // default all
+        if (apiType === "hotel" && param) url = `/rooms/roomAvailabilityMonitor/byHotel?search=${param}`;
+        if (apiType === "user" && param) url = `/rooms/roomAvailabilityMonitor/byUser/${param}`;
         const res = await api.get(url);
         setRooms(res.data);
       } catch (error) {
         console.error("❌ Lỗi khi tải danh sách phòng:", error);
-
       }
     };
-
     fetchRooms();
-    const interval = setInterval(fetchRooms, 3000);
+    const interval = setInterval(fetchRooms, 2000); // auto-refresh
     return () => clearInterval(interval);
   }, [apiType, param]);
 
-  // --- Lọc, search, sort ---
+  // --- Filter, search, sort ---
   const filteredRooms = rooms
     .filter(r => !statusFilter || r.status === statusFilter)
     .filter(r =>
@@ -96,7 +94,7 @@ export default function RoomMonitorPage() {
       return 0;
     });
 
-  // --- Gom nhóm theo khách sạn ---
+  // --- Group by hotel ---
   const grouped: HotelGroup[] = Object.values(
     filteredRooms.reduce((acc: { [key: string]: HotelGroup }, room) => {
       if (!acc[room.hotelName]) acc[room.hotelName] = { hotelName: room.hotelName, rooms: [] };
@@ -105,7 +103,7 @@ export default function RoomMonitorPage() {
     }, {})
   );
 
-  // --- Pagination theo hotel groups ---
+  // --- Pagination ---
   const totalPages = Math.ceil(grouped.length / groupsPerPage);
   const indexOfLastGroup = currentPage * groupsPerPage;
   const indexOfFirstGroup = indexOfLastGroup - groupsPerPage;
@@ -124,7 +122,7 @@ export default function RoomMonitorPage() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">🏨 Room Availability Monitor</h1>
 
-      {/* Search & Sort */}
+      {/* Search, Sort & Toggle Show All */}
       <div className="flex flex-col md:flex-row gap-4 mb-4">
         <input
           type="text"
@@ -150,9 +148,25 @@ export default function RoomMonitorPage() {
             Order: {sortOrder.toUpperCase()}
           </button>
         )}
+        <button
+          onClick={() => {
+            if (showAll === "none") {
+              setShowAll("all");
+              setApiType("all");
+              setParam(undefined);
+            } else if (userId) {
+              setShowAll("none");
+              setApiType("user");
+              setParam(userId);
+            }
+          }}
+          className="border p-2 rounded bg-gray-200"
+        >
+          {showAll === "all" ? "Xem danh sách của tôi" : "Xem tất cả"}
+        </button>
       </div>
 
-      {/* Status Buttons */}
+      {/* Status Filter */}
       <div className="flex gap-2 mb-4">
         {["available", "booked", "maintenance"].map(status => (
           <button
@@ -165,7 +179,7 @@ export default function RoomMonitorPage() {
         ))}
       </div>
 
-      {/* Hotel Groups */}
+      {/* Room Groups */}
       {currentGroups.length === 0 ? (
         <p>No rooms found.</p>
       ) : currentGroups.map(group => (
