@@ -1,13 +1,18 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Review } from '../entities/review.entity';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, In, Repository } from 'typeorm';
 import { CreateReviewDto } from '../dtos/create-review.dto';
 import { User } from 'src/managements/users/entities/users.entity';
 import { Hotel } from 'src/managements/hotels/entities/hotel.entity';
 import { SubmitRatingDto } from '../dtos/submit-rating.dto';
 import { UpdateReviewDto } from '../dtos/update-review.dto';
 import { ReviewLike } from '../entities/review-like.entity';
+
+type ReviewWithExtras = Review & {
+    likeCount: number;
+    isLiked?: boolean;
+};
 
 @Injectable()
 export class ReviewsService {
@@ -44,11 +49,12 @@ export class ReviewsService {
         hotelId: number,
         page = 1,
         limit = 10,
+        userId?: number, // thêm userId để kiểm tra like
     ): Promise<{ data: any[]; total: number; page: number; limit: number }> {
         const query = this.reviewRepo
             .createQueryBuilder('review')
             .leftJoinAndSelect('review.user', 'user')
-            .leftJoin('review.likes', 'likes') // 👈 join bảng review_likes
+            .leftJoin('review.likes', 'likes')
             .select([
                 'review.id',
                 'review.rating',
@@ -57,27 +63,45 @@ export class ReviewsService {
                 'user.id',
                 'user.username',
             ])
-            .addSelect('COUNT(likes.id)', 'likeCount') // 👈 đếm số lượt like
+            .addSelect('COUNT(likes.id)', 'likeCount')
             .where('review.reviewType = :type', { type: 'hotel' })
             .andWhere('review.hotelId = :hotelId', { hotelId })
-            .groupBy('review.id') // 👈 group theo review để COUNT hoạt động đúng
+            .groupBy('review.id')
             .addGroupBy('user.id')
             .orderBy('review.createdAt', 'DESC')
             .skip((page - 1) * limit)
             .take(limit);
 
         const [data, total] = await Promise.all([
-            query.getRawAndEntities().then(({ raw, entities }) =>
-                entities.map((review, i) => ({
+            query.getRawAndEntities().then(async ({ raw, entities }) => {
+                const reviews = entities.map((review, i) => ({
                     ...review,
-                    likeCount: Number(raw[i].likeCount) || 0, // 👈 merge likeCount vào kết quả
-                })),
-            ),
+                    likeCount: Number(raw[i].likeCount) || 0,
+                }));
+
+                // Nếu có user đăng nhập, kiểm tra review nào user đã like
+                if (userId) {
+                    const likedReviews = await this.reviewLikeRepo.find({
+                        where: { user: { id: userId }, review: In(reviews.map(r => r.id)) },
+                        relations: ['review'],
+                    });
+
+                    const likedReviewIds = likedReviews.map(like => like.review.id);
+
+                    // Gắn thêm cờ isLiked
+                    reviews.forEach(r => {
+                        (r as any).isLiked = likedReviewIds.includes(r.id);
+                    });
+                }
+
+                return reviews;
+            }),
             query.getCount(),
         ]);
 
         return { data, total, page, limit };
     }
+
 
     async createReview(dto: CreateReviewDto, userId: number) {
         const user = await this.userRepo.findOne({ where: { id: userId } });

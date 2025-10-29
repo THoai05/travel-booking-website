@@ -14,18 +14,26 @@ export class ReviewsController {
     private readonly userService: UsersService
   ) { }
 
-
+  @UseGuards(JwtAuthGuard)
   @Get('hotel/:id')
   async handleGetReviewsByHotelId(
     @Param('id', ParseIntPipe) hotelId: number,
     @Query('page') page = '1',
     @Query('limit') limit = '10',
+    @Req() req: Request,
   ) {
-    // parse page & limit từ string sang number
+    const userId = req.user?.userId;
     const pageNum = Math.max(parseInt(page), 1);
     const limitNum = Math.max(parseInt(limit), 1);
 
-    return await this.reviewsService.getReviewsByHotelId(hotelId, pageNum, limitNum);
+    const result = await this.reviewsService.getReviewsByHotelId(
+      hotelId,
+      pageNum,
+      limitNum,
+      userId,
+    );
+
+    return { message: 'Fetched reviews successfully', ...result };
   }
 
   @UseGuards(JwtAuthGuard)
