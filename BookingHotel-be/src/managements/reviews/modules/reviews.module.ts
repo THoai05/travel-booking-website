@@ -7,9 +7,22 @@ import { User } from 'src/managements/users/entities/users.entity';
 import { Hotel } from 'src/managements/hotels/entities/hotel.entity';
 import { UsersModule } from 'src/managements/users/modules/users.module';
 import { ReviewLike } from '../entities/review-like.entity';
+import { MulterModule } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { join } from 'path';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Review, User, Hotel, ReviewLike])
+  imports: [
+     MulterModule.register({
+      storage: diskStorage({
+        destination: join(process.cwd(), 'uploads/reviews'),
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, uniqueSuffix + '-' + file.originalname);
+        },
+      }),
+    }),
+    TypeOrmModule.forFeature([Review, User, Hotel, ReviewLike])
     , UsersModule
   ],
   controllers: [ReviewsController],
