@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { Bookmark, MapPin, Star, Ticket } from 'lucide-react';
+import { Bookmark, MapPin, Medal, Star, Ticket, Trophy } from 'lucide-react';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { useRouter } from 'next/navigation';
@@ -61,6 +61,14 @@ const HARDCODED_IMAGES = [
 
 export const HotelCard: React.FC<HotelCardProps> = ({ hotel: backendHotel, onSelectRoom }) => {
   
+  const getRatingText = (rating: number) => {
+  if (rating >= 9) return 'Tuyệt vời';
+  if (rating >= 8) return 'Rất tốt';
+  if (rating >= 7) return 'Tốt';
+  if (rating >= 6) return 'Hài lòng';
+  return 'Tạm ổn';
+};
+
   // 4. LOGIC BIẾN ĐỔI DATA TỪ BACKEND -> FRONTEND
   const hotel: HotelDisplay = {
     // --- Data có từ Backend ---
@@ -75,7 +83,7 @@ export const HotelCard: React.FC<HotelCardProps> = ({ hotel: backendHotel, onSel
     // --- Data CHƯA CÓ (Text cứng) ---
     images: HARDCODED_IMAGES,
     ratingLabel: "Tuyệt vời", // <-- Text cứng
-    category: "Khách sạn", // <-- Text cứng
+    category: backendHotel.name.includes("Khách") ? "Khách sạn" : "Resort",
     stars: 4, // <-- Text cứng (Bro có thể dùng Math.round(Number(backendHotel.avgRating)) nếu muốn)
     badge: "Giảm giá đặc biệt", // <-- Text cứng
     points: 1222, // <-- Text cứng (tạm lấy theo giá)
@@ -154,15 +162,15 @@ export const HotelCard: React.FC<HotelCardProps> = ({ hotel: backendHotel, onSel
               <h3 className="flex-1 font-extrabold">{hotel.name}</h3>
               <div className="flex flex-col items-end gap-1 flex-shrink-0">
                 <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 fill-sky-500 text-sky-500" />
+                  <Trophy className="w-4 h-4" />
                   <span className="text-sky-600">
                     {hotel.rating*2}
                   </span>
                   <span className="text-gray-600 text-sm">
-                    ({hotel.reviewCount} reviews)
+                    ({hotel.reviewCount} đánh giá)
                   </span>
                 </div>
-                <span className="text-sm text-gray-600">{hotel.ratingLabel}</span>
+                <span className="text-sm font-bold text-gray-600">{getRatingText(hotel?.rating)}</span>
               </div>
             </div>
 

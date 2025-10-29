@@ -18,8 +18,8 @@ export default function PropertyHeader({ property }: PropertyHeaderProps) {
             <h1 className="text-2xl md:text-3xl font-bold text-gray-800 leading-tight">
               {property?.name||"Bluevera"}
             </h1>
-            <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-sm">
-              {Math.floor(property?.summaryReview?.avgRating) +" stars - Hotel" || "Bluevera"}
+            <Badge className="bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-sm">
+              {"Khách sạn " +Math.floor(property?.summaryReview?.avgRating) +" sao" || "Bluevera"}
             </Badge>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-gray-600 text-sm">

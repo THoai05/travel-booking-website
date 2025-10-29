@@ -174,7 +174,7 @@ export default function UserPage() {
                       onClick={(e) => {
                         e.stopPropagation();
                         localStorage.setItem("editUserId", user.id.toString());
-                        router.push("/admin/user/edit");
+                        router.replace("/admin/user/edit");
                       }}
                     >
                       ✏️ Sửa

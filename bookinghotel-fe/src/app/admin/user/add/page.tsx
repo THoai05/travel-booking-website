@@ -167,7 +167,7 @@ const Register = () => {
       if (!res.ok) throw new Error(data.message || "Đăng ký thất bại!");
 
       alert("Đăng ký thành công! Vui lòng đăng nhập.");
-      router.push("/admin/user");
+      router.replace("/admin/user");
     } catch (err: any) {
       setError(err.message || "Đăng ký thất bại!");
     } finally {

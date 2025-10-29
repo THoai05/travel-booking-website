@@ -60,7 +60,7 @@ export default function ResetPasswordPage() {
       await api.post("/reset-password/reset", { token, newPassword: password });
       alert("Mật khẩu đã được đặt lại thành công!");
       localStorage.setItem("methodShowLoginregister", JSON.stringify("showLogin"));
-      router.push("/");
+      router.replace("/");
       
     } catch (err: any) {
       console.error(err);
@@ -92,7 +92,7 @@ export default function ResetPasswordPage() {
             Vui lòng yêu cầu gửi lại liên kết mới.
           </p>
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.replace("/")}
             className="w-full bg-gray-600 text-white py-2 rounded-lg"
           >
             Quay lại đăng nhập

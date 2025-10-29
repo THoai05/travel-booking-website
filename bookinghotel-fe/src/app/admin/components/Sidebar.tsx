@@ -18,22 +18,77 @@ import {
     ChevronUp,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 interface SidebarProps {
     activeTab: string;
     setActiveTab: (tab: string) => void;
 }
 
+interface AdminProfile {
+    fullName: string;
+    email: string;
+    role: string;
+    avatar?: string;
+}
+
 export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     const pathname = usePathname();
-    const [openBlog, setOpenBlog] = useState(false);
     const router = useRouter();
+    const [openBlog, setOpenBlog] = useState(false);
+    const [profile, setProfile] = useState<AdminProfile | null>(null);
+
     const handleClickProfile = () => {
-        router.push("/auth/profile");
-      };
+        router.replace("/admin/auth/profile");
+    };
+
+    // --- Check token & load profile every 1s
+    useEffect(() => {
+        const fetchProfile = async () => {
+            const tokenData = localStorage.getItem("token");
+            if (!tokenData) {
+                router.replace("/"); // token rỗng → về route /
+                return;
+            }
+            try {
+                const parsed = JSON.parse(tokenData);
+                const token = parsed?.token;
+                if (!token) {
+                    router.replace("/");
+                    return;
+                }
+
+                const res = await fetch("/api/auth", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                if (!res.ok) {
+                    router.replace("/");
+                    return;
+                }
+
+                const data = await res.json();
+                if (data.role !== "admin") {
+                    router.replace("/"); // customer → chuyển về /
+                    return;
+                }
+
+                setProfile({ fullName: data.fullName, email: data.email, role: data.role });
+            } catch (err) {
+                console.error(err);
+                router.replace("/");
+            }
+        };
+
+        fetchProfile(); // chạy ngay khi mount
+        const interval = setInterval(fetchProfile, 4000); // chạy mỗi 4s
+        return () => clearInterval(interval);
+    }, [router]);
 
     const menuItems = [
         { icon: Home, label: "Dashboard", path: '/admin' },
@@ -51,8 +106,7 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     ];
 
     return (
-        <div className="fixed left-0 top-0 h-screen w-[260px] bg-white border-r
-        border-gray-200 flex flex-col ">
+        <div className="fixed left-0 top-0 h-screen w-[260px] bg-white border-r border-gray-200 flex flex-col">
             {/* Logo */}
             <div className="p-6 flex items-center gap-2">
                 <MapPin className="h-6 w-6 text-cyan-500" />
@@ -65,7 +119,6 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
                     const Icon = item.icon;
                     const isActive = pathname === item.path;
 
-                    // Blog menu
                     if (item.hasSub) {
                         return (
                             <div key={item.label} className="mb-1">
@@ -80,36 +133,29 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
                                         <Icon className="h-5 w-5" />
                                         <span>{item.label}</span>
                                     </div>
-                                    {openBlog ? (
-                                        <ChevronUp size={16} />
-                                    ) : (
-                                        <ChevronDown size={16} />
-                                    )}
+                                    {openBlog ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                 </button>
 
                                 {openBlog && (
                                     <div className="ml-9 mt-2 space-y-2 text-sm">
                                         <Link
                                             href="/admin/blog"
-                                            className={`block text-gray-600 hover:text-blue-600
-                                            ${pathname === "/admin/blog"
-                                            ? "font-semibold text-blue-600" : ""}`}
+                                            className={`block text-gray-600 hover:text-blue-600 ${pathname === "/admin/blog"
+                                                ? "font-semibold text-blue-600" : ""}`}
                                         >
                                             • Blog Details
                                         </Link>
                                         <Link
                                             href="/admin/blog/singles"
-                                            className={`block text-gray-600 hover:text-blue-600
-                                            ${pathname === "/admin/blog/singles" ?
-                                            "font-semibold text-blue-600" : ""}`}
+                                            className={`block text-gray-600 hover:text-blue-600 ${pathname === "/admin/blog/singles"
+                                                ? "font-semibold text-blue-600" : ""}`}
                                         >
                                             • Blog Singles
                                         </Link>
                                         <Link
                                             href="/admin/blog/add"
-                                            className={`block text-gray-600 hover:text-blue-600
-                                            ${pathname === "/admin/blog/add" ? 
-                                            "font-semibold text-blue-600" : ""}`}
+                                            className={`block text-gray-600 hover:text-blue-600 ${pathname === "/admin/blog/add"
+                                                ? "font-semibold text-blue-600" : ""}`}
                                         >
                                             • Add Post
                                         </Link>
@@ -137,11 +183,15 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
             </nav>
 
             {/* User Profile */}
-            <div className="p-4 border-t border-gray-200"  onClick={handleClickProfile}>
+            <div className="p-4 border-t border-gray-200" onClick={handleClickProfile}>
                 <div className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 truncate">Vo Duc Thanh Hoai</p>
-                        <p className="text-xs text-gray-500 truncate">a@gmail.com</p>
+                        <p className="font-medium text-gray-900 truncate">
+                            {profile?.fullName || "Loading..."}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                            {profile?.email || "Loading..."}
+                        </p>
                     </div>
                 </div>
             </div>

@@ -4,12 +4,12 @@ import formsPlugin from "@tailwindcss/forms";
 import lineClampPlugin from "@tailwindcss/line-clamp";
 import animatePlugin from "tailwindcss-animatecss";
 
-export default {
+const config = {
   content: [
     "./app/**/*.{ts,tsx,js,jsx}",
     "./components/**/*.{ts,tsx,js,jsx}",
     "./src/**/*.{ts,tsx,js,jsx,mdx}",
-    "./node_modules/@heroui/react/dist/**/*.{js,ts,jsx,tsx}"
+    "./node_modules/@heroui/react/dist/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     screens: {
@@ -40,3 +40,5 @@ export default {
     heroui(),
   ],
 };
+
+export default config;

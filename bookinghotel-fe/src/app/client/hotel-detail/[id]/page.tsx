@@ -81,7 +81,7 @@ import { useHandleHotelById, useHandleSimilarHotelByCityId } from '@/service/hot
   const mockSimilarAccommodations = [
     {
       id: '1',
-      imageUrl: 'https://example.com/image1.jpg', // Thay bằng link ảnh thật
+      imageUrl: 'https://example.com/image1.jpg',
       name: 'Ocean Garden Boutique Da Nang by Haviland',
       rating: 8.6,
       reviewCount: 832,

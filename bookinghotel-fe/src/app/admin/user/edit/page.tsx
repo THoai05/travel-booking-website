@@ -83,7 +83,7 @@ export default function ProfilePage() {
           message === "Người dùng không tồn tại" ||
           err.response?.status === 404
         ) {
-          router.push("/admin/user");
+          router.replace("/admin/user");
         }
       }
     };
