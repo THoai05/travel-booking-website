@@ -12,6 +12,7 @@
   import SimilarAccommodations from './components/SimilarAccommodation';
 import { useParams } from 'next/navigation';
 import { useHandleHotelById, useHandleSimilarHotelByCityId } from '@/service/hotels/hotelService';
+import HotelSearchBar from './components/HotelSearchBar';
 
 
   const mockSummaryData = {
@@ -158,7 +159,8 @@ import { useHandleHotelById, useHandleSimilarHotelByCityId } from '@/service/hot
     return (
       
       <div className="min-h-screen bg-white">
-        <main className="container mx-auto max-w-7xl px-4 py-6 mt-20">
+          <HotelSearchBar/>
+        <main className="container mx-auto max-w-7xl px-4 py-6 mt-5">
           {/* Property Header */}
 
           {/* Image Gallery */}

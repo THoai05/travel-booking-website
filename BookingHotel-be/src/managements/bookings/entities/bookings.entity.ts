@@ -11,12 +11,14 @@ import {
 import { User } from 'src/managements/users/entities/users.entity';
 import { Room } from 'src/managements/rooms/entities/rooms.entity';
 import { Payment } from 'src/managements/payments/entities/payments.entity';
+import { RoomType } from 'src/managements/rooms/entities/roomType.entity';
 
 export enum BookingStatus {
   PENDING = 'pending',
   CONFIRMED = 'confirmed',
   CANCELLED = 'cancelled',
   COMPLETED = 'completed',
+  EXPIRED = 'expired',
 }
 
 @Entity({ name: 'bookings' })
@@ -34,9 +36,9 @@ export class Booking {
 
 
 
-  @ManyToOne(() => Room, (room) => room.bookings, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'room_id' })
-  room: Room;
+  @ManyToOne(() => RoomType, (roomType) => roomType.bookings, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'roomType_id' })
+  roomType: RoomType;
 
 
   @OneToOne(() => Payment, (payment) => payment.booking, { onDelete: 'CASCADE' })
@@ -53,10 +55,28 @@ export class Booking {
 
   @Column({
     name: 'status',
-    type: 'nvarchar',
-    nullable: false,
+    type: 'enum',
+    enum:BookingStatus,
+    default:BookingStatus.PENDING,
   })
   status: BookingStatus;
+
+  @Column({ name: 'expires_at', type: 'datetime', nullable: true })
+  expiresAt: Date;
+
+  @Column({ name: 'contact_full_name', type: 'nvarchar',nullable:true })
+  contactFullName: string;
+
+  @Column({ name: 'contact_email', type: 'nvarchar',nullable:true })
+  contactEmail: string;
+
+  @Column({ name: 'contact_phone', type: 'varchar', length: 20,nullable:true })
+  contactPhone: string;
+
+  // THÔNG TIN KHÁCH (Người sẽ check-in)
+  // User tự nhập hoặc tick "Tôi là khách"
+  @Column({ name: 'guest_full_name', type: 'nvarchar',nullable:true }) 
+  guestFullName: string;
 
   @Column({ name: 'total_price', type: 'decimal', precision: 10, scale: 2, nullable: false })
   totalPrice: number;

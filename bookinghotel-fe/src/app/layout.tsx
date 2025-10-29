@@ -4,8 +4,7 @@ import "./globals.css";
 import 'primereact/resources/themes/lara-light-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
-import { AuthProvider } from "@/context/AuthContext";
-import {Toaster} from 'react-hot-toast'
+import { AppProviders } from './Providers'; // <-- dùng file client mới
 
 export const metadata: Metadata = {
   title: "Bluvera",
@@ -13,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 const inter = Inter({
-  subsets: ["latin-ext"],   // quan trọng cho Vietnamese
+  subsets: ["latin-ext"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-inter"
 });
@@ -26,10 +25,8 @@ const poppins = Poppins({
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi" suppressHydrationWarning
-     className={`${inter.variable} ${poppins.variable}`}>
+    <html lang="vi" suppressHydrationWarning className={`${inter.variable} ${poppins.variable}`}>
       <head>
-        {/* Font Awesome CDN */}
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
@@ -39,13 +36,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-      <AuthProvider>
-        <main>
-           <Toaster position="top-right" reverseOrder={false} />
-          {children}
-        </main>
-        </AuthProvider>
-        </body>
+        <AppProviders>
+          <main>{children}</main>
+        </AppProviders>
+      </body>
     </html>
   );
 }
