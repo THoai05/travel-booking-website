@@ -13,6 +13,8 @@ import { ReviewsModule } from "src/managements/reviews/modules/reviews.module";
 import { RoomsModule } from "src/managements/rooms/modules/rooms.module";
 import { SupportChatModule } from "src/managements/support_chat/modules/support_chat.module";
 import { UsersModule } from "src/managements/users/modules/users.module";
+import { BookingModuleAbout } from "src/managements/about/module/booking.module";
+import { RevenueModule } from "src/managements/about/module/revenue.module";
 
 export const ManagementsImports = [
     AmenitiesModule,
@@ -29,5 +31,7 @@ export const ManagementsImports = [
     SupportChatModule,
     UsersModule,
     CityModule,
-    BookingsModule
+    BookingsModule,
+    BookingModuleAbout,
+    RevenueModule
 ]
