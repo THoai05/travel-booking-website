@@ -86,13 +86,19 @@ export default function RoomMonitorPage() {
     return () => clearInterval(interval);
   }, [apiType, param]);
 
+  const removeVietnameseAccents = (str: string) => 
+    str.normalize("NFD")
+       .replace(/[\u0300-\u036f]/g, "")
+       .replace(/đ/g, "d").replace(/Đ/g, "D");
   // --- Filter, search, sort ---
   const filteredRooms = rooms
     .filter(r => !statusFilter || r.status === statusFilter)
-    .filter(r =>
-      r.hotelName.toLowerCase().includes(search.toLowerCase()) ||
-      r.roomNumber.toLowerCase().includes(search.toLowerCase())
-    )
+    .filter(r => {
+      const hotelName = removeVietnameseAccents(r.hotelName.toLowerCase());
+      const roomNumber = removeVietnameseAccents(r.roomNumber.toLowerCase());
+      const searchTerm = removeVietnameseAccents(search.toLowerCase());
+      return hotelName.includes(searchTerm) || roomNumber.includes(searchTerm);
+    })
     .sort((a, b) => {
       if (!sortKey) return 0;
       if (sortKey === "roomNumber") return sortOrder === "asc"
@@ -203,6 +209,7 @@ export default function RoomMonitorPage() {
     });
   };
 
+ 
 
   return (
     <div className="p-6 relative">
@@ -248,19 +255,22 @@ export default function RoomMonitorPage() {
               toast("Vui lòng đăng nhập để xem danh sách phòng của bạn!", { icon: "⚠️" });
             }
           }}
-          className="border p-2 rounded bg-gray-200"
+          className="border p-2 rounded bg-gray-200 hover:bg-gray-300"
         >
           {showAll === "all" ? "Xem danh sách của tôi" : "Xem tất cả"}
         </button>
       </div>
 
-      {/* Status Filter */}
       <div className="flex gap-2 mb-4">
         {["available", "booked", "maintenance"].map(status => (
           <button
             key={status}
             onClick={() => setStatusFilter(statusFilter === status ? null : status)}
-            className={`px-4 py-2 rounded ${statusFilter === status ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+            className={`px-4 py-2 rounded 
+        ${statusFilter === status
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 hover:bg-gray-300 transition-colors duration-200"
+              }`}
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}
           </button>
@@ -278,25 +288,24 @@ export default function RoomMonitorPage() {
         <div key={group.hotelName} className="mb-6 border rounded-xl p-4 shadow bg-white"
         >
           <div
-            className="font-bold text-lg mb-2 cursor-pointer"
+            className="font-bold text-lg mb-1 md:mb-2 cursor-pointer 
+             hover:text-blue-600 transition duration-200 ease-in-out"
             onMouseEnter={() => handleHotelHover(group.rooms[0].hotel_id)}
             onMouseLeave={() => setHoveredHotelDetail(null)}
           >
-            <p className="font-bold text-lg mb-2">
-              {group.hotelName}
-            </p>
+            {group.hotelName}
           </div>
-
-
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {group.rooms.map(room => (
               <div
                 key={room.id}
-                className="border rounded p-2 flex justify-between items-center cursor-pointer"
+                className="border rounded p-2 flex justify-between items-center cursor-pointer hover:scale-105
+                         hover:shadow-lg hover:bg-blue-50  transition duration-200 ease-in-out"
                 onMouseEnter={() => handleRoomHover(room.id)}
                 onMouseLeave={() => setHoveredRoomDetail(null)}
               >
+
                 <div>
                   <p>Room {room.roomNumber}</p>
                   <p>Type: {room.roomType}</p>
@@ -311,38 +320,36 @@ export default function RoomMonitorPage() {
       ))}
 
       {/* Pagination */}
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-4">
-          <button
-            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 border rounded bg-gray-200 disabled:opacity-50"
-          >
-            Previous
-          </button>
+      <div className="flex flex-wrap justify-center gap-2 mt-4">
+        <button
+          onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+          disabled={currentPage === 1}
+          className="px-2 py-1 md:px-3 md:py-1 border rounded bg-gray-200 disabled:opacity-50"
+        >
+          Previous
+        </button>
 
-          {getPaginationNumbers().map((num, idx) => (
-            <button
-              key={idx}
-              onClick={() => typeof num === "number" && setCurrentPage(num)}
-              disabled={num === "..."}
-              className={`px-3 py-1 border rounded ${num === currentPage ? "bg-blue-500 text-white" : "bg-gray-200"
-                }`}
-            >
-              {num}
-            </button>
-          ))}
-
+        {getPaginationNumbers().map((num, idx) => (
           <button
-            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 border rounded bg-gray-200 disabled:opacity-50"
+            key={idx}
+            onClick={() => typeof num === "number" && setCurrentPage(num)}
+            disabled={num === "..."}
+            className={`px-3 py-1 border rounded ${num === currentPage ? "bg-blue-500 text-white" : "bg-gray-200"
+              }`}
           >
-            Next
+            {num}
           </button>
-        </div>
-      )}
+        ))}
+
+        <button
+          onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 border rounded bg-gray-200 disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+
 
 
       {/* Hover Popups */}
