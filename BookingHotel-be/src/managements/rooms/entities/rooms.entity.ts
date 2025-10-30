@@ -69,8 +69,6 @@ export class Room {
   @Column({ name: 'cancellation_policy', type: 'text', nullable: true })
   cancellationPolicy?: string;
 
-  @OneToMany(() => Booking, (booking) => booking.room)
-  bookings: Booking[];
 
   @OneToMany(() => Favourite, favourite => favourite.room)
   favourites: Favourite[];
