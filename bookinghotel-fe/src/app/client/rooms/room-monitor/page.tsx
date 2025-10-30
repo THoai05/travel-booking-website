@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useRef } from "react";
 import api from "@/axios/axios";
+import { toast } from 'react-hot-toast';
 
 interface Room {
   id: number;
   hotelName: string;
+  hotel_id: number;
   roomNumber: string;
   roomType: string;
   status: "available" | "booked" | "maintenance";
@@ -19,7 +21,7 @@ interface HotelGroup {
 export default function RoomMonitorPage() {
   const [apiType, setApiType] = useState<"all" | "hotel" | "user">("all");
   const [param, setParam] = useState<string | number>();
-  const [showAll, setShowAll] = useState<"all" | "none">("none");
+  const [showAll, setShowAll] = useState<"all" | "none">("all");
   const [userId, setUserId] = useState<number | null>(null);
 
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -32,6 +34,14 @@ export default function RoomMonitorPage() {
   const groupsPerPage = 6;
   const currentPageRef = useRef(currentPage);
   useEffect(() => { currentPageRef.current = currentPage }, [currentPage]);
+
+  // --- Hover state for popup ---
+  const [hoveredRoomDetail, setHoveredRoomDetail] = useState<any>(null);
+  const [hoveredHotelDetail, setHoveredHotelDetail] = useState<any>(null);
+
+  // --- Cache details to avoid refetching ---
+  const roomDetailCache = useRef<Map<number, any>>(new Map());
+  const hotelDetailCache = useRef<Map<number, any>>(new Map());
 
   // --- Fetch userId on mount, prioritize user rooms ---
   useEffect(() => {
@@ -118,8 +128,84 @@ export default function RoomMonitorPage() {
     }
   };
 
+  // --- Hover handlers ---
+  const handleRoomHover = async (roomId: number) => {
+    if (roomDetailCache.current.has(roomId)) {
+      setHoveredRoomDetail(roomDetailCache.current.get(roomId));
+      return;
+    }
+    try {
+      const res = await api.get(`/rooms/roomDetail/${roomId}`);
+      roomDetailCache.current.set(roomId, res.data);
+      setHoveredRoomDetail(res.data);
+    } catch (err) {
+      console.error("Không lấy được chi tiết phòng", err);
+    }
+  };
+
+  const handleHotelHover = async (hotelId: number) => {
+    if (hotelDetailCache.current.has(hotelId)) {
+      setHoveredHotelDetail(hotelDetailCache.current.get(hotelId));
+      return;
+    }
+    try {
+      const res = await api.get(`/rooms/hotelDetail/${hotelId}`);
+      hotelDetailCache.current.set(hotelId, res.data);
+      setHoveredHotelDetail(res.data);
+    } catch (err) {
+      console.error("Không lấy được chi tiết khách sạn", err);
+    }
+  };
+
+  //Intl.NumberFormat VND
+  const formatVND = (amount: number | string) => {
+    const num = typeof amount === "string" ? parseFloat(amount) : amount;
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);
+  };
+
+  // --- Pagination logic ---
+  const getPaginationNumbers = () => {
+    const pageNumbers: (number | string)[] = [];
+    const maxPageButtons = 5; // số nút hiển thị giữa
+
+    if (totalPages <= maxPageButtons) {
+      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+    } else {
+      // luôn hiển thị 1 và totalPages
+      pageNumbers.push(1);
+
+      let startPage = Math.max(currentPage - 1, 2);
+      let endPage = Math.min(currentPage + 1, totalPages - 1);
+
+      if (startPage > 2) pageNumbers.push("...");
+      for (let i = startPage; i <= endPage; i++) pageNumbers.push(i);
+      if (endPage < totalPages - 1) pageNumbers.push("...");
+
+      pageNumbers.push(totalPages);
+    }
+
+    return pageNumbers;
+  };
+
+
+  // =================== sử dụng toLocaleDateString với UTC ===================
+  const formatDateUTC = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    return d.toLocaleString("vi-VN", {
+      timeZone: "UTC",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  };
+
+
   return (
-    <div className="p-6">
+    <div className="p-6 relative">
       <h1 className="text-2xl font-bold mb-4">🏨 Room Availability Monitor</h1>
 
       {/* Search, Sort & Toggle Show All */}
@@ -158,6 +244,8 @@ export default function RoomMonitorPage() {
               setShowAll("none");
               setApiType("user");
               setParam(userId);
+            } else {
+              toast("Vui lòng đăng nhập để xem danh sách phòng của bạn!", { icon: "⚠️" });
             }
           }}
           className="border p-2 rounded bg-gray-200"
@@ -179,15 +267,36 @@ export default function RoomMonitorPage() {
         ))}
       </div>
 
+      <h1 className="text-2xl font-bold text-[#0068ff] mb-2 text-left">
+        {showAll === "all" ? "Hiển thị tất cả phòng" : "Lịch sử đặt phòng của tôi"}
+      </h1>
+
       {/* Room Groups */}
       {currentGroups.length === 0 ? (
         <p>No rooms found.</p>
       ) : currentGroups.map(group => (
-        <div key={group.hotelName} className="mb-6 border rounded-xl p-4 shadow bg-white">
-          <h2 className="font-bold text-lg mb-2">{group.hotelName}</h2>
+        <div key={group.hotelName} className="mb-6 border rounded-xl p-4 shadow bg-white"
+        >
+          <div
+            className="font-bold text-lg mb-2 cursor-pointer"
+            onMouseEnter={() => handleHotelHover(group.rooms[0].hotel_id)}
+            onMouseLeave={() => setHoveredHotelDetail(null)}
+          >
+            <p className="font-bold text-lg mb-2">
+              {group.hotelName}
+            </p>
+          </div>
+
+
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {group.rooms.map(room => (
-              <div key={room.id} className="border rounded p-2 flex justify-between items-center">
+              <div
+                key={room.id}
+                className="border rounded p-2 flex justify-between items-center cursor-pointer"
+                onMouseEnter={() => handleRoomHover(room.id)}
+                onMouseLeave={() => setHoveredRoomDetail(null)}
+              >
                 <div>
                   <p>Room {room.roomNumber}</p>
                   <p>Type: {room.roomType}</p>
@@ -202,15 +311,65 @@ export default function RoomMonitorPage() {
       ))}
 
       {/* Pagination */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-4">
-          <button onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+          <button
+            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
-            className="px-3 py-1 border rounded bg-gray-200 disabled:opacity-50">Previous</button>
-          <span className="px-3 py-1">Page {currentPage} / {totalPages}</span>
-          <button onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+            className="px-3 py-1 border rounded bg-gray-200 disabled:opacity-50"
+          >
+            Previous
+          </button>
+
+          {getPaginationNumbers().map((num, idx) => (
+            <button
+              key={idx}
+              onClick={() => typeof num === "number" && setCurrentPage(num)}
+              disabled={num === "..."}
+              className={`px-3 py-1 border rounded ${num === currentPage ? "bg-blue-500 text-white" : "bg-gray-200"
+                }`}
+            >
+              {num}
+            </button>
+          ))}
+
+          <button
+            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="px-3 py-1 border rounded bg-gray-200 disabled:opacity-50">Next</button>
+            className="px-3 py-1 border rounded bg-gray-200 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+
+      {/* Hover Popups */}
+      {hoveredRoomDetail && (
+        <div className="fixed top-20 right-10 p-4 bg-white border rounded shadow-lg w-64 z-50">
+          <h3 className="font-bold">Room Number: {hoveredRoomDetail.roomNumber}</h3>
+          <p>Type: {hoveredRoomDetail.roomType}</p>
+          <p>Status: {hoveredRoomDetail.status}</p>
+          <p>Price: {formatVND(hoveredRoomDetail.pricePerNight)}</p>
+          <p>Description: {hoveredRoomDetail.description}</p>
+          <p>Floor Number: {hoveredRoomDetail.floorNumber}</p>
+          <p>Max Guests: {hoveredRoomDetail.maxGuests}</p>
+          <p>Cancellation Policy: {hoveredRoomDetail.cancellationPolicy}</p>
+          <p>Created At: {formatDateUTC(hoveredRoomDetail.createdAt)}</p>
+          <p>Updated At: {formatDateUTC(hoveredRoomDetail.updatedAt)}</p>
+        </div>
+      )}
+
+      {hoveredHotelDetail && (
+        <div className="fixed top-20 left-10 p-4 bg-white border rounded shadow-lg w-64 z-50">
+          <h3 className="font-bold">Name: {hoveredHotelDetail.name}</h3>
+          <p>Address: {hoveredHotelDetail.address}, Country: {hoveredHotelDetail.country}</p>
+          <p>Phone: {hoveredHotelDetail.phone}</p>
+          <p>Description: {hoveredHotelDetail.description}</p>
+          <p>Avg price: {formatVND(hoveredHotelDetail.avgPrice)}</p>
+          <p>Created At: {formatDateUTC(hoveredHotelDetail.createdAt)}</p>
+          <p>Updated At: {formatDateUTC(hoveredHotelDetail.updatedAt)}</p>
         </div>
       )}
     </div>

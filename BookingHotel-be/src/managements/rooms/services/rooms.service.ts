@@ -45,6 +45,7 @@ export class RoomsService {
                 'r.roomType AS roomType',
                 'r.status AS status',
                 'r.hotel_id AS hotel_id',
+
             ]);
 
         if (typeof search === 'number' || !isNaN(Number(search))) {
@@ -71,9 +72,23 @@ export class RoomsService {
                 'r.status AS status',
                 'b.status AS bookingStatus',
                 'b.user_id',
+                'r.hotel_id AS hotel_id',
             ])
             .where('b.user_id = :userId', { userId })
             .orderBy('b.check_in_date', 'DESC')
             .getRawMany();
     }
+
+    // 📌 Lấy chi tiết 1 phòng theo id
+    async getRoomDetail(roomId: number) {
+        const room = await this.roomsRepo.findOne({ where: { id: roomId } });
+        return room;
+    }
+
+    // 📌 Lấy chi tiết khách sạn theo id
+    async getHotelDetail(hotelId: number) {
+        const hotel = await this.hotelsRepo.findOne({ where: { id: hotelId } });
+        return hotel;
+    }
+    
 }
