@@ -1,185 +1,20 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { Clock, Info, Wifi, Users, Bed, Coffee, MapPin, Phone, Mail, CheckCircle2, ChevronDown } from 'lucide-react';
+import PaymentMethodOption from './components/PaymentMethodOption';
+import HotelSummaryCard from './components/HotelSumaryCard';
 
 // Types
-interface PaymentMethod {
-  id: string;
-  name: string;
-  description?: string;
-  badge?: string;
-  icons?: string[];
-  disabled?: boolean;
-}
 
-interface HotelDetails {
-  bookingId: string;
-  name: string;
-  checkIn: string;
-  checkOut: string;
-  nights: number;
-  roomType: string;
-  guests: number;
-  bedType: string;
-  breakfast: boolean;
-  wifi: boolean;
-}
 
-interface GuestDetails {
-  name: string;
-  phone: string;
-  email: string;
-  nonRefundable: boolean;
-  nonReschedulable: boolean;
-}
 
-// Components
-const CountdownTimer: React.FC<{ seconds: number }> = ({ seconds }) => {
-  const [timeLeft, setTimeLeft] = useState(seconds);
 
-  useEffect(() => {
-    if (timeLeft <= 0) return;
-    const timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
-    return () => clearInterval(timer);
-  }, [timeLeft]);
 
-  const mins = Math.floor(timeLeft / 60);
-  const secs = timeLeft % 60;
 
-  return (
-    <span className="text-yellow-300 font-semibold">
-      {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
-    </span>
-  );
-};
 
-const PaymentMethodOption: React.FC<{
-  method: PaymentMethod;
-  selected: boolean;
-  onSelect: () => void;
-}> = ({ method, selected, onSelect }) => (
-  <div
-    onClick={!method.disabled ? onSelect : undefined}
-    className={`border rounded-lg p-4 mb-3 cursor-pointer transition-all ${
-      selected ? 'border-sky-500 bg-sky-50' : 'border-gray-200 hover:border-gray-300'
-    } ${method.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-  >
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-          selected ? 'border-sky-500' : 'border-gray-300'
-        }`}>
-          {selected && <div className="w-3 h-3 rounded-full bg-sky-500" />}
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-gray-800">{method.name}</span>
-          </div>
-          {method.description && (
-            <p className="text-sm text-gray-600 mt-1">{method.description}</p>
-          )}
-        </div>
-      </div>
-      {method.icons && method.icons.length > 0 && (
-        <div className="flex gap-2">
-          {method.icons.map((icon, idx) => (
-            <div key={idx} className="w-10 h-6 bg-gray-100 rounded flex items-center justify-center text-xs font-semibold text-gray-600">
-              {icon}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  </div>
-);
 
-const HotelSummaryCard: React.FC<{ hotel: HotelDetails; guest: GuestDetails }> = ({ hotel, guest }) => (
-  <div className="bg-sky-50 rounded-lg p-5">
-    <div className="flex items-start gap-3 mb-4">
-      <div className="w-10 h-10 bg-sky-500 rounded-lg flex items-center justify-center text-white">
-        <MapPin size={20} />
-      </div>
-      <div>
-        <h3 className="font-semibold text-gray-800 text-sm">Hotel Summary</h3>
-        <p className="text-xs text-gray-600">Booking ID: {hotel.bookingId}</p>
-      </div>
-    </div>
 
-    <h2 className="font-bold text-gray-900 mb-4">{hotel.name}</h2>
 
-    <div className="grid grid-cols-3 gap-4 mb-4 text-center">
-      <div>
-        <p className="text-xs text-gray-600">Check-in</p>
-        <p className="font-semibold text-sm">{hotel.checkIn}</p>
-        <p className="text-xs text-gray-500">From 14:00</p>
-      </div>
-      <div>
-        <p className="text-xs text-gray-600">{hotel.nights} night</p>
-        <div className="my-1">→</div>
-      </div>
-      <div>
-        <p className="text-xs text-gray-600">Check-out</p>
-        <p className="font-semibold text-sm">{hotel.checkOut}</p>
-        <p className="text-xs text-gray-500">Before 12:00</p>
-      </div>
-    </div>
-
-    <div className="border-t pt-4 space-y-3">
-      <p className="font-semibold text-sm">{hotel.roomType}</p>
-      
-      <div className="flex items-center gap-2 text-sm text-gray-700">
-        <Users size={16} />
-        <span>{hotel.guests} Guests</span>
-      </div>
-      
-      <div className="flex items-center gap-2 text-sm text-gray-700">
-        <Bed size={16} />
-        <span>{hotel.bedType}</span>
-      </div>
-      
-      <div className="flex items-center gap-2 text-sm text-gray-700">
-        <Coffee size={16} />
-        <span>{hotel.breakfast ? 'Breakfast included' : 'Breakfast not included'}</span>
-      </div>
-      
-      <div className="flex items-center gap-2 text-sm text-gray-700">
-        <Wifi size={16} />
-        <span>Free WiFi</span>
-      </div>
-    </div>
-
-    <div className="mt-4 pt-4 border-t">
-      <p className="text-sm font-semibold mb-2">Guest(s)</p>
-      <p className="text-sm text-gray-700">{guest.name}</p>
-      <div className="flex gap-2 mt-2">
-        <span className="text-xs flex items-center gap-1">
-          <CheckCircle2 size={14} className="text-gray-500" />
-          Non-refundable
-        </span>
-        <span className="text-xs flex items-center gap-1">
-          <CheckCircle2 size={14} className="text-gray-500" />
-          Non-reschedulable
-        </span>
-      </div>
-    </div>
-
-    <div className="mt-4 pt-4 border-t">
-      <p className="text-sm font-semibold mb-2">Contact Details</p>
-      <p className="text-sm text-gray-700 flex items-center gap-2">
-        <Users size={14} />
-        {guest.name}
-      </p>
-      <p className="text-sm text-gray-700 flex items-center gap-2">
-        <Phone size={14} />
-        {guest.phone}
-      </p>
-      <p className="text-sm text-gray-600 flex items-center gap-2 break-all">
-        <Mail size={14} />
-        {guest.email}
-      </p>
-    </div>
-  </div>
-);
 
 // Main Component
  const TravelokaPaymentPage: React.FC = () => {
