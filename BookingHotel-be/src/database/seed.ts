@@ -8,8 +8,6 @@ import HotelSeeder from './seeders/hotel.seeder';
 import CitySeeder from './seeders/city.seeder';
 import UserSeeder from './seeders/users.seeder';
 import RoomSeeder from './seeders/room.seeder';
-import BookingSeeder from './seeders/bookings.seeder';
-import PaymentSeeder from './seeders/payment.seeder';
 import ReviewSeeder from './seeders/reviews.seeder';
 import CouponSeeder from './seeders/coupon.seeder';
 import NotificationSeeder from './seeders/notifications.seeder';
@@ -48,7 +46,7 @@ async function run() {
 
   // 🌱 Chạy seeders
   await runSeeders(AppDataSource, {
-    seeds: [CitySeeder, HotelSeeder, RoomSeeder, UserSeeder, BookingSeeder, PaymentSeeder, ReviewSeeder, CouponSeeder, NotificationSeeder, AmenitySeeder, HotelAmenitiesSeeder, NearSpotSeeder, HotelImageSeeder, FavouriteSeeder, FaqSeeder],
+    seeds: [CitySeeder, HotelSeeder, RoomSeeder, UserSeeder, ReviewSeeder, CouponSeeder, NotificationSeeder, AmenitySeeder, HotelAmenitiesSeeder, NearSpotSeeder, HotelImageSeeder, FavouriteSeeder, FaqSeeder],
   });
 
   await AppDataSource.destroy();
