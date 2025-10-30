@@ -5,22 +5,24 @@ import {
   BookingStatus,
 } from '../../managements/bookings/entities/bookings.entity';
 import { User } from '../../managements/users/entities/users.entity';
-import { Room } from '../../managements/rooms/entities/rooms.entity';
+import { RatePlan } from '../../managements/rooms/entities/ratePlans.entity';
 
 export default class BookingSeeder implements Seeder {
   public async run(dataSource: DataSource): Promise<void> {
     const bookingRepository = dataSource.getRepository(Booking);
     const userRepository = dataSource.getRepository(User);
-    const roomRepository = dataSource.getRepository(Room);
+    const ratePlanRepository = dataSource.getRepository(RatePlan);
 
     // Lấy toàn bộ user (trừ admin id=1)
     const users = await userRepository.find({ where: { id: Not(1) } });
 
-    // Lấy toàn bộ room
-    const rooms = await roomRepository.find();
+    // Lấy toàn bộ rate plan có roomType
+    const ratePlans = await ratePlanRepository.find({
+      relations: ['roomType'],
+    });
 
-    if (users.length === 0 || rooms.length === 0) {
-      console.log('⚠️ Không có user hoặc room để seed booking');
+    if (users.length === 0 || ratePlans.length === 0) {
+      console.log('⚠️ Không có user hoặc rate plan để seed booking');
       return;
     }
 
@@ -28,21 +30,22 @@ export default class BookingSeeder implements Seeder {
 
     for (const user of users) {
       for (let i = 0; i < 5; i++) {
-        // 5 booking mỗi user
-        const randomRoom = rooms[Math.floor(Math.random() * rooms.length)];
+        const randomRatePlan =
+          ratePlans[Math.floor(Math.random() * ratePlans.length)];
+        const roomType = randomRatePlan.roomType;
 
         // random ngày check-in & check-out
         const checkIn = new Date();
-        checkIn.setDate(checkIn.getDate() + Math.floor(Math.random() * 30)); // trong vòng 30 ngày tới
+        checkIn.setDate(checkIn.getDate() + Math.floor(Math.random() * 30));
         const checkOut = new Date(checkIn);
-        checkOut.setDate(
-          checkOut.getDate() + Math.floor(Math.random() * 5) + 1,
-        ); // 1-5 đêm
+        checkOut.setDate(checkOut.getDate() + Math.floor(Math.random() * 5) + 1);
 
         const nights = Math.ceil(
           (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24),
         );
-        const totalPrice = Number(randomRoom.pricePerNight) * nights;
+
+        const pricePerNight = Number(randomRatePlan.sale_price ?? 1000000); // fallback 1tr nếu chưa có giá
+        const totalPrice = pricePerNight * nights;
 
         const statuses = [
           BookingStatus.PENDING,
@@ -53,17 +56,19 @@ export default class BookingSeeder implements Seeder {
         const status = statuses[Math.floor(Math.random() * statuses.length)];
 
         const booking = bookingRepository.create({
-          // --- FIX START ---
-          user: user,
-          room: randomRoom,
-          // --- FIX END ---
+          user,
+          roomType,
           checkInDate: checkIn,
           checkOutDate: checkOut,
-          guestsCount: Math.floor(Math.random() * randomRoom.maxGuests) + 1,
+          guestsCount: Math.floor(Math.random() * roomType.max_guests) + 1,
           status,
           totalPrice,
+          contactFullName: user.fullName,
+          contactEmail: user.email,
+          contactPhone: '090' + Math.floor(1000000 + Math.random() * 8999999),
+          guestFullName: Math.random() > 0.5 ? user.fullName : 'Nguyễn Văn A',
           specialRequests:
-            Math.random() > 0.7 ? 'Yêu cầu thêm nước suối' : undefined, // Using undefined is slightly cleaner than null for optional properties
+            Math.random() > 0.7 ? 'Yêu cầu thêm nước suối' : undefined,
           cancellationReason:
             status === BookingStatus.CANCELLED
               ? 'Khách hủy vì đổi kế hoạch'
@@ -75,6 +80,6 @@ export default class BookingSeeder implements Seeder {
     }
 
     await bookingRepository.save(bookings);
-    console.log(`🌱 Seeded ${bookings.length} booking successfully`);
+    console.log(`🌱 Seeded ${bookings.length} bookings successfully`);
   }
 }

@@ -2,6 +2,7 @@
 import { Hotel } from "src/managements/hotels/entities/hotel.entity";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { RatePlan } from "./ratePlans.entity";
+import { Booking } from "src/managements/bookings/entities/bookings.entity";
 
 export enum RoomTypeName {
     DELUXE_DOUBLE = 'deluxe double',
@@ -50,4 +51,7 @@ export class RoomType {
 
     @OneToMany(() => RatePlan, (rateplan) => rateplan.roomType)
     ratePlans: RatePlan[]
+
+    @OneToMany(() => Booking, (booking) => booking.roomType)
+    bookings:Booking[]
 }   
