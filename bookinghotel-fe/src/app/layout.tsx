@@ -5,7 +5,8 @@ import 'primereact/resources/themes/lara-light-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import { AuthProvider } from "@/context/AuthContext";
-import {Toaster} from 'react-hot-toast'
+import { Toaster } from 'react-hot-toast'
+import { ReduxProvider } from "@/redux/Providers";
 
 export const metadata: Metadata = {
   title: "Bluvera",
@@ -27,7 +28,7 @@ const poppins = Poppins({
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="vi" suppressHydrationWarning
-     className={`${inter.variable} ${poppins.variable}`}>
+      className={`${inter.variable} ${poppins.variable}`}>
       <head>
         {/* Font Awesome CDN */}
         <link
@@ -39,13 +40,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-      <AuthProvider>
-        <main>
-           <Toaster position="top-right" reverseOrder={false} />
-          {children}
-        </main>
-        </AuthProvider>
-        </body>
+        <ReduxProvider>
+          <AuthProvider>
+            <main>
+              <Toaster position="top-right" reverseOrder={false} />
+              {children}
+            </main>
+          </AuthProvider>
+        </ReduxProvider>
+      </body>
     </html>
   );
 }
