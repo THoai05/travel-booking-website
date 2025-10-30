@@ -57,27 +57,43 @@ export class RoomsService {
         return query.getRawMany();
     }
 
-
-    // 3️⃣ Theo user (lấy các phòng mà user đã đặt)
+    // 3️⃣ Theo user (lấy các phòng mà user đã đặt, không cần Room.id)
     async getRoomsByUser(userId: number) {
         return this.bookingRepo
             .createQueryBuilder('b')
-            .leftJoin('b.room', 'r')
-            .leftJoin('r.hotel', 'h')
+            .innerJoin('b.user', 'u')
+            .innerJoin('b.roomType', 'rt')
+            .innerJoin('rt.hotel', 'h')
+            .innerJoin(Room, 'r', 'r.hotel_id = h.id') // join Room qua hotel
             .select([
-                'r.id AS id',
-                'h.name AS hotelName',
-                'r.roomNumber AS roomNumber',
-                'r.roomType AS roomType',
-                'r.status AS status',
+                'b.id AS bookingId',
                 'b.status AS bookingStatus',
-                'b.user_id',
+                'b.checkInDate AS checkInDate',
+                'b.checkOutDate AS checkOutDate',
+                'b.guestsCount AS guestsCount',
+
+                'u.id AS userId',
+                'u.fullName AS userName',
+                'u.email AS userEmail',
+
+                'r.id AS roomId',
+                'r.roomNumber AS roomNumber',
+                'r.status AS status',
+                'r.roomType AS roomType',
+                'r.id AS id',
                 'r.hotel_id AS hotel_id',
+
+                'h.id AS hotelId',
+                'h.name AS hotelName',
+
+                'rt.id AS roomTypeId',
+                'rt.name AS roomTypeName',
             ])
             .where('b.user_id = :userId', { userId })
             .orderBy('b.check_in_date', 'DESC')
             .getRawMany();
     }
+
 
     // 📌 Lấy chi tiết 1 phòng theo id
     async getRoomDetail(roomId: number) {
@@ -90,5 +106,5 @@ export class RoomsService {
         const hotel = await this.hotelsRepo.findOne({ where: { id: hotelId } });
         return hotel;
     }
-    
+
 }
