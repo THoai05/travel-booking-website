@@ -86,10 +86,10 @@ export default function RoomMonitorPage() {
     return () => clearInterval(interval);
   }, [apiType, param]);
 
-  const removeVietnameseAccents = (str: string) => 
+  const removeVietnameseAccents = (str: string) =>
     str.normalize("NFD")
-       .replace(/[\u0300-\u036f]/g, "")
-       .replace(/đ/g, "d").replace(/Đ/g, "D");
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/đ/g, "d").replace(/Đ/g, "D");
   // --- Filter, search, sort ---
   const filteredRooms = rooms
     .filter(r => !statusFilter || r.status === statusFilter)
@@ -209,7 +209,7 @@ export default function RoomMonitorPage() {
     });
   };
 
- 
+
 
   return (
     <div className="p-6 relative">
@@ -261,7 +261,18 @@ export default function RoomMonitorPage() {
         </button>
       </div>
 
+
       <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setStatusFilter(null)}
+          className={`px-4 py-2 rounded 
+      ${statusFilter === null
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200 hover:bg-gray-300 transition-colors duration-200"
+            }`}
+        >
+          All
+        </button>
         {["available", "booked", "maintenance"].map(status => (
           <button
             key={status}
