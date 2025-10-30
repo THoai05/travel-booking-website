@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Booking } from '../entities/booking.entity';
+import { Booking } from 'src/managements/bookings/entities/bookings.entity';
 
 
 const ExcelJS = require('exceljs');
@@ -17,15 +17,15 @@ export class BookingService {
     async findAllBookingsForTable(): Promise<any[]> {
         // Sử dụng TypeORM find với relations (cần TypeORM Repository của Booking)
         const bookings = await this.bookingRepository.find({
-            relations: ['room', 'room.hotel'],
+            relations: ['roomType', 'roomType.hotel'],
             order: { createdAt: 'DESC' as 'DESC' },
             take: 100,
-        });
+        }); 
 
         // Map data (giữ nguyên)
         return bookings.map(b => ({
             id: `#BK${String(b.id).padStart(5, '0')}`,
-            name: b.room?.hotel?.name || 'N/A',
+            name: b.roomType?.hotel?.name || 'N/A',
             date: b.createdAt.toLocaleDateString('vi-VN'),
             price: parseFloat(b.totalPrice as any).toLocaleString('vi-VN') + '₫',
             payment: 'Đã thanh toán',

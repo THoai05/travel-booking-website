@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
-import { Booking } from '../entities/booking.entity'; // <-- Đã sửa đường dẫn Entity
+import { Booking } from 'src/managements/bookings/entities/bookings.entity';
 import { BookingService } from './booking.service'; // <-- Đã sửa đường dẫn Booking Service
 
 // Cần import pdfkit (npm install pdfkit)
