@@ -9,6 +9,7 @@ import {
   OneToMany
 } from 'typeorm';
 import { Hotel } from 'src/managements/hotels/entities/hotel.entity';
+import { Favourite } from 'src/managements/favourite/entities/favourite.entity';
 import { Booking } from 'src/managements/bookings/entities/bookings.entity';
 
 export enum RoomType {
@@ -30,7 +31,7 @@ export class Room {
   id: number;
 
   @Column()
-  hotel_id:number
+  hotel_id: number
 
   @ManyToOne(() => Hotel, (hotel) => hotel.rooms, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'hotel_id' })
@@ -68,9 +69,9 @@ export class Room {
   @Column({ name: 'cancellation_policy', type: 'text', nullable: true })
   cancellationPolicy?: string;
 
-  @OneToMany(() => Booking, (booking) => booking.room)
-  bookings: Booking[];
 
+  @OneToMany(() => Favourite, favourite => favourite.room)
+  favourites: Favourite[];
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;

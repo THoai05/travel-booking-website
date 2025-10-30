@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import api from "@/axios/axios";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 interface User {
   id: number;
@@ -28,63 +30,48 @@ interface UpdateUserForm {
 }
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null);
   const [form, setForm] = useState<UpdateUserForm>({});
   const [userId, setUserId] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [error, setError] = useState("");
+  const router = useRouter();
+  // =================== Sử dụng toLocaleDateString với UTC ===================
+  const formatDateUTC = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("vi-VN", { timeZone: "UTC" });
+  };
 
-
-  // =================== LẤY THÔNG TIN NGƯỜI DÙNG ===================
+  const { user, setUser } = useAuth();
+  console.log(user)
+  // =================== LẤY THÔNG TIN NGƯỜI DÙNG VỚI POLLING ===================
   useEffect(() => {
     const fetchProfileAndUser = async () => {
       try {
-        setLoading(true);
-        setLoadingMessage("Đang tải thông tin người dùng...");
-
-        const tokenData = localStorage.getItem("token");
-        if (!tokenData) throw new Error("Không tìm thấy token trong localStorage");
-
-        const parsed = JSON.parse(tokenData);
-        const token = parsed.token;
-        console.log("JWT token:", token);
-
-        const profileRes = await fetch("/api/auth", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const profileData = await profileRes.json();
-        const userId = Number(profileData.id);
-        setUserId(userId);
-
-        const res = await api.get(`/users/${userId}`);
-        const data = res.data;
-        setUser(data.user || data);
+        const response = await api.get("auth/profile");
+        if (response.status !== 304) {
+          const profileData = response.data;
+          setUser(profileData);
+        }
         setForm({
-          fullName: data.user?.fullName || data.fullName,
-          email: data.user?.email || data.email,
-          phone: data.user?.phone || data.phone,
-          dob: data.user?.dob || data.dob,
-          gender: data.user?.gender || data.gender,
+          fullName: user.fullName,
+          email: user.email,
+          phone: user.phone,
+          dob: user.dob,
+          gender: user.gender,
         });
       } catch (err: any) {
         console.error(err);
-        alert(err.response?.data?.message || "Lỗi khi tải thông tin user");
-      } finally {
-        setLoading(false);
       }
     };
-
-    fetchProfileAndUser();
+    fetchProfileAndUser(); // lần đầu load // polling mỗi 3s
   }, []);
 
   // =================== XỬ LÝ INPUT ===================
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -92,13 +79,12 @@ export default function ProfilePage() {
   // =================== CẬP NHẬT THÔNG TIN ===================
   const handleSubmit = async () => {
     const { fullName, email, phone, dob } = form;
-    setError(""); // reset lỗi cũ nếu có
+    setError("");
 
     try {
       setLoading(true);
       setLoadingMessage("Đang kiểm tra thông tin...");
 
-      // === 3. Kiểm tra Họ và tên ===
       if (!fullName) {
         setError("Vui lòng nhập họ và tên.");
         setLoading(false);
@@ -109,20 +95,21 @@ export default function ProfilePage() {
         setLoading(false);
         return;
       }
-      const fullNameRegex = /^[a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+$/;
+      const fullNameRegex =
+        /^[a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+$/;
       if (!fullNameRegex.test(fullName)) {
         setError("Họ và tên không có số, ký tự đặc biệt.");
         setLoading(false);
         return;
       }
 
-      // === 4. Kiểm tra Email ===
       if (!email) {
         setError("Vui lòng nhập email.");
         setLoading(false);
         return;
       }
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@(?!(?:[0-9]+\.)+[a-zA-Z]{2,})[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      const emailRegex =
+        /^[a-zA-Z0-9._%+-]+@(?!(?:[0-9]+\.)+[a-zA-Z]{2,})[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (!emailRegex.test(email)) {
         setError("Sai định dạng email.");
         setLoading(false);
@@ -134,29 +121,52 @@ export default function ProfilePage() {
         return;
       }
 
-      // === 5. Kiểm tra Số điện thoại ===
       if (phone) {
         const phoneRegex = /^(0|\+84)\d{9,10}$/;
         if (!phoneRegex.test(phone) || phone.length > 20) {
-          setError("Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có từ 10–11 chữ số.");
+          setError(
+            "Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có từ 10–11 chữ số."
+          );
           setLoading(false);
           return;
         }
       }
 
-      // === 6. Kiểm tra Ngày sinh ===
+      // 6. Kiểm tra Ngày sinh (dob)
       if (dob) {
         const today = new Date();
         const birthDate = new Date(dob);
-        today.setHours(0, 0, 0, 0);
+
+        today.setHours(0, 0, 0, 0); // Bỏ qua giờ để so sánh ngày
+        birthDate.setHours(0, 0, 0, 0);
+
+        // Nếu ngày sinh trong tương lai
         if (birthDate > today) {
           setError("Ngày sinh không được lớn hơn ngày hiện tại.");
           setLoading(false);
           return;
         }
+
+        // Tính tuổi
+        const age =
+          today.getFullYear() -
+          birthDate.getFullYear() -
+          (today <
+          new Date(
+            today.getFullYear(),
+            birthDate.getMonth(),
+            birthDate.getDate()
+          )
+            ? 1
+            : 0);
+
+        if (age < 16) {
+          setError("Bạn phải đủ 16 tuổi trở lên.");
+          setLoading(false);
+          return;
+        }
       }
 
-      // === Nếu tất cả OK, gọi API ===
       setLoadingMessage("Đang cập nhật thông tin...");
       const res = await api.patch(`/users/${userId}`, form);
       const data = res.data;
@@ -170,8 +180,6 @@ export default function ProfilePage() {
       setLoading(false);
     }
   };
-
-
 
   // =================== UPLOAD AVATAR ===================
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,13 +199,26 @@ export default function ProfilePage() {
       alert("Upload avatar thành công");
       setUser((prev) => (prev ? { ...prev, avatar: data.avatarUrl } : prev));
     } catch (err: any) {
-      console.error(err);
-      alert(err.response?.data?.message || "Upload avatar thất bại");
+      let message = "Upload avatar thất bại";
+      if (err.response?.data) {
+        if (typeof err.response.data === "string") {
+          message = err.response.data;
+        } else if (err.response.data.message) {
+          message = err.response.data.message;
+        }
+      }
+      alert(message);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.push("/client"); // hoặc "/"
+  };
+
+  //if (!localStorage.getItem("token")) return <p>Không tìm thấy token...</p>;
   if (!user) return <p>Đang tải...</p>;
 
   return (
@@ -221,10 +242,16 @@ export default function ProfilePage() {
 
         <div className="w-full max-w-xs md:max-w-sm space-y-2 text-left text-gray-800 bg-white/50 p-3 rounded-lg shadow-inner">
           <InfoItem label="Quyền" value={user.role} />
-          <InfoItem label="Điểm trung thành" value={user.loyaltyPoints?.toLocaleString() ?? 0} />
-          <InfoItem label="Cấp độ thành viên" value={user.membershipLevel ?? "0"} />
-          <InfoItem label="created_at" value={user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"} />
-          <InfoItem label="updated_at" value={user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : "-"} />
+          <InfoItem
+            label="Điểm trung thành"
+            value={user.loyaltyPoints?.toLocaleString() ?? 0}
+          />
+          <InfoItem
+            label="Cấp độ thành viên"
+            value={user.membershipLevel ?? "0"}
+          />
+          <InfoItem label="created_at" value={formatDateUTC(user.createdAt)} />
+          <InfoItem label="updated_at" value={formatDateUTC(user.updatedAt)} />
         </div>
       </div>
 
@@ -240,10 +267,6 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <div className="text-sm text-red-600 font-medium mb-2 hidden">
-          Thông báo lỗi
-        </div>
-
         <FormField
           label="Tên truy cập"
           name="username"
@@ -252,14 +275,37 @@ export default function ProfilePage() {
           className="font-semibold text-gray-800 bg-gray-100"
         />
 
-        <FormField label="Họ và tên" name="fullName" value={form.fullName || ""} onChange={handleChange} />
-        <FormField label="Email" name="email" value={form.email || ""} onChange={handleChange} />
-        <FormField label="Phone" name="phone" value={form.phone || ""} onChange={handleChange} />
-        <FormField label="Ngày sinh" type="date" name="dob" value={form.dob?.split("T")[0] || ""} onChange={handleChange} />
+        <FormField
+          label="Họ và tên"
+          name="fullName"
+          value={form.fullName || ""}
+          onChange={handleChange}
+        />
+        <FormField
+          label="Email"
+          name="email"
+          value={form.email || ""}
+          onChange={handleChange}
+        />
+        <FormField
+          label="Phone"
+          name="phone"
+          value={form.phone || ""}
+          onChange={handleChange}
+        />
+        <FormField
+          label="Ngày sinh"
+          type="date"
+          name="dob"
+          value={form.dob?.split("T")[0] || ""}
+          onChange={handleChange}
+        />
 
         {/* Giới tính */}
         <div className="mb-4">
-          <label className="block mb-1 font-medium text-gray-700">Giới tính</label>
+          <label className="block mb-1 font-medium text-gray-700">
+            Giới tính
+          </label>
           <select
             name="gender"
             value={form.gender || ""}
@@ -294,6 +340,13 @@ export default function ProfilePage() {
           >
             Hủy thay đổi
           </button>
+
+          <button
+            onClick={handleLogout}
+            className="bg-gray-300 px-4 py-2 rounded-lg hover:bg-gray-400 transition text-gray-800 font-medium"
+          >
+            Đăng xuất
+          </button>
         </div>
       </div>
 
@@ -308,7 +361,6 @@ export default function ProfilePage() {
       )}
     </div>
   );
-
 }
 
 function InfoItem({ label, value }: { label: string; value: any }) {
@@ -346,9 +398,10 @@ function FormField({
         value={value}
         disabled={disabled}
         onChange={onChange}
-        className={`border rounded w-full p-2 ${disabled ? "bg-gray-100 cursor-not-allowed" : ""} ${className}`}
+        className={`border rounded w-full p-2 ${
+          disabled ? "bg-gray-100 cursor-not-allowed" : ""
+        } ${className}`}
       />
     </div>
   );
 }
-

@@ -1,3 +1,3 @@
-interface GetDataCitiesFilterParam{
+export interface GetDataCitiesFilterParam{
     title:string
 }

@@ -1,10 +1,16 @@
 /** @type {import('tailwindcss').Config} */
+import { heroui } from "@heroui/react";
 import formsPlugin from "@tailwindcss/forms";
 import lineClampPlugin from "@tailwindcss/line-clamp";
 import animatePlugin from "tailwindcss-animatecss";
 
-module.exports = {
-  content: ["./app/**/*.{ts,tsx,js,jsx}", "./components/**/*.{ts,tsx,js,jsx}"],
+const config = {
+  content: [
+    "./app/**/*.{ts,tsx,js,jsx}",
+    "./components/**/*.{ts,tsx,js,jsx}",
+    "./src/**/*.{ts,tsx,js,jsx,mdx}",
+    "./node_modules/@heroui/react/dist/**/*.{js,ts,jsx,tsx}",
+  ],
   theme: {
     screens: {
       sm: "480px",
@@ -18,20 +24,12 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: [
-          "var(--font-inter)",
-          "ui-sans-serif",
-          "system-ui",
-          "-apple-system",
-          "Segoe UI",
-          "Roboto",
-          "Helvetica Neue",
-          "Arial",
-        ],
+        sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "-apple-system"],
         heading: ["var(--font-poppins)", "var(--font-inter)", "ui-sans-serif"],
       },
     },
   },
+  darkMode: "class",
   plugins: [
     formsPlugin,
     lineClampPlugin,
@@ -39,5 +37,8 @@ module.exports = {
       classes: ["bounce", "bounceIn"],
       variants: ["responsive"],
     }),
+    heroui(),
   ],
 };
+
+export default config;

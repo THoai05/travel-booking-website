@@ -1,0 +1,103 @@
+/* Đảm bảo body không có margin/padding linh tinh */
+body {
+  margin: 0;
+}
+
+.img-slider-img {
+  /* Đây là phần quan trọng nhất */
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Giúp ảnh fill đầy khung mà không bị méo */
+  flex-shrink: 0;
+  flex-grow: 0;
+  transition: translate 300ms ease-in-out;
+}
+
+.img-slider-btn {
+  all: unset; /* Reset style của button */
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  padding: 1rem;
+  cursor: pointer;
+  transition: background-color 100ms ease-in-out;
+}
+
+.img-slider-btn:hover,
+.img-slider-btn:focus-visible {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.img-slider-btn:hover > *,
+.img-slider-btn:focus-visible > * {
+  /* Làm icon sáng lên khi hover */
+  animation: squish 200ms ease-in-out;
+}
+
+.img-slider-btn > * {
+  /* Style cho icon (ArrowBigLeft/Right) */
+  stroke: white;
+  fill: black;
+  width: 2rem;
+  height: 2rem;
+}
+
+@keyframes squish {
+  50% {
+    transform: scale(1.4);
+  }
+}
+
+.img-slider-dot-btn {
+  all: unset;
+  display: block;
+  cursor: pointer;
+  width: 1rem;
+  height: 1rem;
+  transition: transform 100ms ease-in-out;
+}
+
+.img-slider-dot-btn:hover,
+.img-slider-dot-btn:focus-visible {
+  transform: scale(1.2);
+}
+
+.img-slider-dot-btn > * {
+  /* Style cho icon (Circle/CircleDot) */
+  stroke: white;
+  fill: black;
+  height: 100%;
+  width: 100%;
+}
+
+.skip-link {
+  /* Dùng để hỗ trợ tiếp cận (Accessibility) */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.skip-link:focus {
+  /* Hiển thị link khi focus (Tab) */
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  background-color: white;
+  color: black;
+  padding: 0.5rem;
+  z-index: 100;
+  top: 0.5rem;
+  left: 0.5rem;
+  border: 1px solid black;
+  border-radius: 4px;
+}       

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 export default function DiscountModal({ item, onClose, onSave }) {
     const [form, setForm] = useState({
         code: "",
-        name: "",
         discountValue: "",
         startDate: "",
         endDate: "",
@@ -16,7 +15,6 @@ export default function DiscountModal({ item, onClose, onSave }) {
         if (item) {
             setForm({
                 code: item.code,
-                name: item.name,
                 discountValue: item.discountValue,
                 startDate: item.startDate,
                 endDate: item.endDate,
@@ -25,7 +23,6 @@ export default function DiscountModal({ item, onClose, onSave }) {
         } else {
             setForm({
                 code: "",
-                name: "",
                 discountValue: "",
                 startDate: "",
                 endDate: "",
@@ -36,7 +33,7 @@ export default function DiscountModal({ item, onClose, onSave }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!form.code || !form.name) {
+        if (!form.code || !form.discountValue || !form.startDate || !form.endDate) {
             alert("Vui lòng nhập đầy đủ thông tin");
             return;
         }

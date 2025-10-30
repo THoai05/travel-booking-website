@@ -66,14 +66,14 @@ export default function PropertySummaryCard({
       <div className="flex items-center gap-3 mb-5">
         <div className="flex items-center justify-center size-14 bg-blue-50 text-sky-700 rounded-lg">
           <span className="text-2xl font-bold">
-            {averageRating.toFixed(1)}/
+            {averageRating?.toFixed(1)*2||0}/
             <span className="text-sky-500">10</span>
           </span>
         </div>
 
         <div className="ml-5">
           <p className="text-lg font-semibold text-gray-800">
-            {getRatingText(averageRating)}
+            {getRatingText(averageRating * 2)}
           </p>
           <a
             href="#reviews"

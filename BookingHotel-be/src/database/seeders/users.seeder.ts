@@ -13,8 +13,8 @@ export default class UserSeeder implements Seeder {
       return;
     }
 
-    const adminPassword = await bcrypt.hash('Admin@123', 10);
-    const customerPassword = await bcrypt.hash('User@123', 10);
+    const adminPassword = await bcrypt.hash('12345678', 10);
+    const customerPassword = await bcrypt.hash('12345678', 10);
 
     const genders = [Gender.MALE, Gender.FEMALE, Gender.OTHER];
     const memberships = [

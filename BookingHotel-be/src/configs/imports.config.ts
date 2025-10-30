@@ -3,11 +3,12 @@ import { AuthModule } from "src/managements/auth/modules/auth.module";
 import { BookingsModule } from "src/managements/bookings/modules/bookings.module";
 import { CityModule } from "src/managements/city/modules/city.module";
 import { CouponsModule } from "src/managements/coupons/modules/coupons.module";
-import { FavouriteModule } from "src/managements/favourite/modules/favourite.module";
+import { FavouritesModule } from "src/managements/favourite/modules/favourite.module";
 import { HotelStaffModule } from "src/managements/hotel_staff/modules/hotel_staff.module";
 import { HotelsModule } from "src/managements/hotels/modules/hotels.module";
 import { NotificationsModule } from "src/managements/notifications/modules/notifications.module";
 import { PaymentsModule } from "src/managements/payments/modules/payments.module";
+import { PostsModule } from "src/managements/posts/posts.module";
 import { PromotionModule } from "src/managements/promotion/modules/promotion.module";
 import { ReviewsModule } from "src/managements/reviews/modules/reviews.module";
 import { RoomsModule } from "src/managements/rooms/modules/rooms.module";
@@ -20,7 +21,7 @@ export const ManagementsImports = [
     AmenitiesModule,
     AuthModule,
     CouponsModule,
-    FavouriteModule,
+    FavouritesModule,
     HotelStaffModule,
     HotelsModule,
     NotificationsModule,
@@ -33,5 +34,6 @@ export const ManagementsImports = [
     CityModule,
     BookingsModule,
     BookingModuleAbout,
-    RevenueModule
+    RevenueModule,
+    PostsModule
 ]

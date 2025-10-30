@@ -1,53 +1,68 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    CreateDateColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 
 export enum DiscountType {
-  PERCENT = 'percent',
-  FIXED = 'fixed',
+    PERCENT = 'percent',
+    FIXED = 'fixed',
 }
 
+export enum CouponType {
+    VNPAY = 'vnpay',
+    MOMO = 'momo',
+    ZALOPAY = 'zalopay',
+    STRIPE = 'stripe',
+}   
+
 export enum CouponStatus {
-  ACTIVE = 'active',
-  EXPIRED = 'expired',
+    ACTIVE = 'active',
+    EXPIRED = 'expired',
 }
 
 @Entity({ name: 'coupons' })
 export class Coupon {
-  @PrimaryGeneratedColumn()
-  id: number;
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  @Column({ length: 50, unique: true })
-  code: string;
+    @Column({ length: 50 })
+    code: string;
 
-  @Column({ type: 'enum', enum: DiscountType })
-  discountType: DiscountType;
+    // 🔸 Kiểu thanh toán áp dụng
+    @Column({ type: 'enum', enum: CouponType })
+    couponType: CouponType;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  discountValue: number;
+    // 🔸 Loại giảm giá
+    @Column({ type: 'enum', enum: DiscountType })
+    discountType: DiscountType;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-  minOrderValue: number|null;
+    // 🔸 Giá trị giảm
+    @Column({ type: 'decimal', precision: 10, scale: 2 })
+    discountValue: number;
 
-  @Column({ type: 'date' })
-  startDate: Date;
+    // 🔸 Giá trị đơn hàng tối thiểu để được áp dụng
+    @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+    minOrderValue: number | null;
 
-  @Column({ type: 'date' })
-  endDate: Date;
+    @Column({ type: 'date' })
+    startDate: Date;
 
-  @Column({ type: 'int', nullable: true })
-  usageLimit: number|null;
+    @Column({ type: 'date' })
+    endDate: Date;
 
-  @Column({ type: 'enum', enum: CouponStatus, default: CouponStatus.ACTIVE })
-  status: CouponStatus;
+    // 🔸 Giới hạn số lần sử dụng
+    @Column({ type: 'int', nullable: true })
+    usageLimit: number | null;
 
-  @CreateDateColumn()
-  createdAt: Date;
+    @Column({ type: 'enum', enum: CouponStatus, default: CouponStatus.ACTIVE })
+    status: CouponStatus;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
 }

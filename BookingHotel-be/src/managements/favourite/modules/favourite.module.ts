@@ -1,9 +1,16 @@
 import { Module } from '@nestjs/common';
-import { FavouriteService } from '../services/favourite.service';
-import { FavouriteController } from '../controllers/favourite.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Favourite } from '../entities/favourite.entity';
+import { FavouritesService } from '../services/favourite.service';
+import { FavouritesController } from '../controllers/favourite.controller';
+import { User } from '../../../managements/users/entities/users.entity';
+import { Hotel } from '../../hotels/entities/hotel.entity';
+import { Room } from '../../rooms/entities/rooms.entity';
+import { Review } from '../../reviews/entities/review.entity';
 
 @Module({
-  controllers: [FavouriteController],
-  providers: [FavouriteService],
+  imports: [TypeOrmModule.forFeature([Favourite, User, Hotel, Room, Review])],
+  controllers: [FavouritesController],
+  providers: [FavouritesService],
 })
-export class FavouriteModule {}
+export class FavouritesModule { }

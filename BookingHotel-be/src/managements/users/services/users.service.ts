@@ -8,14 +8,14 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async findById(id: number): Promise<User | null> {
     return this.usersRepository.findOne({ where: { id } });
   }
 
   async updateUser(id: number, data: Partial<User>): Promise<User> {
-    // ✅ Kiểm tra trùng email (nếu có cập nhật email)
+    // Kiểm tra trùng email (nếu có cập nhật email)
     if (data.email) {
       const existing = await this.usersRepository.findOne({
         where: { email: data.email },
@@ -32,4 +32,38 @@ export class UsersService {
 
     return updatedUser;
   }
+
+  async findAll(): Promise<User[]> {
+    return this.usersRepository.find({
+      order: { id: 'ASC' }, // sắp xếp theo id tăng dần, tuỳ chỉnh được
+      select: [
+        'id',
+        'username',
+        'fullName',
+        'email',
+        'phone',
+        'dob',
+        'gender',
+        'avatar',
+        'role',
+        'loyaltyPoints',
+        'membershipLevel',
+        'createdAt',
+        'updatedAt',
+      ], // chỉ lấy các field cần thiết
+    });
+  }
+
+  async deleteUser(id: number): Promise<{ message: string }> {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new BadRequestException('Người dùng không tồn tại');
+    }
+
+    await this.usersRepository.delete(id);
+    return { message: 'Xóa người dùng thành công' };
+  }
+
+
+  
 }
