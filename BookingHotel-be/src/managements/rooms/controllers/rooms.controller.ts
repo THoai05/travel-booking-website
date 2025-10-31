@@ -26,14 +26,34 @@ export class RoomsController {
     return this.roomsService.getRoomsByUser(userId);
   }
 
+  // 📌 Lấy chi tiết phòng theo id
   @Get('roomDetail/:id')
   async getRoomDetail(@Param('id') id: number) {
     return this.roomsService.getRoomDetail(id);
   }
 
+  // 📌 Lấy chi tiết khách sạn theo id
   @Get('hotelDetail/:id')
   async getHotelDetail(@Param('id') id: number) {
     return this.roomsService.getHotelDetail(id);
+  }
+
+  // 4 Theo user booking
+  @Get('getBooKing/byUser/:userId')
+  async getBooKingByUser(@Param('userId') userId: number) {
+    return this.roomsService.getBookingByUser(userId);
+  }
+
+  // 📌 Lấy chi tiết đặt chỗ theo id
+  @Get('bookingDetail/:id')
+  async getBookingDetail(@Param('id') id: number) {
+    return this.roomsService.getBookingDetail(id);
+  }
+
+  // 📌 Lấy chi tiết room Type theo id
+  @Get('roomTypeDetail/:id')
+  async getRoomTypeDetail(@Param('id') id: number) {
+    return this.roomsService.getRoomTypeDetail(id);
   }
 
 }
