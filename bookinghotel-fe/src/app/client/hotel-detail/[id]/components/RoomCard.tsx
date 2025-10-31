@@ -16,6 +16,11 @@ import {
   Info,
 } from 'lucide-react';
 import { Badge } from './ui/badge';
+import api from '../../../../../axios/axios';
+import { useAppDispatch, useAppSelector } from '@/reduxTK/hook';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+import { setPendingBooking } from '@/reduxTK/features/bookingSlice'
 
 // --- Helper Functions ---
 const getAmenityIcon = (amenity: string | undefined, size = 'w-4 h-4') => {
@@ -69,6 +74,51 @@ export default function RoomCard({ room }: RoomCardProps) {
   const safeAmenities = Array.isArray(safeRoom.amenities)
     ? safeRoom.amenities.slice(0, 2)
     : [];
+
+  const dispatch = useAppDispatch()
+  const { 
+    destination,
+    checkIn,
+    checkOut,
+    guests
+  } = useAppSelector((state) => state.search)
+  const { adults, children, rooms } = guests
+  const totalGuests =  Number( adults + children )
+  
+  const { user } = useAuth()
+const router = useRouter()
+
+  const handleCreateBooking = async (
+    checkinDate,
+    checkoutDate,
+    guestsCount,
+    totalPrice,
+    userId,
+    roomTypeId
+  )=> {
+    try {
+      const response = await api.post('bookings', {
+      checkinDate,
+      checkoutDate,
+      guestsCount,
+      totalPrice,
+      userId,
+      roomTypeId
+    })
+    if (response.data.message === "success") {
+      const bookingData = response.data.data
+      dispatch(setPendingBooking(bookingData))
+
+      // 2. LƯU VÀO SESSION (Chỉ ID)
+      sessionStorage.setItem('activeBookingId', bookingData.bookingId.toString())
+
+      // 3. Chuyển trang
+      router.push('/payment/review')
+    }
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
   return (
     <Card className="overflow-hidden shadow-sm border-gray-200">
@@ -214,7 +264,14 @@ export default function RoomCard({ room }: RoomCardProps) {
                         Chưa bao gồm thuế và phí
                       </p>
 
-                      <Button className="w-full md:w-24 bg-sky-500 hover:bg-sky-700 text-white mt-2">
+                      <Button onClick={() => handleCreateBooking(
+                        checkIn,
+                        checkOut,
+                        totalGuests,
+                        Number(option?.salePrice),
+                        user?.id,
+                        option?.id
+                      )} className="w-full md:w-24 bg-sky-500 hover:bg-sky-700 text-white mt-2">
                         Chọn phòng
                       </Button>
                     </div>

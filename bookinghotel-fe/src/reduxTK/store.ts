@@ -1,5 +1,6 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit'
 import searchReducer from './features/searchSlice' // <-- 1. Import reducer mới
+import bookingReducer from './features/bookingSlice' // <-- 1. Import reducer mới
 
 // --- 2. Import redux-persist ---
 import {
@@ -18,6 +19,7 @@ import storage from 'redux-persist/lib/storage' // <-- Mặc định là localSt
 // Gom tất cả reducer lại
 const rootReducer = combineReducers({
   search: searchReducer,
+  booking:bookingReducer
   // ... sau này có authReducer, bookingReducer thì thêm vào đây
 })
 

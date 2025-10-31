@@ -4,8 +4,7 @@ import "./globals.css";
 import 'primereact/resources/themes/lara-light-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
-import { AuthProvider } from "@/context/AuthContext";
-import {Toaster} from 'react-hot-toast'
+import { AppProviders } from './Providers'; // <-- dùng file client mới
 
 export const metadata: Metadata = {
   title: "Bluvera",
@@ -26,8 +25,7 @@ const poppins = Poppins({
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi" suppressHydrationWarning
-     className={`${inter.variable} ${poppins.variable}`}>
+    <html lang="vi" suppressHydrationWarning className={`${inter.variable} ${poppins.variable}`}>
       <head>
         <link
           rel="stylesheet"
@@ -38,13 +36,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-      <AuthProvider>
-        <main>
-           <Toaster position="top-right" reverseOrder={false} />
-          {children}
-        </main>
-        </AuthProvider>
-        </body>
+        <AppProviders>
+          <main>{children}</main>
+        </AppProviders>
+      </body>
     </html>
   );
 }

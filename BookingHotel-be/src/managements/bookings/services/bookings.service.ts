@@ -59,6 +59,8 @@ export class BookingsService {
             checkinDate: bookingSaved.checkInDate,
             checkoutDate: bookingSaved.checkOutDate,
             guestsCount: bookingSaved.guestsCount,
+            bedType:bookingSaved.roomType.bed_type,
+            roomName:bookingSaved.roomType.name,
             totalPrice:bookingSaved.totalPrice
         }
     }

@@ -1,20 +1,60 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react';
-import { 
-  Mail, User, Star, Users, Bed, Calendar, Info, ChevronDown,
-  Wifi, Shield, AlertCircle, Tag, CheckCircle2,MapPin,Coffee,Phone
-} from 'lucide-react';
+// --- 1. IMPORT THÊM ---
 
-import HotelSummaryCard from './components/HotelSummaryCard';
-import PriceDetailsSection from './components/PriceDetailSection';
+import React, { useState, useEffect, useMemo } from "react";
 
-// Types
+import {
+  Mail,
+  User,
+  Star,
+  Users,
+  Bed,
+  Calendar,
+  Info,
+  ChevronDown,
+  Wifi,
+  Shield,
+  AlertCircle,
+  Tag,
+  CheckCircle2,
+  MapPin,
+  Coffee,
+  Phone,
+  Loader2,
+} from "lucide-react";
+
+import HotelSummaryCard from "./components/HotelSummaryCard";
+
+import PriceDetailsSection from "./components/PriceDetailSection";
+
+// --- Import Redux, Auth, và tools ---
+
+import { useAppSelector, useAppDispatch } from "@/reduxTK/hook";
+
+// --- FIX: Bỏ import thunk ---
+
+import { selectBooking } from "@/reduxTK/features/bookingSlice";
+
+import { selectSearch } from "@/reduxTK/features/searchSlice";
+
+import { useAuth } from "@/context/AuthContext"; // <-- Giả sử đường dẫn này đúng
+
+import { useRouter } from "next/navigation";
+
+import { format, differenceInCalendarDays, parseISO } from "date-fns";
+
+// --- (Các types của bro giữ nguyên) ---
+
 interface BookingForm {
   fullName: string;
+
   mobileNumber: string;
+
   countryCode: string;
+
   email: string;
+
   bookingForMyself: boolean;
 }
 
@@ -24,47 +64,45 @@ interface GuestForm {
 
 interface SpecialRequest {
   id: string;
+
   label: string;
+
   checked: boolean;
 }
 
+// ... (Các types HotelDetails, GuestDetails nếu có thì bro xóa đi) ...
 
+// --- (Các sub-components của bro giữ nguyên: InputField, PhoneInput, Checkbox, Section) ---
 
-const hotelDetails: HotelDetails = {
-    bookingId: '1296078565',
-    name: 'Pariat River Front Hotel Da Nang',
-    checkIn: 'Tue, 28 October 2025',
-    checkOut: 'Wed, 29 October 2025',
-    nights: 1,
-    roomType: '(1x) Standard Room - Room Only',
-    guests: 2,
-    bedType: '1 double bed',
-    breakfast: false,
-    wifi: true,
-};
-  
-const guestDetails: GuestDetails = {
-    name: 'Lo Thanh Ha',
-    phone: '+84812373122',
-    email: 'naconghau06@gmail.com',
-    nonRefundable: true,
-    nonReschedulable: true,
-  };
-
-// Components
 const InputField: React.FC<{
   label: string;
+
   placeholder?: string;
+
   value: string;
+
   onChange: (value: string) => void;
+
   required?: boolean;
+
   type?: string;
+
   helper?: string;
-}> = ({ label, placeholder, value, onChange, required, type = 'text', helper }) => (
+}> = ({
+  label,
+  placeholder,
+  value,
+  onChange,
+  required,
+  type = "text",
+  helper,
+}) => (
   <div className="mb-4">
     <label className="block text-sm font-semibold text-gray-700 mb-2">
-      {label}{required && '*'}
+      {label}
+      {required && "*"}
     </label>
+
     <input
       type={type}
       value={value}
@@ -72,28 +110,36 @@ const InputField: React.FC<{
       placeholder={placeholder}
       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
     />
+
     {helper && <p className="text-xs text-gray-500 mt-1">{helper}</p>}
   </div>
 );
 
 const PhoneInput: React.FC<{
   countryCode: string;
+
   phoneNumber: string;
+
   onCountryChange: (code: string) => void;
+
   onPhoneChange: (phone: string) => void;
 }> = ({ countryCode, phoneNumber, onCountryChange, onPhoneChange }) => (
   <div className="mb-4">
     <label className="block text-sm font-semibold text-gray-700 mb-2">
-      Mobile Number*
+      Số điện thoại
     </label>
+
     <div className="flex gap-2">
       <div className="w-32">
         <div className="flex items-center gap-2 px-3 py-3 border border-gray-300 rounded-lg bg-white">
           <span className="text-xl">🇻🇳</span>
+
           <span className="font-semibold">+84</span>
+
           <ChevronDown size={16} className="text-gray-500" />
         </div>
       </div>
+
       <input
         type="tel"
         value={phoneNumber}
@@ -101,15 +147,18 @@ const PhoneInput: React.FC<{
         className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
       />
     </div>
+
     <p className="text-xs text-gray-500 mt-1">
-      e.g. +(62)812345678, for Country Code (+62) and Mobile No. 0812345678
+      VD:081922121
     </p>
   </div>
 );
 
 const Checkbox: React.FC<{
   checked: boolean;
+
   onChange: (checked: boolean) => void;
+
   label: string;
 }> = ({ checked, onChange, label }) => (
   <label className="flex items-center gap-2 cursor-pointer">
@@ -119,83 +168,292 @@ const Checkbox: React.FC<{
       onChange={(e) => onChange(e.target.checked)}
       className="w-5 h-5 text-sky-600 rounded border-gray-300 focus:ring-2 focus:ring-sky-500"
     />
+
     <span className="text-gray-700">{label}</span>
   </label>
 );
 
-const Section: React.FC<{ 
-  icon: React.ReactNode; 
-  title: string; 
+const Section: React.FC<{
+  icon: React.ReactNode;
+
+  title: string;
+
   children: React.ReactNode;
+
   className?: string;
-}> = ({ icon, title, children, className = '' }) => (
+}> = ({ icon, title, children, className = "" }) => (
   <div className={`bg-white rounded-lg shadow-sm p-6 ${className}`}>
     <div className="flex items-center gap-3 mb-4">
       <div className="text-gray-700">{icon}</div>
+
       <h2 className="text-lg font-bold text-gray-900">{title}</h2>
     </div>
+
     {children}
   </div>
 );
 
-
-
-
+// --- XÓA MOCK DATA: hotelDetails, guestDetails ---
 
 // Main Component
+
 const TravelokaBookingPage: React.FC = () => {
+  // --- 2. LẤY DATA TỪ CÁC NGUỒN ---
+
+  const dispatch = useAppDispatch();
+
+  const router = useRouter();
+
+  // Nguồn 1: AuthContext
+
+  const { user } = useAuth(); // Data: { userWithoutPassword: { ... } }
+
+  // Nguồn 2: BookingSlice (Data đơn hàng)
+
+  // --- FIX: Bỏ `isLoading`, `error` vì đây là Happy Case ---
+
+  const { pendingBooking } = useAppSelector(selectBooking);
+
+  // Nguồn 3: SearchSlice (Data số khách - có thể dùng)
+
+  const { guests: searchGuests } = useAppSelector(selectSearch);
+
+  // --- 3. STATE CHO FORM (Được pre-fill từ AuthContext) ---
+
   const [bookingForm, setBookingForm] = useState<BookingForm>({
-    fullName: '',
-    mobileNumber: '',
-    countryCode: '+84',
-    email: '',
+    fullName: "", // Sẽ pre-fill ở useEffect
+
+    mobileNumber: "", // Sẽ pre-fill ở useEffect
+
+    countryCode: "+84",
+
+    email: "", // Sẽ pre-fill ở useEffect
+
     bookingForMyself: false,
   });
 
   const [guestForm, setGuestForm] = useState<GuestForm>({
-    fullName: '',
+    fullName: "", // Mặc định rỗng
   });
 
   const [specialRequests, setSpecialRequests] = useState<SpecialRequest[]>([
-    { id: 'non-smoking', label: 'Non-smoking Room', checked: false },
-    { id: 'connecting', label: 'Connecting Rooms', checked: false },
-    { id: 'high-floor', label: 'High Floor', checked: false },
+    { id: "non-smoking", label: "Non-smoking Room", checked: false },
+
+    { id: "connecting", label: "Connecting Rooms", checked: false },
+
+    { id: "high-floor", label: "High Floor", checked: false },
   ]);
 
+  // --- 4. LOGIC XỬ LÝ (Handlers + Logic F5 + Pre-fill) ---
 
+  // --- FIX: Bỏ `useEffect` logic F5 (Thunk) ---
+
+  // useEffect(() => {
+
+  //   if (!pendingBooking && !isLoading) { ... }
+
+  // }, [pendingBooking, isLoading, dispatch, router]);
+
+  // Logic Pre-fill: Điền form "Contact" từ AuthContext
+
+  useEffect(() => {
+    if (user) {
+      setBookingForm((prev) => ({
+        ...prev,
+
+        fullName: user.fullName || "",
+
+        mobileNumber: user.phone || "",
+
+        email: user.email || "",
+      }));
+    }
+  }, [user]); // Chạy khi 'user' được load
+
+  // Logic Checkbox: "Guest" = "Contact"
+
+  useEffect(() => {
+    if (bookingForm.bookingForMyself) {
+      setGuestForm({ fullName: bookingForm.fullName });
+    }
+  }, [bookingForm.bookingForMyself, bookingForm.fullName]);
 
   const toggleRequest = (id: string) => {
-    setSpecialRequests(requests =>
-      requests.map(req => req.id === id ? { ...req, checked: !req.checked } : req)
+    setSpecialRequests((requests) =>
+      requests.map((req) =>
+        req.id === id ? { ...req, checked: !req.checked } : req
+      )
     );
   };
 
-  const updateBookingForm = (field: keyof BookingForm, value: string | boolean) => {
-    setBookingForm(prev => ({ ...prev, [field]: value }));
+  const updateBookingForm = (
+    field: keyof BookingForm,
+    value: string | boolean
+  ) => {
+    setBookingForm((prev) => ({ ...prev, [field]: value }));
   };
+
+  // --- 5. TẠO PROPS TỪ DATA THẬT (Thay thế Mock Data) ---
+
+  // Helper format ngày
+
+  const formatDate = (dateString: string) => {
+    try {
+      // parseISO vì date của bro là "2025-11-10"
+
+      return format(parseISO(dateString), "EEE, dd MMMM yyyy");
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Props cho HotelSummaryCard
+
+  const hotelDetailsProps = useMemo(() => {
+    if (!pendingBooking) return null;
+
+    // Đảm bảo tính toán nights > 0
+
+    let nights = 1;
+
+    try {
+      nights = differenceInCalendarDays(
+        parseISO(pendingBooking.checkoutDate),
+
+        parseISO(pendingBooking.checkinDate)
+      );
+
+      if (nights <= 0) nights = 1; // Fallback
+    } catch {}
+
+    return {
+      bookingId: pendingBooking.bookingId.toString(),
+
+      name: "Pariat River Front Hotel Da Nang", // <-- Bro nói text cứng
+
+      checkIn: formatDate(pendingBooking.checkinDate),
+
+      checkOut: formatDate(pendingBooking.checkoutDate),
+
+      nights: nights,
+
+      roomType: `(1x) ${pendingBooking.roomName}`,
+
+      guests: pendingBooking.guestsCount, // Lấy từ booking
+
+      // guests: searchGuests.adults + searchGuests.children, // Hoặc lấy từ search
+
+      bedType: pendingBooking.bedType,
+
+      breakfast: false, // <-- Bro nói text cứng
+
+      wifi: true, // <-- Bro nói text cứng
+    };
+  }, [pendingBooking]);
+
+  // Props cho GuestDetails (trong HotelSummaryCard)
+
+  const guestDetailsProps = useMemo(() => {
+    // FIX: Check `user` và `user.userWithoutPassword`
+
+    if (!user) return null; // Lấy từ user đăng nhập
+
+    return {
+      name: user.fullName,
+
+      phone: user.phone,
+
+      email: user.email,
+
+      nonRefundable: true, // <-- Bro nói text cứng
+
+      nonReschedulable: true, // <-- Bro nói text cứng
+    };
+  }, [user]);
+
+  // Props cho PriceDetailsSection
+
+  const priceDetailsProps = useMemo(() => {
+    if (!pendingBooking) return null;
+
+    return {
+      totalPrice: pendingBooking.totalPrice,
+
+      // ... (thêm các chi tiết giá khác nếu cần)
+    };
+  }, [pendingBooking]);
+
+  // --- 6. XỬ LÝ LOADING / ERROR ---
+
+  // --- FIX: Loading state đã đơn giản hóa cho "Happy Case" ---
+
+  // Chỉ check xem 3 nguồn data chính đã sẵn sàng chưa
+
+  console.log("1  " + pendingBooking);
+
+  console.log("2  " + user);
+
+  console.log("3  " + hotelDetailsProps);
+
+  console.log("4  " + guestDetailsProps);
+
+  console.log("5  " + priceDetailsProps);
+
+  if (
+    !pendingBooking ||
+    !user ||
+    !hotelDetailsProps ||
+    !guestDetailsProps ||
+    !priceDetailsProps
+  ) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-screen bg-gray-50">
+        <Loader2 className="w-12 h-12 text-sky-500 animate-spin" />
+
+        <p className="mt-4 text-lg text-gray-700">
+          Đang tải chi tiết đơn hàng...
+        </p>
+      </div>
+    );
+  }
+
+  // --- FIX: Bỏ `if (error)` block (vì không dùng thunk) ---
+
+  // --- 7. RENDER COMPONENT VỚI DATA THẬT ---
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header (Giữ nguyên) */}
+
       <header className="bg-white shadow-sm border-b mt-15">
+        {/* ... (Code header của bro) ... */}
+
+        {/* Tui sẽ thêm code header mẫu vì nó bị thiếu */}
+
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="text-sky-600 font-bold text-2xl">Bluevera</div>
+
               <div className="w-6 h-6 bg-sky-500 rounded-full"></div>
             </div>
+
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center font-bold">
                   1
                 </div>
+
                 <span className="text-sky-600 font-semibold">Review</span>
               </div>
+
               <div className="text-gray-300">—</div>
+
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-bold">
                   2
                 </div>
+
                 <span className="text-gray-500">Pay</span>
               </div>
             </div>
@@ -203,52 +461,72 @@ const TravelokaBookingPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Hotel Info Bar */}
+      {/* Hotel Info Bar (Data thật) */}
+
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 py-3">
-          <h1 className="text-lg font-bold text-gray-900">Pariat River Front Hotel Da Nang</h1>
+          <h1 className="text-lg font-bold text-gray-900">
+            {hotelDetailsProps.name}
+          </h1>
+
+          {/* ... (Star rating giữ nguyên) ... */}
+
           <div className="flex items-center gap-1 mt-1">
             {[1, 2, 3].map((i) => (
-              <Star key={i} size={14} fill="#FCD34D" className="text-yellow-400" />
+              <Star
+                key={i}
+                size={14}
+                fill="#FCD34D"
+                className="text-yellow-400"
+              />
             ))}
+
             <span className="text-sm text-gray-600 ml-1">7.9 (360)</span>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
+
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Logged in Banner */}
+        {/* Logged in Banner (Data thật) */}
+
         <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-6">
           <p className="text-sm text-gray-700">
-            Logged in as <span className="font-semibold">C&ocirc;ng Hậu H&agrave; (Google)</span>
+            {/* FIX: Check user.userWithoutPassword an toàn hơn */}
+            Logged in as{" "}
+            <span className="font-semibold">
+              {user?.userWithoutPassword?.fullName || "User"} (Google)
+            </span>
           </p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left Column - Forms */}
+          {/* Left Column - Forms (Đã pre-fill) */}
+
           <div className="lg:col-span-2 space-y-6">
             {/* Booking Contact */}
-            <Section icon={<Mail size={20} />} title="Booking contact">
+
+            <Section icon={<Mail size={20} />} title="Liên hệ đơn hàng">
               <p className="text-sm text-gray-600 mb-4">
-                Please fill in all fields correctly to receive your booking confirmation.
+               Vui lòng điền đầy đủ thông tin để đơn hàng chính xác nhất
               </p>
 
               <InputField
-                label="Full Name"
+                label="Họ và tên"
                 placeholder=""
                 value={bookingForm.fullName}
-                onChange={(v) => updateBookingForm('fullName', v)}
+                onChange={(v) => updateBookingForm("fullName", v)}
                 required
-                helper="Vietnamese users: enter Middle Name + First Name + Last Name. Others: First Name + Last Name."
+                helper="VD: Hà Công Hậu"
               />
 
               <div className="grid md:grid-cols-2 gap-4">
                 <PhoneInput
                   countryCode={bookingForm.countryCode}
                   phoneNumber={bookingForm.mobileNumber}
-                  onCountryChange={(v) => updateBookingForm('countryCode', v)}
-                  onPhoneChange={(v) => updateBookingForm('mobileNumber', v)}
+                  onCountryChange={(v) => updateBookingForm("countryCode", v)}
+                  onPhoneChange={(v) => updateBookingForm("mobileNumber", v)}
                 />
 
                 <InputField
@@ -256,7 +534,7 @@ const TravelokaBookingPage: React.FC = () => {
                   type="email"
                   placeholder="e.g. email@example.com"
                   value={bookingForm.email}
-                  onChange={(v) => updateBookingForm('email', v)}
+                  onChange={(v) => updateBookingForm("email", v)}
                   required
                 />
               </div>
@@ -264,36 +542,42 @@ const TravelokaBookingPage: React.FC = () => {
               <div className="mt-4">
                 <Checkbox
                   checked={bookingForm.bookingForMyself}
-                  onChange={(v) => updateBookingForm('bookingForMyself', v)}
-                  label="I'm booking for myself"
+                  onChange={(v) => updateBookingForm("bookingForMyself", v)}
+                  label="Đặt phòng cho chính tôi"
                 />
               </div>
             </Section>
 
-            {/* Guest Detail */}
-            <Section icon={<User size={20} />} title="Guest Detail">
+            {/* Guest Detail (Đã pre-fill bằng logic "useEffect") */}
+
+            <Section icon={<User size={20} />} title="Thông tin chi tiết khách hàng">
               <p className="text-sm text-gray-600 mb-4">
-                Fill in all columns correctly to receive order confirmation
+                Điền thông tin đầy đủ để nhận đơn hàng chính xác nhất
               </p>
 
               <InputField
-                label="Full Name"
+                label="Họ và tên"
                 placeholder=""
                 value={guestForm.fullName}
                 onChange={(v) => setGuestForm({ fullName: v })}
                 required
-                helper="Vietnamese users: enter Middle Name + First Name + Last Name. Others: First Name + Last Name."
+                helper="VD:Hà Công Hậu"
               />
             </Section>
 
-            {/* Special Request */}
+            {/* Special Request (Giữ nguyên) */}
+
             <Section icon={<AlertCircle size={20} />} title="Special Request">
+              {/* ... (Code special request của bro) ... */}
+
               <p className="text-sm text-gray-600 mb-4">
-                All special requests are subject to availability and thus are not guaranteed. Early check-in or Airport Transfer may incur additional charges. Please contact hotel staff directly for further information.
+                Tất cả các yêu cầu đặc biệt đều phụ thuộc vào tình trạng sẵn có và do đó không được đảm bảo.
+                Việc nhận phòng sớm hoặc đưa đón sân bay có thể phát sinh phụ phí.
+                Vui lòng liên hệ trực tiếp với nhân viên khách sạn để biết thêm thông tin chi tiết
               </p>
 
               <div className="grid md:grid-cols-3 gap-4">
-                {specialRequests.map(request => (
+                {specialRequests.map((request) => (
                   <Checkbox
                     key={request.id}
                     checked={request.checked}
@@ -304,17 +588,22 @@ const TravelokaBookingPage: React.FC = () => {
               </div>
 
               <button className="text-sky-600 hover:text-sky-700 font-semibold mt-3 text-sm">
-                Read All
+               Đọc thêm
               </button>
             </Section>
-
-            
           </div>
 
-          {/* Right Column - Room Summary */}
+          {/* Right Column - Room Summary (Data thật) */}
+
           <div className="lg:col-span-1">
-            <HotelSummaryCard hotel={hotelDetails} guest={guestDetails} />          
-            <PriceDetailsSection/>
+            <HotelSummaryCard
+              hotel={hotelDetailsProps}
+              guest={guestDetailsProps}
+            />
+
+            <PriceDetailsSection
+              price={priceDetailsProps.totalPrice} // <-- Pass prop vào
+            />
           </div>
         </div>
       </div>
