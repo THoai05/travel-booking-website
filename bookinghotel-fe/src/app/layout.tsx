@@ -5,7 +5,6 @@ import 'primereact/resources/themes/lara-light-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import { AuthProvider } from "@/context/AuthContext";
-import {Toaster} from 'react-hot-toast'
 
 export const metadata: Metadata = {
   title: "Bluvera",
@@ -40,7 +39,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
       <AuthProvider>
         <main>
-           <Toaster position="top-right" reverseOrder={false} />
           {children}
         </main>
         </AuthProvider>
