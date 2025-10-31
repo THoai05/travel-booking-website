@@ -64,6 +64,7 @@ export default function RoomMonitorPage() {
       setApiType("all");
       setParam(undefined);
       setShowAll("all");
+      setUserId(null);
     };
     fetchUserId();
   }, []);
@@ -78,7 +79,19 @@ export default function RoomMonitorPage() {
         const res = await api.get(url);
         setRooms(res.data);
       } catch (error) {
-        console.error("❌ Lỗi khi tải danh sách phòng:", error);
+
+        let url = "/rooms/roomAvailabilityMonitor"; // default all
+        const res = await api.get(url);
+        setRooms(res.data);
+
+        // fallback all
+        setApiType("all");
+        setParam(undefined);
+        setShowAll("all");
+        setUserId(null);
+
+        toast("❌ Lỗi khi tải danh sách phòng!", { icon: "⚠️" });
+        //console.error("❌ Lỗi khi tải danh sách phòng:", error);
       }
     };
     fetchRooms();
@@ -361,33 +374,53 @@ export default function RoomMonitorPage() {
         </button>
       </div>
 
-
-
-      {/* Hover Popups */}
       {hoveredRoomDetail && (
         <div className="fixed top-20 right-10 p-4 bg-white border rounded shadow-lg w-64 z-50">
-          <h3 className="font-bold">Room Number: {hoveredRoomDetail.roomNumber}</h3>
-          <p>Type: {hoveredRoomDetail.roomType}</p>
-          <p>Status: {hoveredRoomDetail.status}</p>
-          <p>Price: {formatVND(hoveredRoomDetail.pricePerNight)}</p>
-          <p>Description: {hoveredRoomDetail.description}</p>
-          <p>Floor Number: {hoveredRoomDetail.floorNumber}</p>
-          <p>Max Guests: {hoveredRoomDetail.maxGuests}</p>
-          <p>Cancellation Policy: {hoveredRoomDetail.cancellationPolicy}</p>
-          <p>Created At: {formatDateUTC(hoveredRoomDetail.createdAt)}</p>
-          <p>Updated At: {formatDateUTC(hoveredRoomDetail.updatedAt)}</p>
+          <h3 className="font-bold flex items-start gap-2">
+            🛏 <span className="leading-tight">Room Number: {hoveredRoomDetail.roomNumber}</span>
+          </h3>
+          <p className="flex items-start gap-2">
+            🏷 <span className="leading-tight">Type: {hoveredRoomDetail.roomType}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            ✅ <span className="leading-tight">Status: {hoveredRoomDetail.status}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            💰 <span className="leading-tight">Price: {formatVND(hoveredRoomDetail.pricePerNight)}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            📝 <span className="leading-tight">Description: {hoveredRoomDetail.description}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            🏢 <span className="leading-tight">Floor: {hoveredRoomDetail.floorNumber}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            👥 <span className="leading-tight">Max Guests: {hoveredRoomDetail.maxGuests}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            ⏱ <span className="leading-tight">Created: {formatDateUTC(hoveredRoomDetail.createdAt)}</span>
+          </p>
         </div>
       )}
 
+
       {hoveredHotelDetail && (
         <div className="fixed top-20 left-10 p-4 bg-white border rounded shadow-lg w-64 z-50">
-          <h3 className="font-bold">Name: {hoveredHotelDetail.name}</h3>
-          <p>Address: {hoveredHotelDetail.address}, Country: {hoveredHotelDetail.country}</p>
-          <p>Phone: {hoveredHotelDetail.phone}</p>
-          <p>Description: {hoveredHotelDetail.description}</p>
-          <p>Avg price: {formatVND(hoveredHotelDetail.avgPrice)}</p>
-          <p>Created At: {formatDateUTC(hoveredHotelDetail.createdAt)}</p>
-          <p>Updated At: {formatDateUTC(hoveredHotelDetail.updatedAt)}</p>
+          <h3 className="font-bold flex items-start gap-2">
+            📌 <span className="leading-tight">Hotel: {hoveredHotelDetail.name}</span>
+          </h3>
+          <p className="flex items-start gap-2">
+            🏠 <span className="leading-tight">Address: {hoveredHotelDetail.address}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            📞 <span className="leading-tight">Phone: {hoveredHotelDetail.phone}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            ℹ️ <span className="leading-tight">Description: {hoveredHotelDetail.description}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            💰 <span className="leading-tight">Avg Price: {formatVND(hoveredHotelDetail.avgPrice)}</span>
+          </p>
         </div>
       )}
     </div>
