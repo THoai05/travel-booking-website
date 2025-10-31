@@ -5,6 +5,7 @@ import 'primereact/resources/themes/lara-light-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import { AppProviders } from './Providers'; // <-- dùng file client mới
+import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
   title: "Bluvera",
