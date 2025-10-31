@@ -1,0 +1,531 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import api from "@/axios/axios";
+import { toast } from "react-hot-toast";
+
+interface Room {
+  id: number;
+  hotelName: string;
+  hotel_id: number;
+  roomNumber: string;
+  roomType: string;
+  status: "available" | "booked" | "maintenance";
+  bookingId?: number;
+  bookingStatus?: string;
+  checkInDate?: string;
+  checkOutDate?: string;
+  guestsCount?: number;
+  roomTypeId?: number;
+  roomTypeName: string;
+  totalPrice?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface HotelGroup {
+  hotelName: string;
+  rooms: Room[];
+  bookingId?: number;
+  bookingStatus?: string;
+  checkInDate?: string;
+  checkOutDate?: string;
+  guestsCount?: number;
+  totalPrice?: number;
+}
+
+enum BookingStatus {
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  COMPLETED = 'completed',
+  EXPIRED = 'expired',
+}
+
+export default function RoomMonitorPage() {
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [userId, setUserId] = useState<number | null>(null);
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+
+  // Sorting
+  const [sortKey, setSortKey] = useState<"roomNumber" | "roomType" | "createdAt" | "updatedAt" | "checkInDate" | "checkOutDate" | "hotelName" | "hotel_id" | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const groupsPerPage = 6;
+
+  // Hover
+  const [hoveredRoomDetail, setHoveredRoomDetail] = useState<any>(null);
+  const [hoveredHotelDetail, setHoveredHotelDetail] = useState<any>(null);
+  const [hoveredBookingDetail, setHoveredBookingDetail] = useState<any>(null);
+
+  const [hoveredRoomTypeDetail, setHoveredRoomTypeDetail] = useState<any>(null);
+  const roomTypeDetailCache = useRef<Map<number, any>>(new Map());
+
+  const roomDetailCache = useRef<Map<number, any>>(new Map());
+  const hotelDetailCache = useRef<Map<number, any>>(new Map());
+
+  // Fetch user
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const res = await api.get("auth/profile");
+        if (res.data?.id) setUserId(res.data.id);
+        else toast.error("Không tìm thấy thông tin người dùng!");
+      } catch {
+        toast.error("Không thể lấy thông tin người dùng!");
+      }
+    };
+    fetchUserId();
+  }, []);
+
+  // Fetch rooms
+  useEffect(() => {
+    if (!userId) return;
+    const fetchRooms = async () => {
+      try {
+        const res = await api.get(`/rooms/getBooking/byUser/${userId}`);
+        setRooms(res.data);
+      } catch {
+        toast.error("❌ Lỗi khi tải danh sách phòng!");
+      }
+    };
+    fetchRooms();
+    const interval = setInterval(fetchRooms, 3000);
+    return () => clearInterval(interval);
+  }, [userId]);
+
+  const removeVietnameseAccents = (str: string) =>
+    str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D");
+
+  // Filter + search
+  const filteredRooms = rooms
+    .filter(r => !statusFilter || r.bookingStatus === statusFilter)
+    .filter(r => {
+      const hotelName = removeVietnameseAccents(r.hotelName.toLowerCase());
+      const roomNumber = removeVietnameseAccents(r.roomNumber.toLowerCase());
+      const searchTerm = removeVietnameseAccents(search.toLowerCase());
+      return hotelName.includes(searchTerm) || roomNumber.includes(searchTerm);
+    });
+
+  // Group rooms
+  let grouped: HotelGroup[] = Object.values(
+    filteredRooms.reduce((acc: { [key: string]: HotelGroup }, room) => {
+      const key = room.bookingId ?? `noBooking-${room.id}`;
+      if (!acc[key]) {
+        acc[key] = {
+          hotelName: room.hotelName,
+          rooms: [],
+          bookingId: room.bookingId,
+          bookingStatus: room.bookingStatus,
+          checkInDate: room.checkInDate,
+          checkOutDate: room.checkOutDate,
+          guestsCount: room.guestsCount,
+          totalPrice: room.totalPrice,
+        };
+      }
+      acc[key].rooms.push(room);
+      return acc;
+    }, {})
+  );
+
+  // Sort rooms in group
+  grouped.forEach(group => {
+    group.rooms.sort((a, b) => {
+      if (!sortKey) return 0;
+      const order = sortOrder === "asc" ? 1 : -1;
+      switch (sortKey) {
+        case "roomNumber":
+          return order * a.roomNumber.localeCompare(b.roomNumber);
+        case "roomType":
+          return order * a.roomType.localeCompare(b.roomType);
+        case "createdAt":
+          return order * ((new Date(a.createdAt ?? 0)).getTime() - (new Date(b.createdAt ?? 0)).getTime());
+        case "updatedAt":
+          return order * ((new Date(a.updatedAt ?? 0)).getTime() - (new Date(b.updatedAt ?? 0)).getTime());
+        default:
+          return 0;
+      }
+    });
+  });
+
+  // Sort groups
+  grouped.sort((a, b) => {
+    if (!sortKey) return 0;
+    const order = sortOrder === "asc" ? 1 : -1;
+    switch (sortKey) {
+      case "hotelName":
+        return order * a.hotelName.localeCompare(b.hotelName);
+      case "checkInDate":
+        return order * ((new Date(a.checkInDate ?? 0)).getTime() - (new Date(b.checkInDate ?? 0)).getTime());
+      case "checkOutDate":
+        return order * ((new Date(a.checkOutDate ?? 0)).getTime() - (new Date(b.checkOutDate ?? 0)).getTime());
+      default:
+        return 0;
+    }
+  });
+
+  // Pagination
+  const totalPages = Math.ceil(grouped.length / groupsPerPage);
+  const indexOfLastGroup = currentPage * groupsPerPage;
+  const indexOfFirstGroup = indexOfLastGroup - groupsPerPage;
+  const currentGroups = grouped.slice(indexOfFirstGroup, indexOfLastGroup);
+
+  // Hover handlers
+  const handleRoomHover = async (roomId: number) => {
+    if (roomDetailCache.current.has(roomId)) return setHoveredRoomDetail(roomDetailCache.current.get(roomId));
+    try {
+      const res = await api.get(`/rooms/roomDetail/${roomId}`);
+      roomDetailCache.current.set(roomId, res.data);
+      setHoveredRoomDetail(res.data);
+    } catch { }
+  };
+
+  const handleHotelHover = async (hotelId: number) => {
+    if (hotelDetailCache.current.has(hotelId)) return setHoveredHotelDetail(hotelDetailCache.current.get(hotelId));
+    try {
+      const res = await api.get(`/rooms/hotelDetail/${hotelId}`);
+      hotelDetailCache.current.set(hotelId, res.data);
+      setHoveredHotelDetail(res.data);
+    } catch { }
+  };
+
+  const handleBookingHover = async (bookingId?: number) => {
+    if (!bookingId) return;
+    try {
+      const res = await api.get(`/rooms/bookingDetail/${bookingId}`);
+      setHoveredBookingDetail(res.data);
+    } catch { }
+  };
+
+  const handleRoomTypeHover = async (roomTypeId?: number) => {
+    if (!roomTypeId) return;
+
+    if (roomTypeDetailCache.current.has(roomTypeId)) {
+      setHoveredRoomTypeDetail(roomTypeDetailCache.current.get(roomTypeId));
+      return;
+    }
+
+    try {
+      const res = await api.get(`/rooms/roomTypeDetail/${roomTypeId}`);
+      roomTypeDetailCache.current.set(roomTypeId, res.data);
+      setHoveredRoomTypeDetail(res.data);
+    } catch (err) {
+      console.error("Không lấy được chi tiết Room Type", err);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "available": return "bg-green-100 text-green-700";
+      case "booked": return "bg-yellow-100 text-yellow-700";
+      case "maintenance": return "bg-red-100 text-red-700";
+      default: return "";
+    }
+  };
+
+  const formatDateExact = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr.replace(" ", "T"));
+    return d.toLocaleString("vi-VN", { year: "numeric", month: "2-digit", day: "2-digit" });
+  };
+
+  const formatVND = (amount: number | string) => {
+    const num = typeof amount === "string" ? parseFloat(amount) : amount;
+    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(num);
+  };
+
+  const getPaginationNumbers = () => {
+    const pageNumbers: (number | string)[] = [];
+    const maxPageButtons = 5;
+    if (totalPages <= maxPageButtons) {
+      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+    } else {
+      pageNumbers.push(1);
+      let start = Math.max(currentPage - 1, 2);
+      let end = Math.min(currentPage + 1, totalPages - 1);
+      if (start > 2) pageNumbers.push("...");
+      for (let i = start; i <= end; i++) pageNumbers.push(i);
+      if (end < totalPages - 1) pageNumbers.push("...");
+      pageNumbers.push(totalPages);
+    }
+    return pageNumbers;
+  };
+
+
+  const formatDateUTC = (dateStr?: string) => {
+    if (!dateStr) return "-"; const d = new Date(dateStr); return d.toLocaleString("vi-VN", { timeZone: "UTC", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", });
+  };
+  // Render
+  return (
+    <div className="p-6 relative" onClick={() => toast.dismiss()}>
+      <div className="pt-12 relative">
+        <h1 className="text-2xl font-bold mb-1">🏨 Lịch sử đặt phòng của tôi</h1>
+      </div>
+
+      {/* Search + Sort */}
+      <div className="flex flex-col md:flex-row gap-4 mb-4">
+        <input
+          type="text"
+          placeholder="Tìm theo tên khách sạn hoặc số phòng..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="border p-2 rounded w-full md:w-1/3"
+        />
+        <select
+          value={sortKey || ""}
+          onChange={e => setSortKey(e.target.value as any || null)}
+          className="border p-2 rounded w-full md:w-1/4"
+        >
+          <option value="">Sắp xếp theo</option>
+          <option value="roomNumber">Số phòng</option>
+          <option value="roomType">Loại phòng</option>
+          {/* <option value="createdAt">Ngày tạo</option> */}
+          {/* <option value="updatedAt">Ngày cập nhật</option> */}
+          <option value="checkInDate">Ngày nhận phòng</option>
+          <option value="checkOutDate">Ngày trả phòng</option>
+          <option value="hotelName">Tên khách sạn</option>
+          {/* <option value="hotel_id">ID khách sạn</option> */}
+        </select>
+        {sortKey && (
+          <button
+            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+            className="border p-2 rounded bg-gray-200"
+          >
+            Thứ tự: {sortOrder.toUpperCase()}
+          </button>
+        )}
+      </div>
+
+      {/* Filter */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <button
+          onClick={() => setStatusFilter(null)}
+          className={`px-4 py-2 rounded ${statusFilter === null ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+        >
+          All
+        </button>
+        {Object.values(BookingStatus).map(status => (
+          <button
+            key={status}
+            onClick={() => setStatusFilter(statusFilter === status ? null : status)}
+            className={`px-4 py-2 rounded ${statusFilter === status ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+          >
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {/* Room groups */}
+      {currentGroups.length === 0 ? (
+        <p>Không có phòng nào được đặt.</p>
+      ) : currentGroups.map(group => (
+        <div key={group.hotelName} className="mb-6 border rounded-xl p-4 shadow bg-white">
+          <div
+            onMouseEnter={() => handleHotelHover(group.rooms[0].hotel_id)}
+            onMouseLeave={() => setHoveredHotelDetail(null)}
+            className="font-bold text-lg mb-2 cursor-pointer hover:text-blue-600"
+          >
+            <p className="flex items-start gap-2">
+              ⏰ <span className="leading-tight">{group.hotelName}</span>
+            </p>
+          </div>
+
+          <div
+            className="border rounded p-2 flex flex-wrap justify-between items-start gap-y-2 gap-x-4 cursor-pointer hover:scale-105 hover:shadow-lg hover:bg-blue-50 transition duration-200 mb-2"
+            onMouseEnter={() => handleBookingHover(group.bookingId)}
+            onMouseLeave={() => setHoveredBookingDetail(null)}
+          >
+            <p className="flex items-start gap-2 min-w-[150px]">
+              ✅ <span className="leading-tight">Trạng thái đặt phòng: {group.bookingStatus}</span>
+            </p>
+            <p className="flex items-start gap-2 min-w-[150px]">
+              🗓️ <span className="leading-tight">Ngày nhận phòng: {formatDateExact(group.checkInDate)}</span>
+            </p>
+            <p className="flex items-start gap-2 min-w-[150px]">
+              🗓️ <span className="leading-tight">Ngày trả phòng: {formatDateExact(group.checkOutDate)}</span>
+            </p>
+            <p className="flex items-start gap-2 min-w-[150px]">
+              👥 <span className="leading-tight">Khách tối đa: {group.guestsCount} khách</span>
+            </p>
+            <p className="flex items-start gap-2 min-w-[150px]">
+              💰 <span className="leading-tight">{formatVND(group.totalPrice || 0)}</span>
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {group.rooms.map(room => (
+              <div
+                key={room.id}
+                className="border rounded-xl p-4 flex flex-col md:flex-row justify-between items-start gap-4
+                  bg-white shadow hover:shadow-lg transition-transform duration-200 hover:-translate-y-1"
+                onMouseEnter={() => {
+                  handleRoomHover(room.id);        // popup Room
+                  handleRoomTypeHover(room.roomTypeId); // popup Room Type
+                }}
+                onMouseLeave={() => {
+                  setHoveredRoomDetail(null);
+                  setHoveredRoomTypeDetail(null);
+                }}
+              >
+                {/* Thông tin chính */}
+                <div className="flex flex-col gap-2">
+                  <h3 className="font-semibold text-lg text-gray-800">Room {room.roomNumber}</h3>
+                  <p className="text-gray-600">Type: {room.roomType}</p>
+                  <p className="text-gray-600">Room Type ID: {room.roomTypeId}</p>
+                  <p className="text-gray-600">Room Type Name: {room.roomTypeName}</p>
+                </div>
+
+                {/* Trạng thái */}
+                <div className="mt-2 md:mt-0 flex items-center gap-2">
+                  <span
+                    className={`px-3 py-1 rounded-full font-medium text-sm ${getStatusColor(room.status)}`}
+                  >
+                    {room.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      ))}
+
+      {/* Pagination */}
+      <div className="flex flex-wrap justify-center gap-2 mt-4">
+        <button
+          onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+          disabled={currentPage === 1}
+          className="px-3 py-1 border rounded bg-gray-200 disabled:opacity-50"
+        >
+          Previous
+        </button>
+        {getPaginationNumbers().map((num, idx) => (
+          <button
+            key={idx}
+            onClick={() => typeof num === "number" && setCurrentPage(num)}
+            disabled={num === "..."}
+            className={`px-3 py-1 border rounded ${num === currentPage ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+          >
+            {num}
+          </button>
+        ))}
+        <button
+          onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 border rounded bg-gray-200 disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+
+      {hoveredRoomDetail && (
+        <div className="fixed top-20 right-10 p-4 bg-white border rounded shadow-lg w-64 z-50">
+          <h3 className="font-bold flex items-start gap-2">
+            🛏 <span className="leading-tight">Room Number: {hoveredRoomDetail.roomNumber}</span>
+          </h3>
+          <p className="flex items-start gap-2">
+            🏷 <span className="leading-tight">Type: {hoveredRoomDetail.roomType}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            ✅ <span className="leading-tight">Status: {hoveredRoomDetail.status}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            💰 <span className="leading-tight">Price: {formatVND(hoveredRoomDetail.pricePerNight)}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            📝 <span className="leading-tight">Description: {hoveredRoomDetail.description}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            🏢 <span className="leading-tight">Floor: {hoveredRoomDetail.floorNumber}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            👥 <span className="leading-tight">Max Guests: {hoveredRoomDetail.maxGuests}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            ⏱ <span className="leading-tight">Created: {formatDateUTC(hoveredRoomDetail.createdAt)}</span>
+          </p>
+        </div>
+      )}
+
+
+      {hoveredHotelDetail && (
+        <div className="fixed top-20 left-10 p-4 bg-white border rounded shadow-lg w-64 z-50">
+          <h3 className="font-bold flex items-start gap-2">
+            📌 <span className="leading-tight">Hotel: {hoveredHotelDetail.name}</span>
+          </h3>
+          <p className="flex items-start gap-2">
+            🏠 <span className="leading-tight">Address: {hoveredHotelDetail.address}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            📞 <span className="leading-tight">Phone: {hoveredHotelDetail.phone}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            ℹ️ <span className="leading-tight">Description: {hoveredHotelDetail.description}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            💰 <span className="leading-tight">Avg Price: {formatVND(hoveredHotelDetail.avgPrice)}</span>
+          </p>
+        </div>
+      )}
+
+      {hoveredBookingDetail && (
+        <div className="fixed top-20 right-10 p-4 bg-white border rounded shadow-lg w-64 z-50">
+          <h3 className="font-bold flex items-start gap-2">
+            🧑 <span className="leading-tight">Guest: {hoveredBookingDetail.guestFullName}</span>
+          </h3>
+          <p className="flex items-start gap-2">
+            📝 <span className="leading-tight">Contact: {hoveredBookingDetail.contactFullName}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            📧 <span className="leading-tight">Email: {hoveredBookingDetail.contactEmail}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            📞 <span className="leading-tight">Phone: {hoveredBookingDetail.contactPhone}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            👥 <span className="leading-tight">Guests Count: {hoveredBookingDetail.guestsCount || "-"}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            🗓️ <span className="leading-tight">Check-in: {formatDateExact(hoveredBookingDetail.checkInDate)}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            🗓️ <span className="leading-tight">Check-out: {formatDateExact(hoveredBookingDetail.checkOutDate)}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            ✅ <span className="leading-tight">Status: {hoveredBookingDetail.status}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            💰 <span className="leading-tight">Price: {formatVND(hoveredBookingDetail.totalPrice)}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            📋 <span className="leading-tight">Special Requests: {hoveredBookingDetail.specialRequests || "-"}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            ❌ <span className="leading-tight">Cancellation Reason: {hoveredBookingDetail.cancellationReason || "-"}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            ⏱️ <span className="leading-tight">Created At: {formatDateUTC(hoveredBookingDetail.createdAt) || "-"}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            ⏱️ <span className="leading-tight">Updated At: {formatDateUTC(hoveredBookingDetail.updatedAt) || "-"}</span>
+          </p>
+        </div>
+      )}
+
+      {hoveredRoomTypeDetail && (
+        <div className="fixed top-20 left-10 p-4 bg-white border rounded shadow-lg w-72 z-50">
+          <h3 className="font-bold text-lg mb-2">🏨 Room Type: {hoveredRoomTypeDetail.name}</h3>
+          <p>📝 Description: {hoveredRoomTypeDetail.description}</p>
+          <p>👥 Max Guests: {hoveredRoomTypeDetail.max_guests}</p>
+          <p>📦 Total Inventory: {hoveredRoomTypeDetail.total_inventory}</p>
+          <p>📐 Area: {hoveredRoomTypeDetail.area}</p>
+          <p>🛏 Bed Type: {hoveredRoomTypeDetail.bed_type}</p>
+        </div>
+      )}
+
+    </div>
+  );
+}
