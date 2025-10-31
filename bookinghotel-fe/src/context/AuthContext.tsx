@@ -10,7 +10,7 @@ interface UserInfo {
   username:string
   email: string;
   phone: string;
-  roleId: number 
+  role: string 
 }
 
 interface AuthContextType {
