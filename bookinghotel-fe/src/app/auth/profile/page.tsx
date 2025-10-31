@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // ✅ thêm dòng này
 import api from "@/axios/axios";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+
 
 interface User {
   id: number;
@@ -30,43 +30,79 @@ interface UpdateUserForm {
 }
 
 export default function ProfilePage() {
+  const [user, setUser] = useState<User | null>(null);
   const [form, setForm] = useState<UpdateUserForm>({});
   const [userId, setUserId] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [error, setError] = useState("");
-  const router = useRouter();
-  // =================== Sử dụng toLocaleDateString với UTC ===================
+  const router = useRouter(); // ✅ khởi tạo router
+
+
+  // =================== sử dụng toLocaleDateString với UTC ===================
   const formatDateUTC = (dateStr?: string) => {
     if (!dateStr) return "-";
     const d = new Date(dateStr);
     return d.toLocaleDateString("vi-VN", { timeZone: "UTC" });
   };
 
-  const { user, setUser } = useAuth();
-  console.log(user)
   // =================== LẤY THÔNG TIN NGƯỜI DÙNG VỚI POLLING ===================
   useEffect(() => {
+    let interval: NodeJS.Timer;
+
     const fetchProfileAndUser = async () => {
       try {
+
         const response = await api.get("auth/profile");
+        let storedId = null;
+
         if (response.status !== 304) {
           const profileData = response.data;
-          setUser(profileData);
+          storedId = profileData.id;
         }
-        setForm({
-          fullName: user.fullName,
-          email: user.email,
-          phone: user.phone,
-          dob: user.dob,
-          gender: user.gender,
-        });
+
+        if (!storedId) return;
+
+        const userId = Number(storedId);
+        setUserId(userId);
+
+        const res = await api.get(`/users/${userId}`);
+        const data = res.data.user || res.data;
+
+        // Nếu dữ liệu mới khác dữ liệu cũ thì cập nhật
+        if (JSON.stringify(data) !== JSON.stringify(user)) {
+          setUser(data);
+          setForm({
+            fullName: data.fullName,
+            email: data.email,
+            phone: data.phone,
+            dob: data.dob,
+            gender: data.gender,
+          });
+        }
       } catch (err: any) {
-        console.error(err);
+        //console.error(err); //hiển thị lỗi không tìm thấy người dùng hoặc Có lỗi xảy ra khi tải thông tin người dùng
+
+        // ✅ Nếu server trả về 404 -> chuyển hướng về /admin/user
+        const message =
+          err.response?.data?.message ||
+          err.message ||
+          "Có lỗi xảy ra khi tải thông tin người dùng";
+
+        if (
+          message === "Người dùng không tồn tại" ||
+          err.response?.status === 404
+        ) {
+          router.replace("/admin/user");
+        }
       }
     };
-    fetchProfileAndUser(); // lần đầu load // polling mỗi 3s
-  }, []);
+
+    fetchProfileAndUser(); // lần đầu load
+    interval = setInterval(fetchProfileAndUser, 3000); // polling mỗi 3s
+
+    return () => clearInterval(interval);
+  }, [user, router]);
 
   // =================== XỬ LÝ INPUT ===================
   const handleChange = (
@@ -151,14 +187,7 @@ export default function ProfilePage() {
         const age =
           today.getFullYear() -
           birthDate.getFullYear() -
-          (today <
-          new Date(
-            today.getFullYear(),
-            birthDate.getMonth(),
-            birthDate.getDate()
-          )
-            ? 1
-            : 0);
+          (today < new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate()) ? 1 : 0);
 
         if (age < 16) {
           setError("Bạn phải đủ 16 tuổi trở lên.");
@@ -182,7 +211,9 @@ export default function ProfilePage() {
   };
 
   // =================== UPLOAD AVATAR ===================
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     if (!e.target.files?.[0]) return;
     const file = e.target.files[0];
 
@@ -213,17 +244,11 @@ export default function ProfilePage() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    router.push("/client"); // hoặc "/"
-  };
-
-  //if (!localStorage.getItem("token")) return <p>Không tìm thấy token...</p>;
   if (!user) return <p>Đang tải...</p>;
 
   return (
-    <div className="relative flex flex-col md:grid md:grid-cols-2 gap-6 p-4 md:p-8 bg-gray-50 min-h-screen">
-      {/* --- CỘT TRÁI --- */}
+    <div className="relative flex flex-col md:grid md:grid-cols-2 gap-6 p-4 md:p-8 bg-gray-50 min-h-screen mt-20 md:mt-10">
+      {/* ========== giữ nguyên toàn bộ phần UI ========== */}
       <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-gradient-to-b from-blue-400 to-blue-200 shadow-md">
         <img
           src={user.avatar || "https://via.placeholder.com/150"}
@@ -255,7 +280,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* --- CỘT PHẢI --- */}
       <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
         <h2 className="text-xl font-semibold mb-4 text-center md:text-left text-gray-800">
           Thông tin cá nhân
@@ -301,7 +325,6 @@ export default function ProfilePage() {
           onChange={handleChange}
         />
 
-        {/* Giới tính */}
         <div className="mb-4">
           <label className="block mb-1 font-medium text-gray-700">
             Giới tính
@@ -340,17 +363,9 @@ export default function ProfilePage() {
           >
             Hủy thay đổi
           </button>
-
-          <button
-            onClick={handleLogout}
-            className="bg-gray-300 px-4 py-2 rounded-lg hover:bg-gray-400 transition text-gray-800 font-medium"
-          >
-            Đăng xuất
-          </button>
         </div>
       </div>
 
-      {/* Loading overlay */}
       {loading && (
         <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-2xl">
           <div className="flex flex-col items-center">
@@ -398,9 +413,8 @@ function FormField({
         value={value}
         disabled={disabled}
         onChange={onChange}
-        className={`border rounded w-full p-2 ${
-          disabled ? "bg-gray-100 cursor-not-allowed" : ""
-        } ${className}`}
+        className={`border rounded w-full p-2 ${disabled ? "bg-gray-100 cursor-not-allowed" : ""
+          } ${className}`}
       />
     </div>
   );
