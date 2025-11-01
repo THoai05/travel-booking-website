@@ -22,8 +22,8 @@ export class CreatePostDto {
   is_public?: boolean;
 
   @IsString()
-  @IsNotEmpty()
-  slug: string;
+  @IsOptional()
+  slug?: string;
 
   @IsOptional()
   @IsNumber()

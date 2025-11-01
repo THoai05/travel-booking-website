@@ -1,7 +1,6 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit'
-import searchReducer from './features/searchSlice' // <-- 1. Import reducer mới
+import searchReducer from './features/searchSlice'
 
-// --- 2. Import redux-persist ---
 import {
   persistStore,
   persistReducer,
@@ -13,12 +12,12 @@ import {
   REGISTER,
 } from 'redux-persist'
 import storage from 'redux-persist/lib/storage' // <-- Mặc định là localStorage
+import blogReducer from './features/blog/blogSlice'
 
-// --- 3. Tạo root reducer ---
-// Gom tất cả reducer lại
+// --- Tạo root reducer ---
 const rootReducer = combineReducers({
   search: searchReducer,
-  // ... sau này có authReducer, bookingReducer thì thêm vào đây
+  blogs: blogReducer,
 })
 
 // --- 4. Cấu hình persist ---
@@ -47,7 +46,5 @@ export const store = configureStore({
 
 // --- 7. Export persistor ---
 export const persistor = persistStore(store)
-
-// Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>
 export type AppDispatch = typeof store.dispatch
