@@ -12,6 +12,7 @@ import { CommentsModule } from './managements/comments/comments.module';
 import { ResetPasswordModule } from './managements/reset_Password/modules/reset_password.module';
 import { FaqModule } from './managements/faq/faq.module';
 import { ContactModule } from './managements/contact/module/contact.module';
+import { NotificationsModule } from './managements/notifications/modules/notifications.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ContactModule } from './managements/contact/module/contact.module';
     ResetPasswordModule,
     FaqModule,
     ContactModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
