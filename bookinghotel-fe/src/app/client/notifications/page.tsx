@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import api from "@/axios/axios";
 import { toast } from "react-hot-toast";
-import { FiTrash2, FiRefreshCw, FiUserCheck } from "react-icons/fi";
+import { FiTrash2, FiRefreshCw, FiUserCheck, FiHome, FiCreditCard, FiGift } from "react-icons/fi";
 
 interface Notification {
     id: number;
@@ -20,7 +20,10 @@ export default function NotificationsPage() {
     const [loading, setLoading] = useState(false);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-    // Mở modal chi tiết
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+
+
+    // Modal chi tiết
     const [detailId, setDetailId] = useState<number | null>(null);
     const [detailData, setDetailData] = useState<Notification | null>(null);
     const [detailLoading, setDetailLoading] = useState(false);
@@ -28,7 +31,10 @@ export default function NotificationsPage() {
     // Phân trang
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
-    const totalPages = Math.ceil(notifications.length / itemsPerPage);
+
+    // Tìm kiếm & lọc
+    const [searchTitle, setSearchTitle] = useState("");
+    const [filterType, setFilterType] = useState("");
 
     // 🔹 Lấy userId
     useEffect(() => {
@@ -97,16 +103,23 @@ export default function NotificationsPage() {
         }
     };
 
-    // 🔹 Lấy danh sách thông báo theo trang
-    const paginatedNotifications = notifications.slice(
+    // 🔹 Filter & pagination
+    const filteredNotifications = notifications
+        .filter(
+            (n) =>
+                n.title.toLowerCase().includes(searchTitle.toLowerCase()) &&
+                (filterType === "" || n.type === filterType)
+        );
+
+    const totalPages = Math.ceil(filteredNotifications.length / itemsPerPage);
+
+    const paginatedNotifications = filteredNotifications.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
 
-    // 🔹 Tạo danh sách số trang kiểu “…” truncated
     const getPaginationNumbers = () => {
         const pages: (number | string)[] = [];
-        const totalNumbers = 4; // số trang trung tâm muốn hiển thị
         const total = totalPages;
 
         if (total <= 6) {
@@ -133,7 +146,6 @@ export default function NotificationsPage() {
             const res = await api.get(`/notifications/${id}`);
             setDetailData(res.data);
 
-            // Tự động đánh dấu đã đọc
             if (!res.data.isRead) {
                 await api.patch(`/notifications/${id}/read`);
                 setNotifications((prev) =>
@@ -149,37 +161,70 @@ export default function NotificationsPage() {
         }
     };
 
-    // 🔹 Đóng modal
     const closeDetail = () => {
         setDetailId(null);
         setDetailData(null);
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center bg-gray-50 p-6" onClick={() => toast.dismiss()}>
-            {/* Thanh tìm kiếm */}
-            <input
-                type="text"
-                placeholder="Tìm kiếm trong thư"
-                className="w-full max-w-2xl p-2 rounded border border-gray-300 mb-4 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
+        <div className="min-h-screen flex flex-col items-center bg-gray-50 p-4 sm:p-6" onClick={() => toast.dismiss()}>
+            {/* Tìm kiếm & lọc */}
+            <div className="w-full max-w-2xl flex flex-col gap-2 mb-4">
+                <input
+                    type="text"
+                    placeholder="Tìm kiếm theo tiêu đề..."
+                    value={searchTitle}
+                    onChange={(e) => setSearchTitle(e.target.value)}
+                    className="w-full p-2 rounded border border-gray-300 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+
+
+            </div>
+
+            <div className="relative w-full max-w-2xl mb-4">
+                <button
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    className="w-full p-2 bg-white border border-gray-300 rounded-[3px] text-left flex justify-between items-center shadow-sm hover:border-blue-400 focus:outline-none"
+                >
+                    {filterType ? filterType.charAt(0).toUpperCase() + filterType.slice(1) : "Tất cả loại"}
+                    <span className="ml-2">▾</span>
+                </button>
+
+                {dropdownOpen && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-[3px] shadow-lg">
+                        {["", "booking", "payment", "promotion"].map((type) => (
+                            <div
+                                key={type}
+                                onClick={() => {
+                                    setFilterType(type);
+                                    setDropdownOpen(false);
+                                }}
+                                className={`px-3 py-2 cursor-pointer hover:bg-blue-100 ${filterType === type ? "bg-blue-50 font-semibold" : ""
+                                    }`}
+                            >
+                                {type ? type.charAt(0).toUpperCase() + type.slice(1) : "Tất cả loại"}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
 
             {/* Hàng nút chức năng */}
-            <div className="flex gap-4 mb-6">
+            <div className="flex w-full gap-4 mb-6">
                 <button
                     onClick={loadNotifications}
                     disabled={loading}
-                    className="flex items-center gap-2 bg-white border border-gray-300 shadow px-4 py-2 rounded-lg hover:bg-gray-100 transition"
+                    className="flex-1 flex justify-center items-center gap-2 bg-white border border-gray-300 shadow px-4 py-2 rounded-[5px] hover:bg-gray-100 transition text-sm"
                 >
                     <FiRefreshCw className="text-xl" />
-                    {loading ? "Đang tải..." : "Load dữ liệu"}
+                    {loading ? "Đang tải..." : "Load data"}
                 </button>
 
                 <button
                     onClick={markSelectedAsRead}
                     disabled={selectedIds.length === 0}
-                    className={`flex items-center gap-2 border shadow px-4 py-2 rounded-lg transition
-                        ${selectedIds.length === 0
+                    className={`flex-1 flex justify-center items-center gap-2 border shadow px-4 py-2 rounded-[5px] transition text-sm
+      ${selectedIds.length === 0
                             ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
                             : "bg-white border-gray-300 hover:bg-gray-100 text-gray-700"
                         }`}
@@ -191,8 +236,8 @@ export default function NotificationsPage() {
                 <button
                     onClick={deleteSelected}
                     disabled={selectedIds.length === 0}
-                    className={`flex items-center gap-2 border shadow px-4 py-2 rounded-lg transition
-                        ${selectedIds.length === 0
+                    className={`flex-1 flex justify-center items-center gap-2 border shadow px-4 py-2 rounded-[5px] transition text-sm
+      ${selectedIds.length === 0
                             ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
                             : "bg-white border-gray-300 hover:bg-gray-100 text-red-500"
                         }`}
@@ -202,55 +247,65 @@ export default function NotificationsPage() {
                 </button>
             </div>
 
+
+
             {/* Danh sách thông báo */}
-            <div className="w-full max-w-2xl flex flex-col gap-4">
+            <div className="w-full max-w-2xl flex flex-col gap-3">
                 {paginatedNotifications.map((n) => (
                     <div
                         key={n.id}
-
-                        className={`p-4 rounded-xl border shadow-sm flex justify-between items-start transition cursor-pointer
-                        ${n.isRead ? "bg-white" : "bg-blue-50"}
-                        ${selectedIds.includes(n.id)
-                                ? "border-blue-500 ring-2 ring-blue-300"
-                                : "border-gray-200 hover:border-blue-400"
+                        className={`p-3 rounded-[5px] border border-gray-300 shadow-sm flex justify-between items-start transition cursor-pointer
+        ${n.isRead ? "bg-white" : "bg-blue-50"}
+        ${selectedIds.includes(n.id)
+                                ? "border-blue-500 ring-1 ring-blue-200"
+                                : "hover:border-blue-400"
                             }`}
                     >
-                        <div onClick={() => openDetail(n.id)}>
-                            <h3 className="text-lg font-semibold text-gray-800">
-                                {n.title || "Tiêu đề"}
-                            </h3>
-                            <p className="text-sm text-gray-500 mb-1">
-                                Loại thông báo:{" "}
-                                <span className="font-medium text-gray-700 capitalize">
+                        {/* Icon và nội dung */}
+                        <div onClick={() => openDetail(n.id)} className="flex gap-3 items-start">
+                            {/* Icon theo loại thông báo */}
+                            <div className="text-2xl mt-1">
+                                {n.type === "booking" && <FiHome />}
+                                {n.type === "payment" && <FiCreditCard />}
+                                {n.type === "promotion" && <FiGift />}
+                                {!["booking", "payment", "promotion"].includes(n.type) && "🔔"}
+                            </div>
+
+                            {/* Nội dung chính */}
+                            <div className="flex flex-col">
+                                <h3 className="text-md font-semibold text-gray-800 line-clamp-2">
+                                    {n.title || "Tiêu đề"}
+                                </h3>
+                                <p className="text-xs text-gray-500 mb-1 capitalize">
                                     {n.type}
-                                </span>
-                            </p>
-                            <p className="text-gray-700 text-sm">{n.message}</p>
+                                </p>
+                                <p className="text-gray-700 text-sm line-clamp-2">
+                                    {n.message}
+                                </p>
+                            </div>
                         </div>
 
-                        <div className="text-right flex flex-col items-end gap-2">
-                            <span className="text-sm text-gray-500">
-                                {new Date(n.createdAt).toLocaleString("vi-VN", {
-                                    hour12: false,
-                                })}
+                        {/* Thời gian và checkbox */}
+                        <div className="flex flex-col items-end gap-2">
+                            <span className="text-xs text-gray-400">
+                                {new Date(n.createdAt).toLocaleString("vi-VN", { hour12: false })}
                             </span>
 
                             <input
                                 type="checkbox"
                                 checked={selectedIds.includes(n.id)}
                                 onChange={(e) => { e.stopPropagation(); toggleSelect(n.id); }}
-                                className="w-5 h-5 accent-blue-600 cursor-pointer"
+                                className="w-4 h-4 accent-blue-600 cursor-pointer"
                             />
                         </div>
                     </div>
                 ))}
 
-                {notifications.length === 0 && !loading && (
-                    <p className="text-center text-gray-500">
-                        Không có thông báo nào.
-                    </p>
+                {filteredNotifications.length === 0 && !loading && (
+                    <p className="text-center text-gray-500 py-6">Không có thông báo nào.</p>
                 )}
             </div>
+
 
             {/* Pagination */}
             {totalPages > 1 && (
@@ -286,8 +341,8 @@ export default function NotificationsPage() {
 
             {/* Modal chi tiết */}
             {detailId && detailData && (
-                <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-                    <div className="bg-white rounded-xl p-6 w-full max-w-md relative">
+                <div className="fixed inset-0 bg-black/40 flex justify-center items-start p-4 overflow-auto z-50">
+                    <div className="bg-white rounded-xl p-6 w-full max-w-md relative" onClick={(e) => e.stopPropagation()}>
                         <button
                             onClick={closeDetail}
                             className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 font-bold text-xl"
@@ -298,14 +353,9 @@ export default function NotificationsPage() {
                             <p className="text-center text-gray-500">Đang tải chi tiết...</p>
                         ) : (
                             <>
-                                <h2 className="text-xl font-bold text-gray-800 mb-2">
-                                    {detailData.title || "Tiêu đề"}
-                                </h2>
+                                <h2 className="text-xl font-bold text-gray-800 mb-2">{detailData.title || "Tiêu đề"}</h2>
                                 <p className="text-sm text-gray-500 mb-2">
-                                    Loại thông báo:{" "}
-                                    <span className="font-medium text-gray-700 capitalize">
-                                        {detailData.type}
-                                    </span>
+                                    Loại thông báo: <span className="font-medium text-gray-700 capitalize">{detailData.type}</span>
                                 </p>
                                 <p className="text-gray-700 mb-4">{detailData.message}</p>
                                 <span className="text-sm text-gray-500">

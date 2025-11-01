@@ -11,6 +11,8 @@ import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
 import api from "@/axios/axios";
 
+import NotificationsPage from "@/app/client/notifications/page";
+
 // --- THÊM MỚI: Icons (cần cài react-icons: npm install react-icons) ---
 import {
   HiUserCircle,
@@ -41,8 +43,10 @@ const Header = () => {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
+
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -260,11 +264,8 @@ const Header = () => {
                     </button>
 
                     <button
-                      onClick={() => {
-                        router.push("/notifications");
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={() => setShowNotifications(true)}
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors relative"
                     >
                       <HiOutlineBell className="mr-3 w-5 h-5" />
                       Thông báo
@@ -303,6 +304,24 @@ const Header = () => {
           </div>
         </div>
       </nav>
+
+      {showNotifications && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+          <div className="bg-white w-full max-w-lg max-h-[80vh] rounded-xl shadow-lg overflow-auto p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold">Thông báo</h2>
+              <button
+                onClick={() => setShowNotifications(false)}
+                className="text-gray-500 hover:text-gray-800 text-xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            <NotificationsPage />
+          </div>
+        </div>
+      )}
+
 
       {/* Modal login/register */}
       {showLogin && (
