@@ -1,11 +1,12 @@
-// hooks/useApi.js
+"use client";
+
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-// Đảm bảo PORT và PATH base là đúng theo Postman: http://localhost:3636
 const API_BASE_URL = 'http://localhost:3636/api';
 
-export function useApi(path) { // path: '/bookings/list' hoặc '/revenue/summary'
+// Thêm tham số `params` vào Hook
+export function useApi(path, params = {}) {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -14,8 +15,11 @@ export function useApi(path) { // path: '/bookings/list' hoặc '/revenue/summar
         async function fetchData() {
             try {
                 setLoading(true);
-                // Full URL: http://localhost:3636/api/bookings/list
-                const response = await axios.get(`${API_BASE_URL}${path}`);
+                const url = `${API_BASE_URL}${path}`;
+
+                // Gửi request với tham số tìm kiếm
+                const response = await axios.get(url, { params });
+
                 setData(response.data);
             } catch (err) {
                 console.error("Lỗi gọi API:", err);
@@ -25,7 +29,7 @@ export function useApi(path) { // path: '/bookings/list' hoặc '/revenue/summar
             }
         }
         fetchData();
-    }, [path]);
+    }, [path, JSON.stringify(params)]); // Quan trọng: Re-fetch khi params thay đổi!
 
     return { data, loading, error };
 }
