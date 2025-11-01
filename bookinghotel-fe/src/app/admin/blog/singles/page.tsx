@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FaEye,
   FaEllipsisV,
@@ -10,41 +10,33 @@ import {
   FaPlus,
   FaSearch,
 } from "react-icons/fa";
-interface Post {
-  id: number;
-  title: string;
-  author: string;
-  date: string;
-  isPublic: boolean;
-  thumbnail?: string;
-  excerpt?: string;
-}
-
-const dummyPosts: Post[] = Array.from({ length: 10 }).map((_, i) => ({
-  id: i + 1,
-  title: `Tên bài post ${i + 1}`,
-  author: "Quan Dang",
-  date: `2024-0${(i % 9) + 1}-0${(i % 27) + 1}`,
-  isPublic: i % 2 === 0,
-  thumbnail: `https://picsum.photos/seed/post${i + 1}/96/96`,
-  excerpt:
-    "Đoạn mô tả ngắn gọn cho bài viết để người dùng có thể nắm ý chính nhanh chóng.",
-})); 
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/reduxTK/store";
+import { fetchBlogs } from "@/reduxTK/features/blog/blogThunk";
 
 export default function ModernSingleListPost() {
-  const [posts] = useState<Post[]>(dummyPosts);
+  const dispatch = useDispatch<AppDispatch>();
+  const { blogs, isLoading, error } = useSelector((state: RootState) => state.blogs);
+
   const [selected, setSelected] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [query, setQuery] = useState("");
   const [showPublicOnly, setShowPublicOnly] = useState(false);
   const [openMenuFor, setOpenMenuFor] = useState<number | null>(null);
 
-  const filtered = posts.filter((p) => {
+  // Gọi API khi component render
+  useEffect(() => {
+    dispatch(fetchBlogs());
+  }, [dispatch]);
+
+  // Lọc dữ liệu hiển thị
+  const filtered = blogs.filter((p: any) => {
     if (showPublicOnly && !p.isPublic) return false;
     if (!query) return true;
     const q = query.toLowerCase();
     return (
-      p.title.toLowerCase().includes(q) || p.author.toLowerCase().includes(q)
+      p.title.toLowerCase().includes(q) ||
+      (p.author && p.author.toLowerCase().includes(q))
     );
   });
 
@@ -59,7 +51,7 @@ export default function ModernSingleListPost() {
       setSelected([]);
       setSelectAll(false);
     } else {
-      setSelected(filtered.map((p) => p.id));
+      setSelected(filtered.map((p: any) => p.id));
       setSelectAll(true);
     }
   };
@@ -81,9 +73,11 @@ export default function ModernSingleListPost() {
     }
   };
 
+  if (isLoading) return <p className="p-6">Đang tải dữ liệu blog...</p>;
+  if (error) return <p className="p-6 text-red-500">Lỗi khi tải dữ liệu.</p>;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6 sm:p-10">
-      {/* Header */}
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between gap-4 mb-6">
           <div>
@@ -152,7 +146,6 @@ export default function ModernSingleListPost() {
               <FaTrash className="text-base" />
               <span>Delete</span>
             </button>
-
           </div>
         </div>
 
@@ -160,10 +153,10 @@ export default function ModernSingleListPost() {
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div className="divide-y">
             {filtered.length === 0 && (
-              <div className="p-8 text-center text-gray-500">No posts found</div>
+              <div className="p-8 text-center text-gray-500">Không có bài viết nào</div>
             )}
 
-            {filtered.map((post) => {
+            {filtered.map((post: any) => {
               const isSelected = selected.includes(post.id);
               return (
                 <div
@@ -181,7 +174,7 @@ export default function ModernSingleListPost() {
                     />
 
                     <Image
-                      src={post.thumbnail || "/post1.png"}
+                      src={post.image || "/post1.png"}
                       width={64}
                       height={64}
                       alt="thumb"
@@ -196,23 +189,23 @@ export default function ModernSingleListPost() {
                           {post.title}
                         </h3>
                         <p className="mt-1 text-sm text-gray-500 truncate">
-                          {post.excerpt}
+                          {post.content}
                         </p>
 
                         <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
                           <span className="inline-flex items-center gap-2">
-                            <FaUser /> {post.author}
+                            <FaUser /> {post.author?.username || "Unknown"}
                           </span>
                           <span className="inline-flex items-center gap-2">
-                            <FaRegCalendar /> {post.date}
+                            <FaRegCalendar /> {post.created_at || "N/A"}
                           </span>
                           <span
-                            className={`px-2 py-1 rounded-full text-xs font-semibold ${post.isPublic
+                            className={`px-2 py-1 rounded-full text-xs font-semibold ${post.is_public
                                 ? "bg-emerald-100 text-emerald-700"
                                 : "bg-gray-100 text-gray-600"
                               }`}
                           >
-                            {post.isPublic ? "Public" : "Private"}
+                            {post.is_public ? "Public" : "Private"}
                           </span>
                         </div>
                       </div>
@@ -275,15 +268,8 @@ export default function ModernSingleListPost() {
             })}
           </div>
 
-          {/* Pagination strip */}
           <div className="p-4 border-t bg-gray-50 flex items-center justify-between">
             <div className="text-sm text-gray-600">Showing {filtered.length} posts</div>
-            <div className="flex items-center gap-2">
-              <button className="px-3 py-1 rounded-md bg-white border text-sm">← Previous</button>
-              <button className="px-3 py-1 rounded-md bg-white border text-sm">1</button>
-              <button className="px-3 py-1 rounded-md bg-white border text-sm">2</button>
-              <button className="px-3 py-1 rounded-md bg-white border text-sm">Next →</button>
-            </div>
           </div>
         </div>
       </div>

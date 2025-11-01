@@ -15,6 +15,10 @@ export interface PendingBooking {
   bedType: string
   roomName: string
   totalPrice: number
+  contactFullName?: string
+  contactEmail?: string
+  contactPhone?: string
+  guestsFullName?:string
   // Bro có thể thêm status và expiresAt vào đây nếu BE trả về
   status?: string 
 }

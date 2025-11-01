@@ -43,6 +43,8 @@ import { useAuth } from "@/context/AuthContext"; // <-- Giả sử đường d�
 import { useRouter } from "next/navigation";
 
 import { format, differenceInCalendarDays, parseISO } from "date-fns";
+import api from "@/axios/axios";
+import { setPendingBooking } from '@/reduxTK/features/bookingSlice'
 
 // --- (Các types của bro giữ nguyên) ---
 
@@ -421,6 +423,31 @@ const TravelokaBookingPage: React.FC = () => {
 
   // --- 7. RENDER COMPONENT VỚI DATA THẬT ---
 
+ const handlePaymentCheckout = async (
+
+ ) => {
+    try {
+      const response = await api.patch(`bookings/${pendingBooking.bookingId}`, {
+        contactFullName:bookingForm.fullName,
+        contactEmail:bookingForm.email,
+        contactPhone:bookingForm.mobileNumber,
+        guestsFullName:guestForm.fullName
+    })
+    if (response.data.message === "success") {
+      const bookingData = response.data.updateData
+      dispatch(setPendingBooking(bookingData))
+
+      // 2. LƯU VÀO SESSION (Chỉ ID)
+      sessionStorage.setItem('activeBookingId', bookingData.bookingId.toString())
+
+      // 3. Chuyển trang
+      router.push('/payment/checkout')
+    }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header (Giữ nguyên) */}
@@ -602,7 +629,8 @@ const TravelokaBookingPage: React.FC = () => {
             />
 
             <PriceDetailsSection
-              price={priceDetailsProps.totalPrice} // <-- Pass prop vào
+              price={priceDetailsProps.totalPrice}
+              onclick={handlePaymentCheckout}// <-- Pass prop vào
             />
           </div>
         </div>
