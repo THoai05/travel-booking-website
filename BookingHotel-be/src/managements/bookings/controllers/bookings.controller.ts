@@ -1,6 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { BookingsService } from '../services/bookings.service';
 import { CreateBookingRequest } from '../dtos/req/CreateBookingRequest.dto';
+import { UpdateBookingRequest } from '../dtos/req/UpdateBookingRequest.dto';
 
 @Controller('bookings')
 export class BookingsController {
@@ -13,6 +14,19 @@ export class BookingsController {
     return {
       message: "success",
       data
+    }
+  }
+
+  @Patch(':id')
+  async handleUpdateBooking(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body:UpdateBookingRequest
+  ) {
+    console.log(id)
+    const updateData = await this.bookingsService.updateBookingForGuests(id, body)
+    return {
+      message: "success",
+      updateData
     }
   }
 }
