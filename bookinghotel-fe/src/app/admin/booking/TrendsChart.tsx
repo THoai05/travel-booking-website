@@ -20,7 +20,7 @@ const MOCK_TRENDS: TrendData[] = [
 export default function TrendsChart() {
     return (
         <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
-            <h3 className="font-semibold mb-4 text-lg">Booking Trends Over Time</h3>
+            <h3 className="font-semibold mb-4 text-lg">Xu hướng đặt phòng theo thời gian</h3>
             <ResponsiveContainer width="100%" height={256}>
                 <LineChart data={MOCK_TRENDS}>
                     <CartesianGrid strokeDasharray="3 3" />

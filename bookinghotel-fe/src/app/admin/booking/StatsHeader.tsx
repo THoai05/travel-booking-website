@@ -2,24 +2,54 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, Clock, LucideIcon } from 'lucide-react';
 
-interface StatItem {
-    label: string;
-    value: string;
-    change: string;
-    color: string;
-    icon: LucideIcon;
+// Định nghĩa lại cấu trúc dữ liệu nhận được từ Page/Hook
+interface StatsDataProps {
+    totalBookings: string;
+    totalCancellations: string;
+    occupancyRate: string;
+    changeBookings: string;
+    changeCancellations: string;
+    // ... các trường khác (chỉ hiển thị những trường cần cho header)
 }
 
-const MOCK_STATS: StatItem[] = [
-    { label: "Total Bookings", value: "2,847", change: "+2.5%", color: "text-green-600", icon: TrendingUp },
-    { label: "Total Cancellations", value: "342", change: "-4.2%", color: "text-red-600", icon: TrendingDown },
-    { label: "Occupancy Rate", value: "87.9%", change: "+5.1%", color: "text-blue-600", icon: Clock },
-];
+interface StatsHeaderProps {
+    data: StatsDataProps; // Nhận dữ liệu đã được tính toán từ Backend
+}
 
-export default function StatsHeader() {
+// Hàm phụ trợ để map data nhận được từ API vào cấu trúc UI
+const mapDataToStats = (data: StatsDataProps) => ([
+    {
+        label: "Total Bookings",
+        value: data.totalBookings,
+        change: data.changeBookings,
+        color: "text-green-600",
+        icon: TrendingUp
+    },
+    {
+        label: "Total Cancellations",
+        value: data.totalCancellations,
+        change: data.changeCancellations,
+        color: "text-red-600",
+        icon: TrendingDown
+    },
+    // Occupancy Rate: Tạm dùng giá trị từ BE hoặc giả định
+    {
+        label: "Occupancy Rate",
+        value: data.occupancyRate,
+        change: "+5.1%",
+        color: "text-blue-600",
+        icon: Clock
+    },
+]);
+
+// CÚ PHÁP ĐÚNG: Arrow Function với Props (Inline Typing)
+export default function StatsHeader({ data }: StatsHeaderProps) {
+    // Dữ liệu đã được map
+    const stats = mapDataToStats(data);
+
     return (
         <div className="grid grid-cols-3 gap-6 mb-6">
-            {MOCK_STATS.map((stat, index) => (
+            {stats.map((stat, index) => (
                 <div key={index} className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
                     <div className="flex justify-between items-start">
                         <div>
@@ -34,3 +64,5 @@ export default function StatsHeader() {
         </div>
     );
 };
+
+
