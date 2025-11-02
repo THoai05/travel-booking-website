@@ -44,8 +44,10 @@ export class AuthController {
 	@Get('profile')
 	async getProfile(@Req() req) {
 	  // Lấy id từ token
-	  const userId = req.user.sub; // vì khi sign token, bạn dùng payload: { sub: user.id, username, role }
-	  
+    const userId = req.user.userId; 
+    
+    console.log(userId)
+
 	  // Gọi hàm getProfile trong service để đọc thông tin đầy đủ từ DB
 	  return this.authService.getProfile(userId);
 	}
