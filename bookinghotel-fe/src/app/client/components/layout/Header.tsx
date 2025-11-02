@@ -20,6 +20,8 @@ import {
   HiOutlineUser,
   HiOutlineLogout,
   HiOutlineBell,
+  HiOutlineClipboardCheck,
+  HiOutlineCalendar,
 } from "react-icons/hi";
 
 interface UserProfile {
@@ -252,16 +254,6 @@ const Header = () => {
                 {/* Panel của dropdown */}
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-52 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100">
-                    <button
-                      onClick={() => {
-                        router.push("/favourites");
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      <HiOutlineHeart className="mr-3 w-5 h-5" />
-                      Yêu thích
-                    </button>
 
                     <button
                       onClick={() => setShowNotifications(true)}
@@ -275,6 +267,40 @@ const Header = () => {
                         </span>
                       )}
                     </button>
+
+                    <button
+                      onClick={() => {
+                        router.push("/favourites");
+                        setIsDropdownOpen(false);
+                      }}
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <HiOutlineHeart className="mr-3 w-5 h-5" />
+                      Yêu thích
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        router.push("/rooms/room-monitor");
+                        setIsDropdownOpen(false);
+                      }}
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <HiOutlineClipboardCheck className="mr-3 w-5 h-5" />
+                      Giám sát phòng
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        router.push("/rooms/booking-history");
+                        setIsDropdownOpen(false);
+                      }}
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <HiOutlineCalendar className="mr-3 w-5 h-5" />
+                      Lịch sử đặt phòng
+                    </button>
+
 
                     <button
                       onClick={() => {
@@ -307,7 +333,7 @@ const Header = () => {
 
       {showNotifications && (
         <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
-          <div className="bg-white w-full max-w-lg max-h-[80vh] rounded-xl shadow-lg overflow-auto p-4">
+          <div className="bg-white w-full max-w-lg max-h-[80vh] rounded-[5px] shadow-lg overflow-auto p-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold">Thông báo</h2>
               <button
