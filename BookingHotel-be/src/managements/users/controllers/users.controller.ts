@@ -19,13 +19,20 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as sharp from 'sharp';
 
-import { Gender } from '../entities/users.entity'; // ✅ thêm dòng này
+import { Gender } from '../entities/users.entity';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
-  // ====================== GET USER BY ID ======================
+  // Lấy tất cả người dùng
+  @Get()
+  async getAllUsers() {
+    const users = await this.usersService.findAll();
+    return { message: 'Danh sách người dùng', users };
+  }
+
+  // Lấy thông tin người dùng theo ID
   @Get(':id')
   async getUser(@Param('id', ParseIntPipe) id: number) {
     const user = await this.usersService.findById(id);
@@ -34,8 +41,7 @@ export class UsersController {
     return { user: result }; // trả về object có key 'user' để frontend dễ dùng
   }
 
-
-  // ====================== UPDATE PROFILE ======================
+  // Cập nhật thông tin người dùng
   @Patch(':id')
   async updateProfile(
     @Param('id', ParseIntPipe) id: number,
@@ -50,7 +56,7 @@ export class UsersController {
   ) {
     const updateData: any = { ...body };
 
-    // ✅ Chuyển chuỗi sang enum Gender
+    // Chuyển chuỗi sang enum Gender
     if (body.gender) {
       const genderValue = body.gender.toLowerCase();
       if (genderValue === 'male') updateData.gender = Gender.MALE;
@@ -58,14 +64,14 @@ export class UsersController {
       else updateData.gender = Gender.OTHER;
     }
 
-    // ✅ Gọi service update
+    // Gọi service update
     const updatedUser = await this.usersService.updateUser(id, updateData);
     const { password, ...result } = updatedUser;
     return { message: 'Cập nhật thông tin thành công', user: result };
   }
 
 
-  // ====================== UPLOAD AVATAR ======================
+  // Upload avatar người dùng
 
   @Post(':id/avatar')
   @UseInterceptors(
@@ -152,14 +158,6 @@ export class UsersController {
       }
       throw new BadRequestException(err.message || 'Không thể xử lý ảnh');
     }
-  }
-
-
-  // Lấy tất cả người dùng
-  @Get()
-  async getAllUsers() {
-    const users = await this.usersService.findAll();
-    return { message: 'Danh sách người dùng', users };
   }
 
   // Xóa người dùng ra khỏi danh sách
