@@ -2,80 +2,133 @@
 import React, { useState, useEffect } from "react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
 import { createBlog } from "@/reduxTK/features/blog/blogThunk";
-import axios from "axios";
+import { getAllUsers } from "@/reduxTK/features/user/userThunk";
+
+const slugify = (s: string) =>
+  s
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "") // remove non-word chars
+    .replace(/\s+/g, "-") // spaces to dash
+    .replace(/-+/g, "-"); // collapse dashes
 
 const AddPost = () => {
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const [type, setType] = useState("text");
-  const [authorId, setAuthorId] = useState("");
-  const [users, setUsers] = useState<any[]>([]);
+  const [author, setAuthor] = useState<string>(""); // will store user id as string
   const [image, setImage] = useState<File | null>(null);
-  const dispatch = useDispatch<AppDispatch>();
+  const [cities, setCities] = useState<{ id: number; title: string }[]>([]);
+  const [city, setCity] = useState<string>("Đà Nẵng");
 
-  // ✅ Load danh sách user khi vào trang
+  const dispatch = useDispatch<AppDispatch>();
+  const { users, isLoading } = useSelector((state: RootState) => state.user);
+  console.log("🧾 users from redux:", users);
+
+  // Gọi API user khi vào trang
   useEffect(() => {
-    const fetchUsers = async () => {
+    dispatch(getAllUsers());
+  }, [dispatch]);
+
+  // Nếu users có dữ liệu và author rỗng -> set mặc định là user đầu tiên (id)
+  useEffect(() => {
+    if (!author && users && users.length > 0) {
+      setAuthor(String(users[0].id));
+    }
+  }, [users, author]);
+
+  // Fetch cities khi component mount
+  useEffect(() => {
+    const fetchCities = async () => {
       try {
-        const res = await axios.get("/api/users");
-        setUsers(res.data);
-      } catch (error) {
-        console.error("Lỗi khi tải danh sách user:", error);
+        const res = await fetch("http://localhost:3636/city");
+        const json = await res.json();
+
+        // Nếu API trả về object chứa data
+        const citiesData = Array.isArray(json) ? json : json.data || [];
+        setCities(citiesData);
+        if (citiesData.length > 0) {
+          setCity(citiesData[0].title); // default chọn city đầu tiên
+        }
+      } catch (err) {
+        console.error("Lỗi khi lấy cities:", err);
+        setCities([]); // đảm bảo là array
       }
     };
-    fetchUsers();
+    fetchCities();
   }, []);
 
-  // ✅ Gửi form tạo bài viết
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!authorId) {
-      alert("Vui lòng chọn tác giả!");
-      return;
-    }
+    // basic validation trước khi gửi
+    if (!title.trim()) return alert("Title không được để trống");
+    if (!content.trim()) return alert("Content không được để trống");
+    if (!author) return alert("Chọn author (user)");
 
-    const newPost = {
+    const slug = slugify(title);
+    const payloadFields: any = {
       title,
       content,
-      author_id: Number(authorId),
-      image: "/uploads/posts/post-1.png",
+      author_id: Number(author),
+      slug,
+      city,
       is_public: true,
     };
 
     try {
-      const result = await dispatch(createBlog(newPost)).unwrap();
+      let result;
+      if (image) {
+        // Nếu upload ảnh thực tế -> dùng FormData (multipart/form-data)
+        const formData = new FormData();
+        Object.entries(payloadFields).forEach(([k, v]) => {
+          formData.append(k, String(v));
+        });
+        formData.append("image", image); // key name phụ thuộc backend (giả sử là "image")
+
+        result = await dispatch(createBlog(formData)).unwrap();
+      } else {
+        // Nếu không có ảnh, gửi json bình thường
+        const jsonPayload = {
+          ...payloadFields,
+          image: "/uploads/posts/post-1.png",
+        };
+        result = await dispatch(createBlog(jsonPayload)).unwrap();
+      }
+
       console.log("Created post:", result);
       alert("Thêm bài viết thành công!");
+
       // Reset form
       setTitle("");
       setContent("");
+      setAuthor(users && users.length ? String(users[0].id) : "");
       setType("text");
-      setAuthorId("");
       setImage(null);
     } catch (error: any) {
       console.error("Lỗi khi tạo bài viết:", error);
-      alert("Thêm bài viết thất bại!");
+      // Nếu backend trả object validation, show chi tiết nếu có
+      if (error?.message) {
+        alert("Thất bại: " + JSON.stringify(error.message));
+      } else {
+        alert("Thêm bài viết thất bại!");
+      }
     }
+
   };
 
   return (
     <div className="p-10 bg-gray-50 min-h-screen">
-      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Add Post</h1>
         <p className="text-gray-500 text-sm">/ Blog / Add Post</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {/* Left: Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white p-8 rounded-xl shadow-md space-y-6"
-        >
+        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-md space-y-6">
           {/* Title */}
           <div>
             <label className="block text-sm font-semibold mb-2">Title</label>
@@ -107,18 +160,35 @@ const AddPost = () => {
             </div>
           </div>
 
-          {/* ✅ Author Select */}
+          {/* Author */}
           <div>
             <label className="block text-sm font-semibold mb-2">Author</label>
             <select
-              value={authorId}
-              onChange={(e) => setAuthorId(e.target.value)}
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
               className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400"
             >
-              <option value="">-- Chọn tác giả --</option>
-              {users.map((user) => (
+              <option value="">-- Select Author --</option>
+              {users.map((user: any) => (
+                // value là id, backend cần author_id
                 <option key={user.id} value={user.id}>
-                  {user.name || user.username || `User ${user.id}`}
+                  {user.fullName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* City id (simple input) */}
+          <div>
+            <label className="block text-sm font-semibold mb-2">City</label>
+            <select
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              {cities.map((c) => (
+                <option key={c.id} value={c.title}>
+                  {c.title}
                 </option>
               ))}
             </select>
@@ -136,9 +206,10 @@ const AddPost = () => {
             />
           </div>
 
-          {/* Image upload */}
+          {/* Upload image */}
           <div
-            className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg py-10 hover:bg-gray-50 cursor-pointer transition"
+            className="flex flex-col items-center justify-center border-2 border-dashed
+          border-gray-300 rounded-lg py-10 hover:bg-gray-50 cursor-pointer transition"
             onClick={() => document.getElementById("fileInput")?.click()}
           >
             <input
@@ -153,6 +224,7 @@ const AddPost = () => {
               }}
             />
             {image ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={URL.createObjectURL(image)}
                 alt="Preview"
@@ -182,17 +254,16 @@ const AddPost = () => {
           </div>
         </form>
 
-        {/* Right: Preview */}
+        {/* Right side: Live Preview */}
         <div className="bg-white p-8 rounded-xl shadow-md border border-gray-100">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Live Preview</h2>
+
           {!title && !content ? (
             <p className="text-gray-400 italic">Start typing to preview...</p>
           ) : (
             <div className="space-y-4">
               <h3 className="text-2xl font-semibold text-gray-900">{title}</h3>
-              <p className="text-sm text-gray-500">
-                By {users.find((u) => u.id === Number(authorId))?.name || "Anonymous"}
-              </p>
+              <p className="text-sm text-gray-500">By {users.find(u => String(u.id) === author)?.fullName || "Anonymous"}</p>
               <div
                 className="prose max-w-none"
                 dangerouslySetInnerHTML={{ __html: content }}
