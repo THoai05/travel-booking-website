@@ -279,8 +279,8 @@ export default function NotificationsPage() {
                                 <p className="text-xs text-gray-500 mb-1 capitalize">
                                     {n.type}
                                 </p>
-                                <p className="text-gray-700 text-sm line-clamp-2">
-                                    {n.message}
+                                <p className="text-gray-700 text-sm">
+                                    {n.message.length > 100 ? n.message.substring(0, 100) + "..." : n.message}
                                 </p>
                             </div>
                         </div>
@@ -342,7 +342,7 @@ export default function NotificationsPage() {
             {/* Modal chi tiết */}
             {detailId && detailData && (
                 <div className="fixed inset-0 bg-black/40 flex justify-center items-start p-4 overflow-auto z-50">
-                    <div className="bg-white rounded-xl p-6 w-full max-w-md relative" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-white rounded-[5px] p-6 w-full max-w-md relative" onClick={(e) => e.stopPropagation()}>
                         <button
                             onClick={closeDetail}
                             className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 font-bold text-xl"
@@ -358,6 +358,14 @@ export default function NotificationsPage() {
                                     Loại thông báo: <span className="font-medium text-gray-700 capitalize">{detailData.type}</span>
                                 </p>
                                 <p className="text-gray-700 mb-4">{detailData.message}</p>
+                                <div className="relative w-full aspect-[16/9] sm:aspect-[4/3] md:aspect-[3/2] lg:aspect-[21/9]">
+                                    <img
+                                        src="/images/pexels-muffin-2468773.jpg"
+                                        alt="Muffin"
+                                        className="absolute inset-0 w-full h-full object-cover"
+                                    />
+                                </div>
+                                <p className="text-gray-700 mb-4"></p>
                                 <span className="text-sm text-gray-500">
                                     {new Date(detailData.createdAt).toLocaleString("vi-VN", { hour12: false })}
                                 </span>

@@ -14,12 +14,14 @@ import {
 import storage from 'redux-persist/lib/storage' // <-- Mặc định là localStorage
 import blogReducer from './features/blog/blogSlice'
 import userReducer from './features/user/userSlice'
+import bookingReducer from './features/bookingSlice'
 
 // --- Tạo root reducer ---
 const rootReducer = combineReducers({
   search: searchReducer,
   blogs: blogReducer,
   user: userReducer,
+  booking:bookingReducer
 })
 
 // --- 4. Cấu hình persist ---

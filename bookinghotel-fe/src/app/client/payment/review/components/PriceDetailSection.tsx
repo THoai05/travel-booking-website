@@ -17,6 +17,7 @@ import { differenceInCalendarDays, parseISO } from 'date-fns';
 // Component cha (TravelokaBookingPage) chỉ truyền 'price'
 interface PriceDetailsProps {
   price: number;
+  onclick:void
 }
 
 // Helper format tiền tệ
@@ -25,7 +26,7 @@ const formatCurrency = (value: number) => {
 }
 
 
-const PriceDetailsSection: React.FC<PriceDetailsProps> = ({ price }) => {
+const PriceDetailsSection: React.FC<PriceDetailsProps> = ({ price , onclick }) => {
   const [showPriceDetails, setShowPriceDetails] = useState(false);
 
   // --- 3. LẤY DATA TỪ SEARCH SLICE ---
@@ -99,7 +100,7 @@ VND          </div>
           </div>
         </div>
 
-        <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-lg transition-colors mb-3">
+        <button onClick={onclick} className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-lg transition-colors mb-3">
 Tiếp tục
         </button>
 
