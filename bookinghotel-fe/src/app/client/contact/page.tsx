@@ -3,6 +3,8 @@ import { useState } from "react";
 import { InputText } from "primereact/inputtext";
 import Image from "next/image";
 import { Button } from "primereact/button"
+import { sendContact } from "@/service/contact/contactService"
+import { toast, Toaster } from "sonner";
 
 export default function ContactPage() {
     const [formData, setFormData] = useState({
@@ -11,22 +13,76 @@ export default function ContactPage() {
         message: "",
     })
 
-    const maxName = 100;
-    const maxEmail = 100;
+    const maxName = 50;
+    const maxEmail = 50;
     const maxMessage = 1000;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
 
     };
+    const validateForm = () => {
+        const nameRegex = /^[A-Za-zÀ-ỹ\s]+$/; // chỉ chữ và khoảng trắng
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    const handleSubmit = (e: React.FormEvent) => {
+        // Họ tên
+        if (!formData.name.trim()) {
+            toast.error("Họ và tên là bắt buộc");
+            return false;
+        }
+        if (!nameRegex.test(formData.name)) {
+            toast.error("Không đúng định dạng họ và tên");
+            return false;
+        }
+        if (formData.name.length > maxName) {
+            toast.error(`Họ và tên không quá ${maxName} ký tự`);
+            return false;
+        }
+
+        // Email
+        if (!formData.email.trim()) {
+            toast.error("Email là bắt buộc");
+            return false;
+        }
+        if (!emailRegex.test(formData.email)) {
+            toast.error("Định dạng email không đúng");
+            return false;
+        }
+        if (formData.email.length > maxEmail) {
+            toast.error(`Email không quá ${maxEmail} ký tự`);
+            return false;
+        }
+
+        // Nội dung
+        if (!formData.message.trim()) {
+            toast.error("Nội dung là bắt buộc");
+            return false;
+        }
+        if (formData.message.length > maxMessage) {
+            toast.error(`Nội dung không vượt quá ${maxMessage} ký tự`);
+            return false;
+        }
+
+        return true;
+    };
+
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        alert("Đã gửi liên hệ!");
-    }
+        if (!validateForm()) return;
+        try {
+            const res = await sendContact(formData);
+            toast.success(res.message);
+            setFormData({ name: "", email: "", message: "" });
+        } catch (error: any) {
+            toast.error(error?.response?.data?.message || "Không thể gửi email, vui lòng thử lại sau");
+        }
+    };
+
 
     return (
         <div className="min-h-screen bg-gray-50 py-10 px-4">
+            <Toaster richColors position="top-right" />
             <div className="max-w-6xl mx-auto mt-5">
                 <h1 className="text-3xl font-bold mb-2 text-gray-900">Liên hệ với chúng tôi</h1>
                 <p className="text-gray-600 mb-8">
@@ -45,7 +101,7 @@ export default function ContactPage() {
                                     value={formData.name}
                                     onChange={handleChange}
                                     required
-                                    maxLength={100}
+                                    maxLength={50}
                                     placeholder="Nhập họ tên của bạn"
                                     className="bg-gray-100 w-full mt-1 border border-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-500" />
                             </label>
@@ -61,7 +117,7 @@ export default function ContactPage() {
                                     value={formData.email}
                                     onChange={handleChange}
                                     required
-                                    maxLength={100}
+                                    maxLength={50}
                                     placeholder="email@gmail.com"
                                     className="bg-gray-100 w-full mt-1 border border-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-500" />
                             </label>
@@ -133,7 +189,7 @@ export default function ContactPage() {
                                 icon="pi pi-phone"
                                 iconPos="left"
                                 className="w-50 h-auto !bg-white !text-black !rounded-lg shadow-md border !border-gray-100 hover: !border-gray-200 transition" />
-                            <Button label="Gọi hotline"
+                            <Button label="Gửi email"
                                 icon="pi pi-envelope"
                                 iconPos="left"
                                 className="w-50 h-auto !bg-white !text-black !rounded-lg shadow-md border !border-gray-100 hover: !border-gray-200 transition" />

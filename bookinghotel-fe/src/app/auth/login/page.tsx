@@ -85,8 +85,10 @@ const Login = ({
       if (res?.data.message === 'success') {
         setUser(res?.data.userWithoutPassword)
         toast.success("Đăng nhập thành công")
+        onClose(); // Gọi prop onClose để đóng component
+        localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
       }
-      else  throw new Error(data.message || "Đăng nhập thất bại!");
+      else  throw new Error(res.data.message || "Đăng nhập thất bại!");
 
       const user = res.data.userWithoutPassword
 

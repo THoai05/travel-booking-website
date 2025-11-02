@@ -5,5 +5,7 @@ interface CreateBookingManagement {
     checkinDate: Date
     checkoutDate: Date
     guestsCount: number
+    bedType:string
+    roomName:string
     totalPrice:number
 }
