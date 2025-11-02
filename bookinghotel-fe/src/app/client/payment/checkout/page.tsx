@@ -1,19 +1,11 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useMemo } from 'react';
 import { Clock, Info, Wifi, Users, Bed, Coffee, MapPin, Phone, Mail, CheckCircle2, ChevronDown } from 'lucide-react';
 import PaymentMethodOption from './components/PaymentMethodOption';
 import HotelSummaryCard from './components/HotelSumaryCard';
-
-// Types
-
-
-
-
-
-
-
-
-
+import { selectBooking } from "@/reduxTK/features/bookingSlice";
+import { useAppSelector, useAppDispatch } from "@/reduxTK/hook";
+import { format, differenceInCalendarDays, parseISO } from "date-fns";
 
 
 // Main Component
@@ -66,8 +58,67 @@ import HotelSummaryCard from './components/HotelSumaryCard';
     email: 'naconghau06@gmail.com',
     nonRefundable: true,
     nonReschedulable: true,
-  };
+   };
+   
+   const formatDate = (dateString: string) => {
+       try {
+         // parseISO vì date của bro là "2025-11-10"
+   
+         return format(parseISO(dateString), "EEE, dd MMMM yyyy");
+       } catch {
+         return dateString;
+       }
+     };
+   const { pendingBooking } = useAppSelector(selectBooking);
+   console.log(pendingBooking)
 
+   const hotelDetailsProps = useMemo(() => {
+       if (!pendingBooking) return null;
+   
+       // Đảm bảo tính toán nights > 0
+   
+       let nights = 1;
+   
+       try {
+         nights = differenceInCalendarDays(
+           parseISO(pendingBooking.checkoutDate),
+   
+           parseISO(pendingBooking.checkinDate)
+         );
+   
+         if (nights <= 0) nights = 1; // Fallback
+       } catch {}
+   
+       return {
+         bookingId: pendingBooking.bookingId.toString(),
+   
+         name: "Pariat River Front Hotel Da Nang", // <-- Bro nói text cứng
+   
+         checkIn: formatDate(pendingBooking.checkinDate),
+   
+         checkOut: formatDate(pendingBooking.checkoutDate),
+   
+         nights: nights,
+   
+         roomType: `(1x) ${pendingBooking.roomName}`,
+   
+         guests: pendingBooking.guestsCount, // Lấy từ booking
+   
+         // guests: searchGuests.adults + searchGuests.children, // Hoặc lấy từ search
+   
+         bedType: pendingBooking.bedType,
+
+         contactFullName:pendingBooking.contactFullName,
+         contactEmail:pendingBooking.contactEmail,
+         contactPhone:pendingBooking.contactPhone,
+         guestsFullName:pendingBooking.guestsFullName,
+   
+         breakfast: false, // <-- Bro nói text cứng
+   
+         wifi: true, // <-- Bro nói text cứng
+       };
+     }, [pendingBooking]);
+   
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -199,7 +250,7 @@ import HotelSummaryCard from './components/HotelSumaryCard';
 
           {/* Right Column - Hotel Summary */}
           <div className="lg:col-span-1">
-            <HotelSummaryCard hotel={hotelDetails} guest={guestDetails} />
+            <HotelSummaryCard hotel={hotelDetailsProps} />
           </div>
         </div>
       </div>
