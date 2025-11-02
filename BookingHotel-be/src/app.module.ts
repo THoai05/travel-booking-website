@@ -11,20 +11,29 @@ import { PostsModule } from './managements/posts/posts.module';
 import { CommentsModule } from './managements/comments/comments.module';
 import { ResetPasswordModule } from './managements/reset_Password/modules/reset_password.module';
 import { FaqModule } from './managements/faq/faq.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
-  ConfigModule.forRoot({
-    isGlobal:true
-  }),
-  AuthModule,  
-  UsersModule,
-  ...ManagementsImports,
-  TypeOrmModule.forRoot(databaseConfig()),
-  PostsModule,
-  CommentsModule,
-  ResetPasswordModule,
-  FaqModule
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+
+    // Thêm phần này để serve file tĩnh (ảnh upload)
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'), // nơi chứa ảnh
+      serveRoot: '/uploads', // prefix truy cập qua URL
+    }),
+
+    AuthModule,
+    UsersModule,
+    ...ManagementsImports,
+    TypeOrmModule.forRoot(databaseConfig()),
+    PostsModule,
+    CommentsModule,
+    ResetPasswordModule,
+    FaqModule,
   ],
   controllers: [AppController],
   providers: [AppService],

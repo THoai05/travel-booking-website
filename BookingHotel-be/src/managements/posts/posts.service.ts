@@ -8,6 +8,8 @@ import { User } from 'src/managements/users/entities/users.entity';
 import { PostResponseDto } from './dtos/post-response.dto';
 import { City } from 'src/managements/city/entities/city.entity';
 import slugify from 'slugify';
+import { join } from 'path';
+import { promises as fs } from 'fs';
 import { Brackets } from 'typeorm';
 
 @Injectable()
@@ -83,13 +85,35 @@ export class PostsService {
     };
   }
 
-  async findAll() {
-    const posts = await this.postRepo.find({
-      relations: ['author'],
+  async uploadImages(files: Express.Multer.File[]): Promise<string[]> {
+    const urls: string[] = [];
+
+    for (const file of files) {
+      // Multer đã lưu file, chỉ cần tạo URL truy cập
+      urls.push(`/uploads/posts/${file.filename}`);
+    }
+
+    return urls;
+  }
+
+  async findAll(page = 1, limit = 10) {
+    const [posts, total] = await this.postRepo.findAndCount({
+      relations: ['author', 'city'],
       order: { created_at: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
 
-    return posts.map((post) => new PostResponseDto(post));
+    const data = posts.map((post) => new PostResponseDto(post));
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: number) {

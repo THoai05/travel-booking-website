@@ -9,11 +9,14 @@ import {
   Query,
   ParseIntPipe,
   UseGuards,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
 import { JwtAuthGuard } from 'src/managements/auth/guards/jwt-auth.guard';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('posts')
 export class PostsController {
@@ -25,9 +28,22 @@ export class PostsController {
     return this.postsService.create(createPostDto);
   }
 
+  @Post('upload-images')
+  @UseInterceptors(FilesInterceptor('files'))
+  async uploadReviewImages(@UploadedFiles() files: Express.Multer.File[]) {
+    const urls = await this.postsService.uploadImages(files);
+    return {
+      message: 'Uploaded successfully',
+      urls,
+    };
+  }
+
   @Get()
-  findAll() {
-    return this.postsService.findAll();
+  async findAll(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.postsService.findAll(page, limit);
   }
 
   @Get('search')
