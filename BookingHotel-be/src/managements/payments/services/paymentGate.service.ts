@@ -4,6 +4,7 @@ import * as qs from 'qs'
 import * as dayjs from 'dayjs'
 import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
+import axios from 'axios';
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -69,7 +70,57 @@ export class PaymentGateService {
         
         const paymentUrl = vnpUrl + '?' + qs.stringify(sortedParams, { encode: false}) 
         
-        return {paymentUrl}
+        return paymentUrl
+    }
+
+    async createMomoUrl(orderAmount: number, orderCode: string) {
+
+        console.log(orderAmount,orderCode)
+        
+        const orderAmoutString = orderAmount.toString()
+
+        let partnerCode = "MOMO";
+        let accessKey = "F8BBA842ECF85";
+        let secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
+        let requestId = partnerCode + new Date().getTime();
+        let orderId = orderCode;
+        let orderInfo = "pay with MoMo";
+        let redirectUrl = "https://momo.vn/return";
+        let ipnUrl = "https://callback.url/notify";
+        // let ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
+        let amount = orderAmoutString;
+        let requestType = "captureWallet"
+        let extraData = ""; 
+
+        let rawSignature = "accessKey="+accessKey+"&amount=" + amount+"&extraData=" + extraData+"&ipnUrl=" + ipnUrl+"&orderId=" + orderId+"&orderInfo=" + orderInfo+"&partnerCode=" + partnerCode +"&redirectUrl=" + redirectUrl+"&requestId=" + requestId+"&requestType=" + requestType
+        const crypto = require('crypto');
+        let signature = crypto.createHmac('sha256', secretkey)
+            .update(rawSignature)
+            .digest('hex');
+
+        const requestBody = JSON.stringify({
+            partnerCode : partnerCode,
+            accessKey : accessKey,
+            requestId : requestId,
+            amount : amount,
+            orderId : orderId,
+            orderInfo : orderInfo,
+            redirectUrl : redirectUrl,
+            ipnUrl : ipnUrl,
+            extraData : extraData,
+            requestType : requestType,
+            signature : signature,
+            lang: 'en'
+        });
+        try {
+            const response = await axios.post('https://test-payment.momo.vn/v2/gateway/api/create', 
+                requestBody,
+                 { headers: { 'Content-Type': 'application/json' } }
+            )
+            return response.data.payUrl
+        } catch (error) {
+            console.log(error)
+        }
     }
 
 
