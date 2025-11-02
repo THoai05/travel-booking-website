@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Get, NotFoundException, Query,Req } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, NotFoundException, Query,Req } from '@nestjs/common';
 import { PaymentGateService } from '../services/paymentGate.service';
 // import { OrderStatus } from 'src/common/enums/order-status.enum';
 // import { BookingsService } from 'src/managements/bookings/services/bookings.service';
@@ -10,10 +10,13 @@ export class PaymentGateController {
   ) {
   }
   @Get('vnpay')
-  async createPayment(@Query('amount') amount: number,
-                     @Query('orderCode') orderCode: string,
+  async createPayment(@Query() body: {
+        orderAmount: number,
+        orderCode:string
+    },
                       @Req() req
   ) {
+      const { orderAmount,orderCode } = body
        let ipAddr =
       (req.headers['x-forwarded-for'] as string) ||
       req.socket.remoteAddress ||
@@ -26,8 +29,10 @@ export class PaymentGateController {
 
     // Chuẩn hoá IPv6 "::ffff:127.0.0.1" -> "127.0.0.1"
       ipAddr = ipAddr.replace('::ffff:', '');
-      return await this.paymentGateService.createPaymentUrl(orderCode,amount,ipAddr)
-  }
+      return await this.paymentGateService.createPaymentUrl(orderCode,orderAmount,ipAddr)
+    }
+    
+
 
 //   @Get('verify')
 //   async verifyVnPayPayment(@Query() query:Record<string,string>) {
@@ -63,4 +68,16 @@ export class PaymentGateController {
 //     return {status:order.status}
 //   }
 
+    
+    
+    //============================Momo=====================================//
+
+    @Get('momo')
+    async handleCreateMomoUrl(@Query() body: {
+        orderAmount: number,
+        orderCode:string
+    }) {
+        const { orderAmount,orderCode } = body
+        return await this.paymentGateService.createMomoUrl(orderAmount,orderCode)
+    }
 }

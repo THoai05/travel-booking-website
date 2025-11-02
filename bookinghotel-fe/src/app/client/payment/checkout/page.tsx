@@ -11,7 +11,7 @@ import api from '@/axios/axios';
 
 // Main Component
  const TravelokaPaymentPage: React.FC = () => {
-  const [selectedPayment, setSelectedPayment] = useState('vietqr');
+  const [selectedPayment, setSelectedPayment] = useState('');
   const [showCoupon, setShowCoupon] = useState(false);
   const [usePoints, setUsePoints] = useState(false);
 
@@ -115,14 +115,15 @@ import api from '@/axios/axios';
    }, [pendingBooking]);
    
 
-   const handlePayment = async () => {
-     const response = await api.get('payment-gate/vnpay', {
+   const handlePayment = async (paymentMethod:string) => {
+     const response = await api.get(`payment-gate/${paymentMethod}`, {
        params: {
-         amount: Number(pendingBooking?.totalPrice) * 1000,
+         orderAmount: Number(pendingBooking?.totalPrice),
          orderCode:pendingBooking?.bookingId.toString()
        }
      })
-     window.location.href = response.data.paymentUrl
+     console.log(response.data)
+     window.location.href = response.data
    }
    
   return (
@@ -229,7 +230,7 @@ import api from '@/axios/axios';
                   </div>
                 </div>
 
-                <button onClick={handlePayment} className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-lg transition-colors">
+                <button onClick={()=>handlePayment(selectedPayment)} className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-lg transition-colors">
                   Pay & Show QR Code
                 </button>
 
