@@ -6,6 +6,7 @@ import HotelSummaryCard from './components/HotelSumaryCard';
 import { selectBooking } from "@/reduxTK/features/bookingSlice";
 import { useAppSelector, useAppDispatch } from "@/reduxTK/hook";
 import { format, differenceInCalendarDays, parseISO } from "date-fns";
+import api from '@/axios/axios';
 
 
 // Main Component
@@ -52,13 +53,7 @@ import { format, differenceInCalendarDays, parseISO } from "date-fns";
     wifi: true,
   };
 
-  const guestDetails: GuestDetails = {
-    name: 'Lo Thanh Ha',
-    phone: '+84812373122',
-    email: 'naconghau06@gmail.com',
-    nonRefundable: true,
-    nonReschedulable: true,
-   };
+
    
    const formatDate = (dateString: string) => {
        try {
@@ -117,7 +112,18 @@ import { format, differenceInCalendarDays, parseISO } from "date-fns";
    
          wifi: true, // <-- Bro nói text cứng
        };
-     }, [pendingBooking]);
+   }, [pendingBooking]);
+   
+
+   const handlePayment = async () => {
+     const response = await api.get('payment-gate/vnpay', {
+       params: {
+         amount: Number(pendingBooking?.totalPrice) * 1000,
+         orderCode:pendingBooking?.bookingId.toString()
+       }
+     })
+     window.location.href = response.data.paymentUrl
+   }
    
   return (
     <div className="min-h-screen bg-gray-50">
@@ -223,7 +229,7 @@ import { format, differenceInCalendarDays, parseISO } from "date-fns";
                   </div>
                 </div>
 
-                <button className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-lg transition-colors">
+                <button onClick={handlePayment} className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-lg transition-colors">
                   Pay & Show QR Code
                 </button>
 
