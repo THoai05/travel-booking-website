@@ -5,6 +5,7 @@ const blogSlice = createSlice({
   name: "blogs",
   initialState: {
     blogs: [],
+    pagination: { total: 0, page: 1, limit: 10 },
     isLoading: false,
     error: null as null | unknown,
   },
@@ -16,9 +17,13 @@ const blogSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchBlogs.fulfilled, (state, action) => {
-        // console.log("FETCH_BLOGS payload:", action.payload);
         state.isLoading = false;
-        state.blogs = action.payload;
+        state.blogs = action.payload.data || [];
+        state.pagination = {
+          total: action.payload.total,
+          page: action.payload.page,
+          limit: action.payload.limit,
+        };
       })
       .addCase(fetchBlogs.rejected, (state, action) => {
         state.isLoading = false;

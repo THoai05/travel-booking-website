@@ -17,6 +17,7 @@ import { fetchBlogs } from "@/reduxTK/features/blog/blogThunk";
 export default function ModernSingleListPost() {
   const dispatch = useDispatch<AppDispatch>();
   const { blogs, isLoading, error } = useSelector((state: RootState) => state.blogs);
+  const [page, setPage] = useState(1);
 
   const [selected, setSelected] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -26,8 +27,8 @@ export default function ModernSingleListPost() {
 
   // Gọi API khi component render
   useEffect(() => {
-    dispatch(fetchBlogs());
-  }, [dispatch]);
+    dispatch(fetchBlogs({ page, limit: 10 }));
+  }, [dispatch, page]);
 
   // Lọc dữ liệu hiển thị
   const filtered = blogs.filter((p: any) => {
