@@ -19,10 +19,13 @@ const blogSlice = createSlice({
       .addCase(fetchBlogs.fulfilled, (state, action) => {
         state.isLoading = false;
         state.blogs = action.payload.data || [];
+
+        const meta = action.payload.meta || {};
+
         state.pagination = {
-          total: action.payload.total,
-          page: action.payload.page,
-          limit: action.payload.limit,
+          total: meta.total || 0,
+          page: meta.page || 1,
+          limit: 5,
         };
       })
       .addCase(fetchBlogs.rejected, (state, action) => {

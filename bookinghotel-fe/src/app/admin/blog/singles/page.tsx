@@ -17,17 +17,24 @@ import { fetchBlogs } from "@/reduxTK/features/blog/blogThunk";
 export default function ModernSingleListPost() {
   const dispatch = useDispatch<AppDispatch>();
   const { blogs, isLoading, error } = useSelector((state: RootState) => state.blogs);
-  const [page, setPage] = useState(1);
-
   const [selected, setSelected] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [query, setQuery] = useState("");
   const [showPublicOnly, setShowPublicOnly] = useState(false);
   const [openMenuFor, setOpenMenuFor] = useState<number | null>(null);
 
-  // Gọi API khi component render
+  const [page, setPage] = useState(1);
+  const postsPerPage = 5;
+  //Pagination
+  const { pagination } = useSelector((state: any) => state.blogs);
+  const { total = 0, page: currentPage = 1, limit = postsPerPage } = pagination || {};
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > Math.ceil(total / limit)) return;
+    setPage(newPage);
+  };
   useEffect(() => {
-    dispatch(fetchBlogs({ page, limit: 10 }));
+    console.log("📘 Fetching page =", page);
+    dispatch(fetchBlogs({ page, limit: postsPerPage }));
   }, [dispatch, page]);
 
   // Lọc dữ liệu hiển thị
@@ -158,6 +165,7 @@ export default function ModernSingleListPost() {
             )}
 
             {filtered.map((post: any) => {
+              console.log("Post data:", post);
               const isSelected = selected.includes(post.id);
               return (
                 <div
@@ -202,8 +210,8 @@ export default function ModernSingleListPost() {
                           </span>
                           <span
                             className={`px-2 py-1 rounded-full text-xs font-semibold ${post.is_public
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "bg-gray-100 text-gray-600"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-gray-100 text-gray-600"
                               }`}
                           >
                             {post.is_public ? "Public" : "Private"}
@@ -269,9 +277,37 @@ export default function ModernSingleListPost() {
             })}
           </div>
 
-          <div className="p-4 border-t bg-gray-50 flex items-center justify-between">
-            <div className="text-sm text-gray-600">Showing {filtered.length} posts</div>
+          <div className="p-4 border-t bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-3">
+            {/* Hiển thị tổng số bài viết */}
+            <div className="text-sm text-gray-600">
+              Showing <span className="font-medium">{filtered.length}</span> posts
+            </div>
+
+            {/* Pagination controls */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100 disabled:opacity-50"
+              >
+                Previous
+              </button>
+
+              <span className="text-sm text-gray-700">
+                Page <span className="font-semibold">{currentPage}</span> of{" "}
+                {Math.ceil(total / limit)}
+              </span>
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === Math.ceil(total / limit)}
+                className="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
           </div>
+
         </div>
       </div>
     </div>
