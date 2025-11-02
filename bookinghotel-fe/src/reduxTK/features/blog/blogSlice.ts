@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { fetchBlogs } from "./blogThunk";
+import { createBlog, deleteBlog, fetchBlogs, updateBlog } from "./blogThunk";
 
 const blogSlice = createSlice({
   name: "blogs",
@@ -12,6 +12,7 @@ const blogSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      //Fetch Blogs
       .addCase(fetchBlogs.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -31,6 +32,22 @@ const blogSlice = createSlice({
       .addCase(fetchBlogs.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+      })
+
+      // CREATE
+      .addCase(createBlog.fulfilled, (state, action) => {
+        state.blogs.unshift(action.payload);
+      })
+
+      // UPDATE
+      .addCase(updateBlog.fulfilled, (state, action) => {
+        const index = state.blogs.findIndex((b: any) => b.id === action.payload.id);
+        if (index !== -1) state.blogs[index] = action.payload;
+      })
+
+      // DELETE
+      .addCase(deleteBlog.fulfilled, (state, action) => {
+        state.blogs = state.blogs.filter((b: any) => b.id !== action.payload);
       });
   },
 });
