@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import {
   FaEye,
@@ -96,11 +97,14 @@ export default function ModernSingleListPost() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-sky-500
-             text-white px-4 py-2 rounded-lg shadow-md hover:opacity-95 transition">
+            <Link
+              href="/admin/blog/add"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-sky-500
+            text-white px-4 py-2 rounded-lg shadow-md hover:opacity-95 transition"
+            >
               <FaPlus />
               <span className="font-medium">Add Post</span>
-            </button>
+            </Link>
           </div>
         </div>
 

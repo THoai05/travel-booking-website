@@ -7,32 +7,32 @@ const TravelTips = () => {
   const blogs = [
     {
       id: 1,
-      tag: "Văn hoá",
+      city: "Đà Lạt",
       img: "/blog1.png",
       date: "18 Sep 2024",
       time: "6 phút đọc",
       comments: "38 bình luận",
-      title: "10 bí kíp giúp chuyến đi của bạn trọn vẹn và suôn sẻ",
+      content: "10 bí kíp giúp chuyến đi của bạn trọn vẹn và suôn sẻ",
       author: "Minh An",
     },
     {
       id: 2,
-      tag: "Du lịch",
+      city: "Hồ Chí Minh",
       img: "/blog2.png",
       date: "18 Sep 2024",
       time: "6 mins",
       comments: "38 comments",
-      title: "Mẹo du lịch tiết kiệm cho người mê xê dịch",
+      content: "Mẹo du lịch tiết kiệm cho người mê xê dịch",
       author: "Huy Nam",
     },
     {
       id: 3,
-      tag: "Khám phá",
+      city: "Nha Trang",
       img: "/blog3.png",
       date: "18 Sep 2024",
       time: "6 mins",
       comments: "38 comments",
-      title: "Khám phá những điểm đến “ẩn mình” tuyệt đẹp trên thế giới",
+      content: "Khám phá những điểm đến “ẩn mình” tuyệt đẹp trên thế giới",
       author: "Mai Phương",
     },
   ];
@@ -70,16 +70,14 @@ const TravelTips = () => {
               <div className="relative w-full h-[250px]">
                 <Image
                   src={blog.img}
-                  alt={blog.title}
+                  alt={blog.content}
                   fill
                   className="object-cover"
                 />
                 <div className="absolute top-4 left-4 bg-white text-sm font-medium px-3 py-1 rounded-full">
-                  {blog.tag}
+                  {blog.city}
                 </div>
-                <button className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-sm hover:bg-gray-100">
-                  <Heart className="w-4 h-4" />
-                </button>
+                
               </div>
 
               {/* Content */}
@@ -97,7 +95,7 @@ const TravelTips = () => {
                 </div>
 
                 <h3 className="text-lg font-semibold mb-4 leading-snug">
-                  {blog.title}
+                  {blog.content}
                 </h3>
 
                 <div className="flex items-center justify-between">

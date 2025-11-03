@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/redux/store";
+import { AppDispatch, RootState } from "@/reduxTK/store";
 import { createBlog } from "@/reduxTK/features/blog/blogThunk";
 import { getAllUsers } from "@/reduxTK/features/user/userThunk";
 
@@ -19,14 +19,14 @@ const AddPost = () => {
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const [type, setType] = useState("text");
-  const [author, setAuthor] = useState<string>(""); // will store user id as string
+  const [author, setAuthor] = useState<string>("");
   const [image, setImage] = useState<File | null>(null);
   const [cities, setCities] = useState<{ id: number; title: string }[]>([]);
   const [city, setCity] = useState<string>("Đà Nẵng");
 
   const dispatch = useDispatch<AppDispatch>();
   const { users, isLoading } = useSelector((state: RootState) => state.user);
-  console.log("🧾 users from redux:", users);
+  // console.log("🧾 users from redux:", users);
 
   // Gọi API user khi vào trang
   useEffect(() => {
@@ -55,7 +55,7 @@ const AddPost = () => {
         }
       } catch (err) {
         console.error("Lỗi khi lấy cities:", err);
-        setCities([]); // đảm bảo là array
+        setCities([]);
       }
     };
     fetchCities();
@@ -64,60 +64,66 @@ const AddPost = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // basic validation trước khi gửi
-    if (!title.trim()) return alert("Title không được để trống");
-    if (!content.trim()) return alert("Content không được để trống");
-    if (!author) return alert("Chọn author (user)");
+    if (!title.trim() || !content.trim() || !author) {
+      return alert("Vui lòng điền đủ thông tin");
+    }
+
+    const selectedUser = users.find(u => String(u.id) === author);
+    const selectedCity = cities.find(c => c.title === city);
+
+    if (!selectedUser || !selectedCity) {
+      return alert("Author hoặc City không hợp lệ");
+    }
 
     const slug = slugify(title);
-    const payloadFields: any = {
-      title,
-      content,
-      author_id: Number(author),
-      slug,
-      city,
-      is_public: true,
-    };
+    let imageUrl = "/uploads/posts/post-1.png";
 
     try {
-      let result;
+      // Upload ảnh nếu có
       if (image) {
-        // Nếu upload ảnh thực tế -> dùng FormData (multipart/form-data)
         const formData = new FormData();
-        Object.entries(payloadFields).forEach(([k, v]) => {
-          formData.append(k, String(v));
-        });
-        formData.append("image", image); // key name phụ thuộc backend (giả sử là "image")
+        formData.append("files", image); // backend nhận key là 'files'
 
-        result = await dispatch(createBlog(formData)).unwrap();
-      } else {
-        // Nếu không có ảnh, gửi json bình thường
-        const jsonPayload = {
-          ...payloadFields,
-          image: "/uploads/posts/post-1.png",
-        };
-        result = await dispatch(createBlog(jsonPayload)).unwrap();
+        const uploadRes = await fetch("http://localhost:3636/posts/upload-images", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadRes.ok) throw new Error("Lỗi khi upload ảnh");
+
+        const uploadData = await uploadRes.json();
+        if (uploadData.urls && uploadData.urls.length > 0) {
+          imageUrl = uploadData.urls[0]; // lấy url trả về
+        }
       }
 
+      // Gửi dữ liệu bài viết
+      const payload = {
+        title,
+        content,
+        author_name: selectedUser.fullName,
+        city_title: selectedCity.title,
+        slug,
+        is_public: true,
+        image: imageUrl,
+      };
+
+      const result = await dispatch(createBlog(payload)).unwrap();
       console.log("Created post:", result);
       alert("Thêm bài viết thành công!");
 
-      // Reset form
+      // 3️⃣ Reset form
       setTitle("");
       setContent("");
-      setAuthor(users && users.length ? String(users[0].id) : "");
+      setAuthor(users.length ? String(users[0].id) : "");
+      setCity(cities.length ? cities[0].title : "");
       setType("text");
       setImage(null);
-    } catch (error: any) {
-      console.error("Lỗi khi tạo bài viết:", error);
-      // Nếu backend trả object validation, show chi tiết nếu có
-      if (error?.message) {
-        alert("Thất bại: " + JSON.stringify(error.message));
-      } else {
-        alert("Thêm bài viết thất bại!");
-      }
-    }
 
+    } catch (err: any) {
+      console.error("❌ Lỗi khi tạo bài viết:", err);
+      alert("Thêm bài viết thất bại: " + (err.message || JSON.stringify(err)));
+    }
   };
 
   return (
