@@ -111,7 +111,7 @@ const Header = () => {
       }
     };
     fetchNotification();
-  }, []);
+  }, [user]);
 
 
   // --- Track localStorage changes
@@ -213,7 +213,7 @@ const Header = () => {
               <div className="flex items-center gap-2 font-medium text-sm text-gray-700">
                 <HiUserCircle className="w-6 h-6" />
                 <span className="hidden sm:inline">
-                  {user.name || user.username || "bạn"}
+                  {user.username || "bạn"}
                 </span>
               </div>
             )}
