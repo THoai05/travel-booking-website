@@ -22,6 +22,7 @@ import {
   HiOutlineBell,
   HiOutlineClipboardCheck,
   HiOutlineCalendar,
+  HiOutlineBookmark,
 } from "react-icons/hi";
 
 interface UserProfile {
@@ -292,13 +293,24 @@ const Header = () => {
 
                     <button
                       onClick={() => {
-                        router.push("/rooms/booking-history");
+                        router.replace("/rooms/booking-history");
                         setIsDropdownOpen(false);
                       }}
                       className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                     >
                       <HiOutlineCalendar className="mr-3 w-5 h-5" />
                       Lịch sử đặt phòng
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        router.replace("/rooms/trip-history");
+                        setIsDropdownOpen(false);
+                      }}
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <HiOutlineBookmark className="mr-3 w-5 h-5" />
+                      Lịch sử chuyến đi
                     </button>
 
 
