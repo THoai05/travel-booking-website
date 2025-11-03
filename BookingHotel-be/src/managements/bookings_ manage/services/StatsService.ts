@@ -1,38 +1,40 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
-import { Booking, BookingStatus } from 'src/managements/bookings/entities/bookings.entity';
-
+import { Repository } from 'typeorm';
+import { Booking, BookingStatus } from '../../bookings/entities/bookings.entity';
+import { Room } from '../../rooms/entities/rooms.entity'; 
 
 @Injectable()
 export class StatsService {
     constructor(
         @InjectRepository(Booking)
         private bookingRepository: Repository<Booking>,
+        @InjectRepository(Room)
+        private roomRepository: Repository<Room>,
     ) { }
 
-    // Hàm phụ trợ tính %
+    // Hàm phụ trợ tính % tăng trưởng (đã tối ưu xử lý chia 0)
     private calculatePercentage(current: number, previous: number): string {
         if (previous === 0) return current > 0 ? '+100.0%' : '0%';
         const growth = ((current - previous) / previous) * 100;
         return `${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%`;
     }
 
-    //  HÀM CHÍNH: LẤY TẤT CẢ SỐ LIỆU TỔNG HỢP
-    async getBookingSummary(startDate: Date, endDate: Date): Promise<any> {
+    // Hàm phụ trợ tính khoảng ngày đầu/cuối tháng (giữ nguyên)
+    private getDateRange(year: number, month: number): { startDate: Date, endDate: Date } {
+        const startDate = new Date(year, month - 1, 1, 0, 0, 0, 0);
+        const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+        return { startDate, endDate };
+    }
 
-        // 1. TÍNH TOÁN KHOẢNG THỜI GIAN HIỆN TẠI VÀ THÁNG TRƯỚC
-        // Tạm thời dùng 30 ngày trước để tính 'last month change' đơn giản
-        const thirtyDaysAgo = new Date(startDate);
-        thirtyDaysAgo.setDate(startDate.getDate() - 30); // Giả định tính 30 ngày trước
-
-        // 2. QUERY TỔNG HỢP (Hiện tại)
-        const currentStats = await this.bookingRepository.createQueryBuilder('b')
+    // Hàm phụ trợ lấy dữ liệu tổng hợp (giữ nguyên)
+    private async getAggregatedData(startDate: Date, endDate: Date) {
+        const rawStats = await this.bookingRepository.createQueryBuilder('b')
             .select([
-                'COUNT(b.id) AS total_count', // Tổng số đơn
-                'SUM(CASE WHEN b.status = :completed THEN 1 ELSE 0 END) AS successful_count', // Đơn thành công
-                'SUM(CASE WHEN b.status = :cancelled THEN 1 ELSE 0 END) AS cancelled_count',   // Đơn bị hủy
-                'SUM(b.totalPrice) AS total_revenue', // Tổng doanh thu
+                'COUNT(b.id) AS total_count',
+                'SUM(CASE WHEN b.status = :completed THEN 1 ELSE 0 END) AS successful_count',
+                'SUM(CASE WHEN b.status = :cancelled THEN 1 ELSE 0 END) AS cancelled_count',
+                'SUM(b.totalPrice) AS total_revenue',
             ])
             .where('b.createdAt BETWEEN :start AND :end', { start: startDate, end: endDate })
             .setParameters({
@@ -41,38 +43,99 @@ export class StatsService {
             })
             .getRawOne();
 
-        // 3. QUERY THÁNG TRƯỚC (Cho phần trăm thay đổi)
-        const previousStats = await this.bookingRepository.createQueryBuilder('b')
-            .select([
-                'COUNT(b.id) AS total_count',
-            ])
-            .where('b.createdAt BETWEEN :start AND :end', { start: thirtyDaysAgo, end: startDate })
-            .getRawOne();
-
-
-        const totalBookings = parseInt(currentStats.total_count || 0, 10);
-        const totalCancellations = parseInt(currentStats.cancelled_count || 0, 10);
-        const prevBookings = parseInt(previousStats.total_count || 0, 10);
-
-        // 4. TÍNH TOÁN CHỈ SỐ
-        const ratioSuccessful = totalBookings > 0 ? ((totalBookings - totalCancellations) / totalBookings) * 100 : 0;
-        const occupancyRate = "87.9%"; // Giả định phức tạp (cần JOIN Room/Hotel), tạm giữ mock structure
-
         return {
-            // HEADER STATS
-            totalBookings: totalBookings.toLocaleString(),
-            totalCancellations: totalCancellations.toLocaleString(),
-            occupancyRate,
-            changeBookings: this.calculatePercentage(totalBookings, prevBookings),
-            changeCancellations: "-4.2%", // Logic tính hủy phức tạp, tạm giữ mock
-
-            // RATIO CHART
-            ratioSuccessful: parseFloat(ratioSuccessful.toFixed(1)),
-            ratioCancelled: parseFloat((100 - ratioSuccessful).toFixed(1)),
-
-            // DETAILED CARDS (Cần logic phức tạp hơn)
-            avgDailyBookings: (totalBookings / 30).toFixed(0),
-            totalRevenue: parseFloat(currentStats.total_revenue || 0).toFixed(2),
+            totalCount: parseInt(rawStats.total_count || 0, 10),
+            successfulCount: parseInt(rawStats.successful_count || 0, 10),
+            cancelledCount: parseInt(rawStats.cancelled_count || 0, 10),
+            totalRevenue: parseFloat(rawStats.total_revenue || 0),
         };
     }
-}           
+
+    // ⭐ HÀM CHÍNH: LẤY TẤT CẢ SỐ LIỆU TỔNG HỢP CHO DASHBOARD
+    async getBookingSummary(startDate: Date, endDate: Date): Promise<any> {
+
+        // 1. TÍNH STATS HIỆN TẠI VÀ TRƯỚC ĐÓ
+        const diffTime = endDate.getTime() - startDate.getTime();
+        const daysCount = Math.ceil(diffTime / (1000 * 3600 * 24));
+        const [currentStats, previousStats] = await Promise.all([
+            this.getAggregatedData(startDate, endDate),
+            this.getAggregatedData(new Date(startDate.getTime() - diffTime), startDate),
+        ]);
+
+        // ĐỊNH NGHĨA BIẾN CỤC BỘ ĐỂ FIX LỖI SCOPE TRONG CÔNG THỨC TÍNH TỶ LỆ
+        const totalBookings = currentStats.totalCount;
+        const totalCancellations = currentStats.cancelledCount;
+
+        // 2. TÍNH OCCUPANCY RATE (Tỉ lệ lấp đầy)
+        const rawBookings = await this.bookingRepository.createQueryBuilder('b')
+            .select(['b.checkInDate', 'b.checkOutDate'])
+            .where('b.status = :completed', { completed: BookingStatus.COMPLETED })
+            .andWhere('b.createdAt BETWEEN :start AND :end', { start: startDate, end: endDate })
+            .getMany();
+
+        let totalRoomNightsSold = 0;
+        rawBookings.forEach(booking => {
+            const checkIn = new Date(booking.checkInDate);
+            const checkOut = new Date(booking.checkOutDate);
+            const diffTime = checkOut.getTime() - checkIn.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+            totalRoomNightsSold += diffDays;
+        });
+
+        const totalRooms = await this.roomRepository.count();
+        const totalRoomNightsAvailable = totalRooms * daysCount;
+
+        let occupancyRate = 0;
+        if (totalRoomNightsAvailable > 0) {
+            occupancyRate = (totalRoomNightsSold / totalRoomNightsAvailable) * 100;
+        }
+
+        const changeOccupancy = "+5.1%"; // Giữ mock hoặc cần thêm logic tính Occupancy tháng trước
+
+        // --- Output Final ---
+        return {
+            // StatsHeader
+            totalBookings: totalBookings.toLocaleString(),
+            totalCancellations: totalCancellations.toLocaleString(),
+            occupancyRate: `${occupancyRate.toFixed(1)}%`, // GIÁ TRỊ TÍNH TOÁN
+            changeBookings: this.calculatePercentage(totalBookings, previousStats.totalCount),
+            changeCancellations: this.calculatePercentage(totalCancellations, previousStats.cancelledCount),
+            changeOccupancy,
+
+            // Ratio Chart Data (Sử dụng các biến đã định nghĩa lại)
+            ratioSuccessful: totalBookings > 0 ? (currentStats.successfulCount / totalBookings) * 100 : 0,
+            ratioCancelled: totalBookings > 0 ? (totalCancellations / totalBookings) * 100 : 0,
+
+            // Detailed Cards Data
+            avgDailyBookings: (totalBookings / (diffTime / (1000 * 3600 * 24))).toFixed(0),
+            totalRevenue: currentStats.totalRevenue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
+        };
+
+
+    }
+
+    async getTrendsData(startDate: Date, endDate: Date): Promise<any[]> {
+        // Dùng DATE_FORMAT và GROUP BY để phân tích data theo tháng
+        const trends = await this.bookingRepository.createQueryBuilder('b')
+            .select(`DATE_FORMAT(b.created_at, '%Y-%m')`, 'period_key') // Key để sắp xếp
+            .addSelect(`DATE_FORMAT(b.created_at, '%b')`, 'month')      // Tên tháng (Ví dụ: Oct, Nov)
+            .addSelect(`SUM(CASE WHEN b.status = :completed OR b.status = :confirmed THEN 1 ELSE 0 END)`, 'Bookings')
+            .addSelect(`SUM(CASE WHEN b.status = :cancelled THEN 1 ELSE 0 END)`, 'Cancellations')
+            .where('b.createdAt BETWEEN :start AND :end', { start: startDate, end: endDate })
+            .setParameters({
+                completed: BookingStatus.COMPLETED,
+                confirmed: BookingStatus.CONFIRMED, // Thêm CONFIRMED vào tổng số đơn đặt
+                cancelled: BookingStatus.CANCELLED
+            })
+            .groupBy('period_key, month')
+            .orderBy('period_key', 'ASC')
+            .getRawMany();
+
+        // Chuyển kết quả về dạng số để FE vẽ biểu đồ
+        return trends.map(item => ({
+            month: item.month,
+            Bookings: parseInt(item.Bookings, 10),
+            Cancellations: parseInt(item.Cancellations, 10),
+        }));
+    }
+}

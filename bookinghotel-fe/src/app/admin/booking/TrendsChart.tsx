@@ -2,38 +2,49 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ResponsiveContainer } from 'recharts';
 
-interface TrendData {
+// Khai báo Interface cho mỗi điểm dữ liệu xu hướng (Phải khớp với BE)
+interface TrendItem {
     month: string;
-    Bookings: number;
-    Cancellations: number;
+    Bookings: number; // Tổng số đơn đặt (Bookings + Confirmed)
+    Cancellations: number; // Tổng số đơn hủy
 }
 
-const MOCK_TRENDS: TrendData[] = [
-    { month: 'Jan', Bookings: 450, Cancellations: 80 }, { month: 'Feb', Bookings: 480, Cancellations: 90 },
-    { month: 'Mar', Bookings: 550, Cancellations: 70 }, { month: 'Apr', Bookings: 610, Cancellations: 100 },
-    { month: 'May', Bookings: 580, Cancellations: 110 }, { month: 'Jun', Bookings: 540, Cancellations: 120 },
-    { month: 'Jul', Bookings: 650, Cancellations: 90 }, { month: 'Aug', Bookings: 600, Cancellations: 110 },
-    { month: 'Sep', Bookings: 520, Cancellations: 80 }, { month: 'Oct', Bookings: 490, Cancellations: 75 },
-    { month: 'Nov', Bookings: 510, Cancellations: 85 }, { month: 'Dec', Bookings: 470, Cancellations: 70 },
-];
+interface TrendsChartProps {
+    // Nhận toàn bộ data object từ Page, sau đó dùng trendsData
+    data: { trendsData: TrendItem[] };
+}
 
-export default function TrendsChart() {
+// Cú pháp Function truyền thống (Export default function TênComponent(props))
+export default function TrendsChart({ data }: TrendsChartProps) {
+    // Lấy data trends từ props (đã được fetch từ Backend)
+    const dataToRender = data?.trendsData || [];
+
+    // Kiểm tra nếu không có data thì hiển thị thông báo
+    const hasData = dataToRender.length > 0;
+
     return (
         <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
             <h3 className="font-semibold mb-4 text-lg">Xu hướng đặt phòng theo thời gian</h3>
+
             <ResponsiveContainer width="100%" height={256}>
-                <LineChart data={MOCK_TRENDS}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="Bookings" stroke="#3b82f6" activeDot={{ r: 8 }} />
-                    <Line type="monotone" dataKey="Cancellations" stroke="#ef4444" />
-                </LineChart>
+                {hasData ? (
+                    <LineChart data={dataToRender}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        {/* Line cho Bookings (Tổng số đơn đặt) */}
+                        <Line type="monotone" dataKey="Bookings" stroke="#3b82f6" activeDot={{ r: 8 }} name="Bookings" />
+                        {/* Line cho Cancellations (Tổng số đơn hủy) */}
+                        <Line type="monotone" dataKey="Cancellations" stroke="#ef4444" name="Cancellations" />
+                    </LineChart>
+                ) : (
+                    <div className="flex items-center justify-center h-full text-gray-500 font-medium">
+                        Không có dữ liệu xu hướng trong khoảng thời gian này.
+                    </div>
+                )}
             </ResponsiveContainer>
         </div>
     );
-};
-
-    
+}

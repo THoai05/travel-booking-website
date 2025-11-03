@@ -1,5 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { StatsService } from '../services/StatsService';
+import { parseISO } from 'date-fns';
 
 @Controller('api/stats')
 export class StatsController {
@@ -15,5 +16,17 @@ export class StatsController {
         const endDate = to ? new Date(to) : new Date();
 
         return this.statsService.getBookingSummary(startDate, endDate);
+    }
+
+    @Get('trends-summary')
+    getTrendsSummary(
+        @Query('from') from: string,
+        @Query('to') to: string,
+    ) {
+        const startDate = from ? parseISO(from) : new Date(new Date().setMonth(new Date().getMonth() - 1));
+        const endDate = to ? parseISO(to) : new Date();
+
+        // Gọi Service để lấy dữ liệu xu hướng
+        return this.statsService.getTrendsData(startDate, endDate);
     }
 }

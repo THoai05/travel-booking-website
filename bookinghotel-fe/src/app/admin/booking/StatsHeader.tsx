@@ -9,15 +9,27 @@ interface StatsDataProps {
     occupancyRate: string;
     changeBookings: string;
     changeCancellations: string;
-    // ... các trường khác (chỉ hiển thị những trường cần cho header)
+    // Tui thêm các trường khác để tránh lỗi TypeScript nếu chúng được truyền
+    ratioSuccessful: number;
+    ratioCancelled: number;
+    avgDailyBookings: string;
+    totalRevenue: string;
 }
 
 interface StatsHeaderProps {
     data: StatsDataProps; // Nhận dữ liệu đã được tính toán từ Backend
 }
 
+interface StatItem {
+    label: string;
+    value: string;
+    change: string;
+    color: string;
+    icon: LucideIcon;
+}
+
 // Hàm phụ trợ để map data nhận được từ API vào cấu trúc UI
-const mapDataToStats = (data: StatsDataProps) => ([
+const mapDataToStats = (data: StatsDataProps): StatItem[] => ([
     {
         label: "Total Bookings",
         value: data.totalBookings,
@@ -32,17 +44,17 @@ const mapDataToStats = (data: StatsDataProps) => ([
         color: "text-red-600",
         icon: TrendingDown
     },
-    // Occupancy Rate: Tạm dùng giá trị từ BE hoặc giả định
     {
         label: "Occupancy Rate",
         value: data.occupancyRate,
+        // Pro cần thêm logic tính change Occupancy ở BE, tạm dùng mock
         change: "+5.1%",
         color: "text-blue-600",
         icon: Clock
     },
 ]);
 
-// CÚ PHÁP ĐÚNG: Arrow Function với Props (Inline Typing)
+// FIX CÚ PHÁP: Arrow Function chuẩn mực
 export default function StatsHeader({ data }: StatsHeaderProps) {
     // Dữ liệu đã được map
     const stats = mapDataToStats(data);
@@ -64,5 +76,4 @@ export default function StatsHeader({ data }: StatsHeaderProps) {
         </div>
     );
 };
-
 

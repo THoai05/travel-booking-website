@@ -6,18 +6,25 @@ import { format } from 'date-fns';
 // Đảm bảo PORT và PATH base là đúng
 const API_BASE_URL = 'http://localhost:3636/api';
 
+// ⭐ NEW INTERFACE: Định nghĩa TrendItem
+interface TrendItem {
+    month: string;
+    Bookings: number;
+    Cancellations: number;
+}
+
 // Khai báo Interface cho dữ liệu trả về từ BE
 interface StatsSummary {
     totalBookings: string;
     totalCancellations: string;
     occupancyRate: string;
-    changeBookings: string; 
+    changeBookings: string;
     changeCancellations: string;
     ratioSuccessful: number;
     ratioCancelled: number;
     avgDailyBookings: string;
     totalRevenue: string;
-    // ... Thêm các trường khác nếu cần
+    trendsData: TrendItem[];
 }
 
 interface DateRange {
@@ -37,20 +44,25 @@ export function useStatsData(range: DateRange) {
                 setError(null);
 
                 const endpoint = '/stats/summary';
-                const url = `${API_BASE_URL}${endpoint}`;
+                const trendsEndpoint = '/stats/trends-summary';
 
-                // Gửi request với tham số ngày tháng
-                const response = await axios.get<StatsSummary>(url, {
-                    params: {
-                        from: range.from,
-                        to: range.to
-                    }
+                // GỌI 2 API CÙNG LÚC
+                const [summaryResponse, trendsResponse] = await Promise.all([
+                    axios.get<StatsSummary>(`${API_BASE_URL}${endpoint}`, { params: range }),
+                    axios.get<TrendItem[]>(`${API_BASE_URL}${trendsEndpoint}`, { params: range }),
+                ]);
+
+                // Gộp data lại
+                setData({
+                    ...summaryResponse.data,
+                    trendsData: trendsResponse.data, // <-- Gộp data xu hướng
                 });
-
-                setData(response.data);
             } catch (err) {
                 console.error("[Stats API Error]", err);
-                setError("Không thể tải dữ liệu thống kê từ Backend.");
+                const errorMessage = axios.isAxiosError(err) && err.response?.data?.message
+                    ? err.response.data.message
+                    : "Không thể tải dữ liệu thống kê từ Backend.";
+                setError(errorMessage);
             } finally {
                 setLoading(false);
             }
@@ -60,7 +72,7 @@ export function useStatsData(range: DateRange) {
         if (range.from && range.to) {
             fetchData();
         }
-    }, [range.from, range.to]); // Re-fetch khi ngày bắt đầu/kết thúc thay đổi
+    }, [range.from, range.to]);
 
     return { data, loading, error };
 }

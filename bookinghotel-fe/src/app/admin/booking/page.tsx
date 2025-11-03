@@ -49,6 +49,9 @@ export default function StatisticsPage() {
         return <div className="min-h-screen bg-gray-50 p-6 text-center pt-20 text-red-600 font-semibold">Lỗi tải dữ liệu: Vui lòng kiểm tra Server Backend.</div>;
     }
 
+    // Tạo object data để truyền xuống TrendsChart
+    const trendsDataProp = { trendsData: statsData?.trendsData || [] };
+
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <h1 className="text-2xl font-semibold mb-6">Booking Statistics Dashboard</h1>
@@ -89,7 +92,7 @@ export default function StatisticsPage() {
 
             <div className="grid grid-cols-2 gap-6 mb-6">
                 <RatioChart data={statsData} />
-                <TrendsChart />
+                <TrendsChart data={trendsDataProp} />
             </div>
 
             <DetailedCards data={statsData} />
