@@ -24,13 +24,13 @@ const PaymentCheck = ()=>{
                     paymentVerifyEndpoint = `payment-gate/verify/vnpay${finalQueryString}`
                     break
                 case "momo":
-                    paymentVerifyEndpoint = `payment-gate/verify/vnpay${finalQueryString}`
+                    paymentVerifyEndpoint = `payment-gate/verify/momo${finalQueryString}`
                     break
                 case "zalopay":
-                    paymentVerifyEndpoint = `payment-gate/verify/vnpay${finalQueryString}`
+                    paymentVerifyEndpoint = `payment-gate/verify/zalopay${finalQueryString}`
                     break
                 case "stripe": 
-                    paymentVerifyEndpoint = `payment-gate/verify/vnpay${finalQueryString}`
+                    paymentVerifyEndpoint = `payment-gate/verify/stripe${finalQueryString}`
                     break
             }
 

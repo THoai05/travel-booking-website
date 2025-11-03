@@ -35,7 +35,7 @@ export class PaymentGateController {
 
 
   @Get('verify/vnpay')
-  async verifyVnPayPayment(@Query() query:Record<string,string>) {
+  async verifyMomoPayment(@Query() query:Record<string,string>) {
     const isValid = this.paymentGateService.verifyVnPay(query)
 
     if (!isValid) {
@@ -78,5 +78,19 @@ export class PaymentGateController {
     }) {
         const { orderAmount,orderCode } = body
         return await this.paymentGateService.createMomoUrl(orderAmount,orderCode)
+  }
+  
+
+  
+  @Get('verify/momo')
+  async verifyVnPayPayment(@Query() query:Record<string,string>) {
+    const isValid = this.paymentGateService.verifyMomo(query)
+
+    if (!isValid) {
+      throw new BadRequestException('Giao dịch không hợp lệ')
     }
+       return {
+      message:"success"
+    }
+  }
 }

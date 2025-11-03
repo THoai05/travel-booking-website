@@ -14,6 +14,24 @@ export class PaymentGateService {
     private readonly tmnCode = 'O6BLWB77'
     private readonly secretKey = '0Q0XRG2HIAVOKZCPPKFPR3NN3K4HOC7D'
     private readonly vnp_Url = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'
+    private readonly momo_secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz' 
+
+
+
+      sortObject(obj: Record<string, any>): Record<string, string> {
+        const sorted: Record<string, string> = {};
+            const keys: string[] = Object.keys(obj).map(k => encodeURIComponent(k));
+            
+            keys.sort();
+            
+            for (const k of keys) {
+                // lấy value gốc, encode, replace space bằng '+'
+                const value = obj[decodeURIComponent(k)]; 
+                sorted[k] = encodeURIComponent(value).replace(/%20/g, "+");
+            }
+            
+            return sorted;
+        }
 
 
     async createPaymentUrl(orderCode: string, amount: number, ipAddr: string) {
@@ -85,7 +103,7 @@ export class PaymentGateService {
         let requestId = partnerCode + new Date().getTime();
         let orderId = orderCode;
         let orderInfo = "pay with MoMo";
-        let redirectUrl = "https://momo.vn/return";
+        let redirectUrl = "http:/localhost:3000/payment/check?gateway=momo";
         let ipnUrl = "https://callback.url/notify";
         // let ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
         let amount = orderAmoutString;
@@ -126,22 +144,7 @@ export class PaymentGateService {
 
     async verifyVnPay(params:Record<string,string>) {
         const { vnp_SecureHash, ...rest } = params
-         function sortObject(obj: Record<string, any>): Record<string, string> {
-        const sorted: Record<string, string> = {};
-            const keys: string[] = Object.keys(obj).map(k => encodeURIComponent(k));
-            
-            keys.sort();
-            
-            for (const k of keys) {
-                // lấy value gốc, encode, replace space bằng '+'
-                const value = obj[decodeURIComponent(k)]; 
-                sorted[k] = encodeURIComponent(value).replace(/%20/g, "+");
-            }
-            
-            return sorted;
-        }
-
-        const sortedParams = sortObject(rest)
+        const sortedParams = this.sortObject(rest)
         const signData = qs.stringify(sortedParams, { encode: false })
         const hmac = crypto.createHmac('sha512', this.secretKey)
         const signed = hmac.update(Buffer.from(signData,'utf-8')).digest('hex')
@@ -149,7 +152,16 @@ export class PaymentGateService {
         return signed === vnp_SecureHash
     }
 
-    
+    async verifyMomo(parmas: Record<string, string>): Promise<any> {
+        const momoSecretKey = this.momo_secretKey
+        const { signature, ...rest } = parmas
+        const sortedParams = this.sortObject(rest)
+        const signData = qs.stringify(sortedParams, { encode: false })
+        const hmac = crypto.createHmac('sha256', momoSecretKey)
+        const signed = hmac.update(Buffer.from(signData, 'utf8')).digest('hex')
+        
+        return signed === signature
+    }
 }
 
 
