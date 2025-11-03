@@ -10,10 +10,15 @@ import { getAllUsers } from "@/reduxTK/features/user/userThunk";
 const slugify = (s: string) =>
   s
     .toLowerCase()
+    .replace(/Đ/g, "D")
+    .replace(/đ/g, "d")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .trim()
-    .replace(/[^\w\s-]/g, "") // remove non-word chars
-    .replace(/\s+/g, "-") // spaces to dash
-    .replace(/-+/g, "-"); // collapse dashes
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+
 
 const AddPost = () => {
   const [content, setContent] = useState("");
@@ -112,7 +117,7 @@ const AddPost = () => {
       console.log("Created post:", result);
       alert("Thêm bài viết thành công!");
 
-      // 3️⃣ Reset form
+      // Reset form
       setTitle("");
       setContent("");
       setAuthor(users.length ? String(users[0].id) : "");
@@ -145,6 +150,7 @@ const AddPost = () => {
               onChange={(e) => setTitle(e.target.value)}
               className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400"
             />
+            <p className="mt-1 text-gray-500 text-sm">Slug: <span className="font-mono">{slugify(title)}</span></p>
           </div>
 
           {/* Type */}
@@ -176,7 +182,6 @@ const AddPost = () => {
             >
               <option value="">-- Select Author --</option>
               {users.map((user: any) => (
-                // value là id, backend cần author_id
                 <option key={user.id} value={user.id}>
                   {user.fullName}
                 </option>
