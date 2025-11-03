@@ -26,7 +26,7 @@ export class PostsService {
   ) { }
 
   async create(createPostDto: CreatePostDto) {
-    const { title, content, author_id, image, slug, city_id } = createPostDto;
+    const { title, content, author_name, image, slug, city_title } = createPostDto;
 
     // Tạo slug tự động nếu chưa có
     const finalSlug =
@@ -37,12 +37,16 @@ export class PostsService {
     const existingSlug = await this.postRepo.findOne({ where: { slug: finalSlug } });
     if (existingSlug) throw new BadRequestException('Slug đã tồn tại, vui lòng chọn slug khác.');
 
-    const author = await this.userRepo.findOne({ where: { id: author_id } });
+    // Lấy author theo username hoặc fullName
+    const author = await this.userRepo.findOne({
+      where: [{ username: author_name }, { fullName: author_name }]
+    });
     if (!author) throw new NotFoundException('Không tìm thấy tác giả');
 
+    // Lấy city theo title
     let city: City | null = null;
-    if (city_id) {
-      city = await this.cityRepo.findOne({ where: { id: city_id } });
+    if (city_title) {
+      city = await this.cityRepo.findOne({ where: { title: city_title } });
       if (!city) throw new NotFoundException('Không tìm thấy thành phố');
     }
 
@@ -57,31 +61,29 @@ export class PostsService {
 
     await this.postRepo.save(newPost);
 
-    const response = {
-      id: newPost.id,
-      title: newPost.title,
-      content: newPost.content,
-      image: newPost.image,
-      slug: newPost.slug,
-      is_public: newPost.is_public,
-      created_at: newPost.created_at,
-      author: {
-        id: author.id,
-        username: author.username,
-        fullName: author.fullName,
-      },
-      city: city
-        ? {
-          id: city.id,
-          title: city.title,
-          image: city.image,
-        }
-        : null,
-    };
-
     return {
       message: 'Tạo bài viết thành công',
-      post: response,
+      post: {
+        id: newPost.id,
+        title: newPost.title,
+        content: newPost.content,
+        image: newPost.image,
+        slug: newPost.slug,
+        is_public: newPost.is_public,
+        created_at: newPost.created_at,
+        author: {
+          id: author.id,
+          username: author.username,
+          fullName: author.fullName,
+        },
+        city: city
+          ? {
+            id: city.id,
+            title: city.title,
+            image: city.image,
+          }
+          : null,
+      },
     };
   }
 
