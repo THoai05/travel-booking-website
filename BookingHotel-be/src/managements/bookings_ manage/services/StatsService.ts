@@ -56,13 +56,15 @@ export class StatsService {
 
         // 1. TÍNH STATS HIỆN TẠI VÀ TRƯỚC ĐÓ
         const diffTime = endDate.getTime() - startDate.getTime();
-        const daysCount = Math.ceil(diffTime / (1000 * 3600 * 24));
+
+        // FIX LỖI NaN: Tính số ngày an toàn (tối thiểu là 1 nếu cùng ngày)
+        const daysCount = Math.max(1, Math.ceil(diffTime / (1000 * 3600 * 24)));
+
         const [currentStats, previousStats] = await Promise.all([
             this.getAggregatedData(startDate, endDate),
             this.getAggregatedData(new Date(startDate.getTime() - diffTime), startDate),
         ]);
 
-        // ĐỊNH NGHĨA BIẾN CỤC BỘ ĐỂ FIX LỖI SCOPE TRONG CÔNG THỨC TÍNH TỶ LỆ
         const totalBookings = currentStats.totalCount;
         const totalCancellations = currentStats.cancelledCount;
 
@@ -83,21 +85,21 @@ export class StatsService {
         });
 
         const totalRooms = await this.roomRepository.count();
-        const totalRoomNightsAvailable = totalRooms * daysCount;
+        const totalRoomNightsAvailable = totalRooms * daysCount;    
 
         let occupancyRate = 0;
         if (totalRoomNightsAvailable > 0) {
             occupancyRate = (totalRoomNightsSold / totalRoomNightsAvailable) * 100;
         }
 
-        const changeOccupancy = "+5.1%"; // Giữ mock hoặc cần thêm logic tính Occupancy tháng trước
+        const changeOccupancy = "+5.1%";
 
         // --- Output Final ---
         return {
             // StatsHeader
             totalBookings: totalBookings.toLocaleString(),
             totalCancellations: totalCancellations.toLocaleString(),
-            occupancyRate: `${occupancyRate.toFixed(1)}%`, // GIÁ TRỊ TÍNH TOÁN
+            occupancyRate: `${occupancyRate.toFixed(1)}%`,
             changeBookings: this.calculatePercentage(totalBookings, previousStats.totalCount),
             changeCancellations: this.calculatePercentage(totalCancellations, previousStats.cancelledCount),
             changeOccupancy,
@@ -107,13 +109,11 @@ export class StatsService {
             ratioCancelled: totalBookings > 0 ? (totalCancellations / totalBookings) * 100 : 0,
 
             // Detailed Cards Data
-            avgDailyBookings: (totalBookings / (diffTime / (1000 * 3600 * 24))).toFixed(0),
+            // FIX: Dùng daysCount đã tính an toàn để tránh NaN
+            avgDailyBookings: (totalBookings / daysCount).toFixed(0),
             totalRevenue: currentStats.totalRevenue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
         };
-
-
     }
-
     async getTrendsData(startDate: Date, endDate: Date): Promise<any[]> {
         // Dùng DATE_FORMAT và GROUP BY để phân tích data theo tháng
         const trends = await this.bookingRepository.createQueryBuilder('b')

@@ -39,7 +39,7 @@ export default function RatioChart({ data }: RatioChartProps) {
 
     return (
         <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
-            <h3 className="font-semibold mb-4 text-lg">Tỷ lệ đặt phòng so với tỷ lệ hủy phòng</h3>
+            <h3 className="font-semibold mb-4 text-lg">Booking rate vs cancellation rate</h3>
 
             {totalBookings === 0 ? (
                 <div className="flex items-center justify-center h-64 text-gray-500 font-medium">
