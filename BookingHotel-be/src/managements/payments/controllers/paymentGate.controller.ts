@@ -34,39 +34,38 @@ export class PaymentGateController {
     
 
 
-//   @Get('verify')
-//   async verifyVnPayPayment(@Query() query:Record<string,string>) {
-//     const isValid = this.paymentService.verifyVnPay(query)
+  @Get('verify/vnpay')
+  async verifyVnPayPayment(@Query() query:Record<string,string>) {
+    const isValid = this.paymentGateService.verifyVnPay(query)
 
-//     if (!isValid) {
-//       throw new BadRequestException('Giao dịch không hợp lệ')
-//     }
+    if (!isValid) {
+      throw new BadRequestException('Giao dịch không hợp lệ')
+    }
 
-//     const { vnp_ResponseCode, vnp_TxnRef } = query
-//     const order = await this.orderService.getOrderByOrderCode(vnp_TxnRef)
-//     if (!order) {
-//       throw new NotFoundException('Không tìm thấy đơn hàng ')
-//     }
+    const { vnp_ResponseCode, vnp_TxnRef } = query
+    // const order = await this.orderService.getOrderByOrderCode(vnp_TxnRef)
+    // if (!order) {
+    //   throw new NotFoundException('Không tìm thấy đơn hàng ')
+    // }
 
-//     const updateDtoSucceeded: UpdateOrderDto = { status: OrderStatus.SUCCEEDED }
-//     const updateDtoWaitForPaid : UpdateOrderDto = {status:OrderStatus.WAITFORPAID}
-//     console.log(order)
+    // const updateDtoSucceeded: UpdateOrderDto = { status: OrderStatus.SUCCEEDED }
+    // const updateDtoWaitForPaid : UpdateOrderDto = {status:OrderStatus.WAITFORPAID}
+    // console.log(order)
 
-//     if (vnp_ResponseCode === '00') {
-//       console.log('hahahahaha')
-//       await this.orderService.updateOrder(order.id, updateDtoSucceeded)
-//       order.status = updateDtoSucceeded.status
-//       console.log('hahahha')
-//       console.log(order.items.map(item=>item.id))
-//       await this.cartService.deleteItems(order.user.id, order.items.map(item => item.originalCartItemId))
-//       console.log('hahahah')
-//     } else {
-//       await this.orderService.updateOrder(order.id, updateDtoWaitForPaid)
-//       order.status = updateDtoWaitForPaid.status
-//     }
-//     console.log(order.status)
-//     return {status:order.status}
-//   }
+    let message = ''
+
+    if (vnp_ResponseCode === '00') {
+     
+        message = "success"
+      
+    } else {
+      message = "failed" 
+    }
+
+    return {
+      message
+    }
+  }
 
     
     
