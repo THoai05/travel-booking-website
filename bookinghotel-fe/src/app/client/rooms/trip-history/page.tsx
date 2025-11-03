@@ -313,7 +313,7 @@ export default function RoomMonitorPage() {
       await api.post("/rooms/remove-trip", { bookingId });
 
       fetchRooms();
-      
+
       toast.success("❌ Đã xóa hành trình!");
     } catch (err) {
       console.error(err);
@@ -387,7 +387,7 @@ export default function RoomMonitorPage() {
 
       {/* Room groups */}
       {currentGroups.length === 0 ? (
-        <p>Không có phòng nào được đặt.</p>
+        <p>Không có hành trình nào được lưu.</p>
       ) : currentGroups.map(group => (
         <div key={group.hotelName} className="mb-6 border rounded-xl p-4 shadow bg-white">
           <div
