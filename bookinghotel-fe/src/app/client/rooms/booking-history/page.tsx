@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import api from "@/axios/axios";
 import { toast } from "react-hot-toast";
+import { useAuth } from "@/context/AuthContext";
 
 interface Room {
   id: number;
@@ -67,15 +68,21 @@ export default function RoomMonitorPage() {
   const roomDetailCache = useRef<Map<number, any>>(new Map());
   const hotelDetailCache = useRef<Map<number, any>>(new Map());
 
+  const { user, setUser } = useAuth();
+
   // Fetch user
   useEffect(() => {
     const fetchUserId = async () => {
       try {
         const res = await api.get("auth/profile");
         if (res.data?.id) setUserId(res.data.id);
-        else toast.error("Không tìm thấy thông tin người dùng!");
+        else {
+          toast.error("Không tìm thấy thông tin người dùng!");
+          setUser(null);
+        }
       } catch {
-        toast.error("Không thể lấy thông tin người dùng!");
+        toast.error("Vui lòng đăng nhập lại! Không thể lấy thông tin người dùng!");
+        setUser(null);
       }
     };
     fetchUserId();

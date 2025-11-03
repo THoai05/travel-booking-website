@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import api from "@/axios/axios";
 import { toast } from "react-hot-toast";
 import { FiTrash2, FiRefreshCw, FiUserCheck, FiHome, FiCreditCard, FiGift } from "react-icons/fi";
+import { useAuth } from "@/context/AuthContext";
 
 interface Notification {
     id: number;
@@ -21,6 +22,8 @@ export default function NotificationsPage() {
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const [dropdownOpen, setDropdownOpen] = useState(false);
+
+    const { user, setUser } = useAuth();
 
 
     // Modal chi tiết
@@ -42,9 +45,13 @@ export default function NotificationsPage() {
             try {
                 const res = await api.get("auth/profile");
                 if (res.data?.id) setUserId(res.data.id);
-                else toast.error("Không tìm thấy thông tin người dùng!");
+                else {
+                    toast.error("Vui lòng đăng nhập lại! Không tìm thấy thông tin người dùng!");
+                    setUser(null);
+                }
             } catch {
-                toast.error("Không thể lấy thông tin người dùng!");
+                toast.error("Vui lòng đăng nhập lại! Không thể lấy thông tin người dùng!");
+                setUser(null);
             }
         };
         fetchUserId();
