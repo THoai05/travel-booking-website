@@ -6,6 +6,8 @@ import { RoomType } from '../entities/roomType.entity';
 import { Hotel } from '../../hotels/entities/hotel.entity';
 import { Booking } from 'src/managements/bookings/entities/bookings.entity';
 import { User } from 'src/managements/users/entities/users.entity';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class RoomsService {
@@ -159,6 +161,118 @@ export class RoomsService {
     async getRoomTypeDetail(roomTypeId: number) {
         const roomType = await this.roomTypeRepo.findOne({ where: { id: roomTypeId } });
         return roomType;
+    }
+
+    async saveTripHistory(bookingId: number) {
+        if (!bookingId) throw new Error('Thiếu bookingId');
+
+        try {
+            // Đường dẫn tới frontend
+            const dirPath = path.join(
+                process.cwd(),
+                '..',
+                'bookinghotel-fe',
+                'src',
+                'app',
+                'client',
+                'rooms',
+                'trip-history'
+            );
+            const filePath = path.join(dirPath, 'trip-history.txt');
+
+            // Tạo thư mục nếu chưa tồn tại
+            if (!fs.existsSync(dirPath)) {
+                fs.mkdirSync(dirPath, { recursive: true });
+            }
+
+            let existingIds: Set<string> = new Set();
+
+            // Nếu file đã tồn tại, đọc các ID hiện có
+            if (fs.existsSync(filePath)) {
+                const data = fs.readFileSync(filePath, 'utf8');
+                const lines = data.split('\n').map(line => line.trim()).filter(line => line);
+                existingIds = new Set(lines);
+            }
+
+            // Nếu bookingId chưa có, thêm vào
+            if (!existingIds.has(bookingId.toString())) {
+                existingIds.add(bookingId.toString());
+                // Ghi lại toàn bộ ID, mỗi ID 1 dòng
+                fs.writeFileSync(filePath, Array.from(existingIds).join('\n') + '\n', 'utf8');
+            }
+
+            return {
+                message: 'Đã lưu hành trình thành công!',
+                filePath,
+                bookingId,
+            };
+
+        } catch (err: any) {
+            console.error('❌ Lỗi lưu trip-history:', err);
+            throw new Error(err.message || 'Không thể lưu hành trình');
+        }
+    }
+
+    async getTripHistory() {
+        const filePath = path.join(
+            process.cwd(),
+            '..',
+            'bookinghotel-fe',
+            'src',
+            'app',
+            'client',
+            'rooms',
+            'trip-history',
+            'trip-history.txt'
+        );
+
+        if (!fs.existsSync(filePath)) return { bookingIds: [] };
+
+        const data = fs.readFileSync(filePath, 'utf8');
+        const bookingIds = data
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line); // lọc dòng trống
+
+        return { bookingIds };
+    }
+
+    async removeTripHistory(bookingId: number) {
+        if (!bookingId) throw new Error('Thiếu bookingId');
+
+        try {
+            const filePath = path.join(
+                process.cwd(),
+                '..',
+                'bookinghotel-fe',
+                'src',
+                'app',
+                'client',
+                'rooms',
+                'trip-history',
+                'trip-history.txt'
+            );
+
+            if (!fs.existsSync(filePath)) return { message: 'Chưa có hành trình nào' };
+
+            // Đọc các ID hiện có
+            const data = fs.readFileSync(filePath, 'utf8');
+            const existingIds = new Set(
+                data.split('\n').map(line => line.trim()).filter(line => line)
+            );
+
+            // Xóa bookingId nếu có
+            if (existingIds.has(bookingId.toString())) {
+                existingIds.delete(bookingId.toString());
+                fs.writeFileSync(filePath, Array.from(existingIds).join('\n') + '\n', 'utf8');
+                return { message: 'Đã xóa hành trình thành công', bookingId };
+            }
+
+            return { message: 'Hành trình không tồn tại' };
+        } catch (err: any) {
+            console.error('❌ Lỗi xóa trip-history:', err);
+            throw new Error(err.message || 'Không thể xóa hành trình');
+        }
     }
 
 }

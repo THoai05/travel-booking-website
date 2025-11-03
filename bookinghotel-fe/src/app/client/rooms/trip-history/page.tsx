@@ -69,9 +69,7 @@ export default function RoomMonitorPage() {
   const hotelDetailCache = useRef<Map<number, any>>(new Map());
 
   const { user, setUser } = useAuth();
-
-  // Thêm state lưu booking đã lưu
-  const [savedTrips, setSavedTrips] = useState<Set<number>>(new Set());
+  const [tripBookingIds, setTripBookingIds] = useState<number[]>([]);
 
   // Fetch user
   useEffect(() => {
@@ -89,38 +87,67 @@ export default function RoomMonitorPage() {
       }
     };
     fetchUserId();
-
-    const fetchSavedTrips = async () => {
-      try {
-        const res = await api.get("/rooms/trip-history"); // trả về object { bookingIds: [...] }
-        const ids: number[] = Array.isArray(res.data.bookingIds)
-          ? res.data.bookingIds.map((id: any) => Number(id)).filter((id: number) => !isNaN(id))
-          : [];
-        setSavedTrips(new Set(ids));
-      } catch (err) {
-        console.error("Không thể tải danh sách chuyến đi đã lưu", err);
-        setSavedTrips(new Set());
-      }
-    };
-    fetchSavedTrips();
-
   }, []);
 
   // Fetch rooms
+  // Fetch rooms theo trip-history
   useEffect(() => {
     if (!userId) return;
+
     const fetchRooms = async () => {
       try {
-        const res = await api.get(`/rooms/getBooking/byUser/${userId}`);
-        setRooms(res.data);
-      } catch {
-        toast.error("❌ Lỗi khi tải danh sách phòng!");
+        // 1. Lấy bookingIds từ trip-history
+        const tripRes = await api.get(`/rooms/trip-history`);
+        const bookingIds: string[] = tripRes.data.bookingIds || [];
+        setTripBookingIds(bookingIds.map(id => Number(id)));
+
+        if (bookingIds.length === 0) {
+          setRooms([]);
+          return;
+        }
+
+        // 2. Lấy tất cả phòng của user
+        const roomsRes = await api.get(`/rooms/getBooking/byUser/${userId}`);
+        const allRooms: Room[] = roomsRes.data;
+
+        // 3. Lọc phòng theo bookingIds
+        const filteredByBooking = allRooms.filter(r => r.bookingId && bookingIds.includes(r.bookingId.toString()));
+
+        setRooms(filteredByBooking);
+      } catch (err) {
+        toast.error("❌ Lỗi khi tải danh sách phòng hoặc trip-history!");
       }
     };
+
     fetchRooms();
     const interval = setInterval(fetchRooms, 3000);
     return () => clearInterval(interval);
   }, [userId]);
+
+  const fetchRooms = async () => {
+    try {
+      // 1. Lấy bookingIds từ trip-history
+      const tripRes = await api.get(`/rooms/trip-history`);
+      const bookingIds: string[] = tripRes.data.bookingIds || [];
+      setTripBookingIds(bookingIds.map(id => Number(id)));
+
+      if (bookingIds.length === 0) {
+        setRooms([]);
+        return;
+      }
+
+      // 2. Lấy tất cả phòng của user
+      const roomsRes = await api.get(`/rooms/getBooking/byUser/${userId}`);
+      const allRooms: Room[] = roomsRes.data;
+
+      // 3. Lọc phòng theo bookingIds
+      const filteredByBooking = allRooms.filter(r => r.bookingId && bookingIds.includes(r.bookingId.toString()));
+
+      setRooms(filteredByBooking);
+    } catch (err) {
+      toast.error("❌ Lỗi khi tải danh sách phòng hoặc trip-history!");
+    }
+  }
 
   const removeVietnameseAccents = (str: string) =>
     str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D");
@@ -279,41 +306,20 @@ export default function RoomMonitorPage() {
     return pageNumbers;
   };
 
-  // Cập nhật handleSaveTrip để thêm bookingId vào savedTrips khi lưu thành công
-  const handleSaveTrip = async (bookingId?: number) => {
-    if (!bookingId) return;
-    try {
-      const res = await api.post("rooms/save-trip", { bookingId });
-      toast.success("✅ Đã lưu hành trình!");
-      setSavedTrips(prev => new Set(prev).add(bookingId));
-    } catch (error: any) {
-      console.error(error);
-      toast.error(
-        error.response?.data?.message || "❌ Không thể lưu hành trình!"
-      );
-    }
-  };
-
-
   //Xóa hành trình
   const handleRemoveTrip = async (bookingId?: number) => {
     if (!bookingId) return;
     try {
       await api.post("/rooms/remove-trip", { bookingId });
 
-      setSavedTrips(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(bookingId);
-        return newSet;
-      });
-
+      fetchRooms();
+      
       toast.success("❌ Đã xóa hành trình!");
     } catch (err) {
       console.error(err);
       toast.error("❌ Không thể xóa hành trình!");
     }
   };
-
 
 
   const formatDateUTC = (dateStr?: string) => {
@@ -323,7 +329,7 @@ export default function RoomMonitorPage() {
   return (
     <div className="p-6 relative" onClick={() => toast.dismiss()}>
       <div className="pt-12 relative">
-        <h1 className="text-2xl font-bold mb-1">🏨 Lịch sử đặt phòng của tôi</h1>
+        <h1 className="text-2xl font-bold mb-1">🏨 Danh sách chuyến đi đã được lưu của tôi</h1>
       </div>
 
       {/* Search + Sort */}
@@ -393,31 +399,16 @@ export default function RoomMonitorPage() {
               ⏰ <span className="leading-tight">{group.hotelName}</span>
             </p>
 
-            <div className="flex items-center gap-2">
-              {/* Button lưu hành trình */}
-              <button
-                onClick={() => handleSaveTrip(group.bookingId)}
-                className={`px-2 py-1 rounded text-sm ${savedTrips.has(group.bookingId!)
-                  ? "text-green-500 hover:text-green-600"
-                  : "text-yellow-500 hover:text-yellow-600"
-                  }`}
-                title="Đánh dấu hành trình"
-              >
-                {savedTrips.has(group.bookingId!) ? "✅ Đã lưu hành trình" : "🤍 Lưu hành trình"}
-              </button>
+            {/* Button xóa hành trình */}
+            <button
+              onClick={() => handleRemoveTrip(group.bookingId)}
+              className="px-2 py-1 rounded text-sm text-red-500 hover:text-red-600"
+              title="Xóa hành trình"
+            >
+              ❌ Xóa hành trình
+            </button>
 
-              {savedTrips.has(group.bookingId!) && (
-                <button
-                  onClick={() => handleRemoveTrip(group.bookingId)}
-                  className="px-2 py-1 rounded text-sm text-red-500 hover:text-red-600"
-                  title="Xóa hành trình"
-                >
-                  ❌ Xóa hành trình
-                </button>
-              )}
-            </div>
           </div>
-
 
           <div
             className="border rounded p-2 flex flex-wrap justify-between items-start gap-y-2 gap-x-4 cursor-pointer hover:scale-105 hover:shadow-lg hover:bg-blue-50 transition duration-200 mb-2"
