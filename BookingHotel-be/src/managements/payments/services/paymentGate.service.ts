@@ -38,7 +38,7 @@ export class PaymentGateService {
         const vnpUrl = this.vnp_Url
 
        
-        const returnUrl = `http://localhost:3000/payment/done`
+        const returnUrl = `http://localhost:3000/payment/check?gateway=vnpay`
         const date = new Date()
 
         const vnTime = dayjs().tz('Asia/Ho_Chi_Minh')
@@ -124,30 +124,30 @@ export class PaymentGateService {
     }
 
 
-    // async verifyVnPay(params:Record<string,string>) {
-    //     const { vnp_SecureHash, ...rest } = params
-    //      function sortObject(obj: Record<string, any>): Record<string, string> {
-    //     const sorted: Record<string, string> = {};
-    //         const keys: string[] = Object.keys(obj).map(k => encodeURIComponent(k));
+    async verifyVnPay(params:Record<string,string>) {
+        const { vnp_SecureHash, ...rest } = params
+         function sortObject(obj: Record<string, any>): Record<string, string> {
+        const sorted: Record<string, string> = {};
+            const keys: string[] = Object.keys(obj).map(k => encodeURIComponent(k));
             
-    //         keys.sort();
+            keys.sort();
             
-    //         for (const k of keys) {
-    //             // lấy value gốc, encode, replace space bằng '+'
-    //             const value = obj[decodeURIComponent(k)]; 
-    //             sorted[k] = encodeURIComponent(value).replace(/%20/g, "+");
-    //         }
+            for (const k of keys) {
+                // lấy value gốc, encode, replace space bằng '+'
+                const value = obj[decodeURIComponent(k)]; 
+                sorted[k] = encodeURIComponent(value).replace(/%20/g, "+");
+            }
             
-    //         return sorted;
-    //     }
+            return sorted;
+        }
 
-    //     const sortedParams = sortObject(rest)
-    //     const signData = qs.stringify(sortedParams, { encode: false })
-    //     const hmac = crypto.createHmac('sha512', this.secretKey)
-    //     const signed = hmac.update(Buffer.from(signData,'utf-8')).digest('hex')
+        const sortedParams = sortObject(rest)
+        const signData = qs.stringify(sortedParams, { encode: false })
+        const hmac = crypto.createHmac('sha512', this.secretKey)
+        const signed = hmac.update(Buffer.from(signData,'utf-8')).digest('hex')
         
-    //     return signed === vnp_SecureHash
-    // }
+        return signed === vnp_SecureHash
+    }
 
     
 }
