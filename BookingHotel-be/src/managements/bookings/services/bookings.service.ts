@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Booking } from '../entities/bookings.entity';
 import { Repository } from 'typeorm';
@@ -7,6 +7,7 @@ import { RoomType } from 'src/managements/rooms/entities/roomType.entity';
 import { CreateBookingRequest } from '../dtos/req/CreateBookingRequest.dto';
 import { UpdateBookingRequest } from '../dtos/req/UpdateBookingRequest.dto';
 import { BookingResponseManagement } from '../interfaces/BookingResponseManagement';
+import { isValidBooking } from 'src/common/utils/booking-status.utils';
 
 @Injectable()
 export class BookingsService {
@@ -58,6 +59,7 @@ export class BookingsService {
             bookingId: bookingSaved.id,
             userId: bookingSaved.user.id,
             roomTypeId: bookingSaved.roomType.id,
+            roomTypeName:bookingSaved.roomType.name,
             checkinDate: bookingSaved.checkInDate,
             checkoutDate: bookingSaved.checkOutDate,
             guestsCount: bookingSaved.guestsCount,
@@ -74,19 +76,14 @@ export class BookingsService {
             contactFullName,
             contactEmail,
             contactPhone,
-            guestsFullName
+            guestsFullName,
+            status
         } = body
 
-        const updateBookingData = await this.bookingRepo.findOne({
-            where: {
-                id: bookingId
-            },
-            // THÊM 2 DÒNG NÀY VÀO
-            relations: {
-                user: true,
-                roomType: true
-            }
-        })
+       const updateBookingData = await this.bookingRepo.findOne({
+            where: { id: bookingId },
+            relations: ['user', 'roomType', 'roomType.hotel'],
+        });
 
         if (!updateBookingData) {
             throw new NotFoundException("Khong tim thay don hang")
@@ -107,6 +104,14 @@ export class BookingsService {
         if (guestsFullName !== undefined) {
             updateBookingData.guestFullName = guestsFullName
         }
+
+        if (status !== undefined) {
+            const isValid = isValidBooking(status)
+            if (!isValid) {
+                throw new BadRequestException("Status khong ton tai")
+            }
+            updateBookingData.status = status
+        }
         
         const updateBookingSaved = await this.bookingRepo.save(updateBookingData)
 
@@ -114,7 +119,11 @@ export class BookingsService {
         return {
             bookingId: updateBookingSaved.id,
             userId: updateBookingSaved.user.id,
+            hotelName: updateBookingSaved.roomType.hotel.name,
+            hotelAddress: updateBookingSaved.roomType.hotel.name,
+            hotelPhone:updateBookingSaved.roomType.hotel.phone,
             roomTypeId: updateBookingSaved.roomType.id,
+            roomTypeName:updateBookingData.roomType.name,
             checkinDate: updateBookingSaved.checkInDate,
             checkoutDate: updateBookingSaved.checkOutDate,
             guestsCount: updateBookingSaved.guestsCount,
@@ -124,10 +133,21 @@ export class BookingsService {
             contactFullName:updateBookingSaved.contactFullName,
             contactEmail:updateBookingSaved.contactEmail,
             contactPhone: updateBookingSaved.contactPhone,
-            guestsFullName: updateBookingSaved.guestFullName
+            guestsFullName: updateBookingSaved.guestFullName,
+            status:updateBookingSaved.status
         }
     }
 
-
+    async getFullDataBookingById(id:number):Promise<Booking> {
+        const booking = await this.bookingRepo.findOne({
+            where: {
+                id
+            }
+        })
+        if (!booking) {
+            throw new NotFoundException("Khong tim thay don hang")
+        }
+        return booking
+    }
     
 }

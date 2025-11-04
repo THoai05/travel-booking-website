@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import * as crypto from 'crypto'
 import * as qs from 'qs'
 import * as dayjs from 'dayjs'
@@ -6,6 +6,11 @@ import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
 import axios from 'axios';
 import Stripe from 'stripe'
+import * as dotenv from 'dotenv'
+import { BookingsService } from 'src/managements/bookings/services/bookings.service';
+import { UpdateBookingRequest } from 'src/managements/bookings/dtos/req/UpdateBookingRequest.dto';
+
+dotenv.config()
 
 
 dayjs.extend(utc)
@@ -21,6 +26,9 @@ export class PaymentGateService {
     private readonly stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 
+    constructor(
+        private readonly bookingService:BookingsService
+    ){}
 
       sortObject(obj: Record<string, any>): Record<string, string> {
         const sorted: Record<string, string> = {};
@@ -206,14 +214,26 @@ export class PaymentGateService {
         return session.url
     }
 
-    async verifyVnPay(params:Record<string,string>) {
+    async verifyVnPay(params:Record<string,string>):Promise<UpdateBookingRequest> {
         const { vnp_SecureHash, ...rest } = params
         const sortedParams = this.sortObject(rest)
         const signData = qs.stringify(sortedParams, { encode: false })
         const hmac = crypto.createHmac('sha512', this.secretKey)
         const signed = hmac.update(Buffer.from(signData,'utf-8')).digest('hex')
         
-        return signed === vnp_SecureHash
+        const isValid = signed === vnp_SecureHash
+        if (!isValid) {
+            throw new BadRequestException("Giao dich khong hop le")
+        }
+
+        const { vnp_ResponseCode } = params
+        if (vnp_ResponseCode !== '00') {
+            throw new BadRequestException("Giao dich that bai")
+        }
+        
+        const { vnp_TxnRef } = params
+        const updateBookingData = await this.bookingService.updateBookingForGuests(Number(vnp_TxnRef), { status: "confirmed" })
+        return updateBookingData
     }
 
     async verifyMomo(parmas: Record<string, string>): Promise<any> {

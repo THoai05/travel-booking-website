@@ -3,14 +3,19 @@
 import api from "@/axios/axios"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useEffect } from "react"
+import { useAppSelector,useAppDispatch } from '@/reduxTK/hook';
+import { setPendingBooking } from '@/reduxTK/features/bookingSlice'
 
-const PaymentCheck = ()=>{
+
+const PaymentCheck = () => {
 
     const params = useSearchParams()
 
     const router = useRouter()
+
     
-    
+    const dispatch = useAppDispatch()
+
     useEffect(() => {
         const verifyPayment = async () => {
             const queryParam = new URLSearchParams(params.toString())
@@ -29,9 +34,6 @@ const PaymentCheck = ()=>{
                 case "zalopay":
                     paymentVerifyEndpoint = `payment-gate/verify/zalopay${finalQueryString}`
                     break
-                case "stripe": 
-                    paymentVerifyEndpoint = `payment-gate/verify/stripe${finalQueryString}`
-                    break
             }
 
             console.log(paymentVerifyEndpoint)
@@ -42,6 +44,7 @@ const PaymentCheck = ()=>{
                 console.log(response.data)
 
                 if (response.data.message === "success") {
+                    dispatch(setPendingBooking(response.data.data))
                     router.replace('/payment/done')
                 }
             } catch (error) {
