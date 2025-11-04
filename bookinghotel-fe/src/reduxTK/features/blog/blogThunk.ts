@@ -30,8 +30,8 @@ export const updateBlog = createAsyncThunk(
     "blogs/updateBlog",
     async ({ id, updatedData }: { id: number; updatedData: any }, { rejectWithValue }) => {
         try {
-            const res = await api.put(`/posts/${id}`, updatedData);
-            return res.data;
+            const res = await api.patch(`/posts/${id}`, updatedData);
+            return res.data.post;
         } catch (error: any) {
             return rejectWithValue(error.response?.data || "Lỗi khi cập nhật bài viết");
         }
@@ -39,16 +39,16 @@ export const updateBlog = createAsyncThunk(
 );
 
 export const deletePosts = createAsyncThunk(
-  "blogs/deletePosts",
-  async (ids: number[], { rejectWithValue }) => {
-    try {
-      const response = await api.delete(
-        `http://localhost:3636/posts`,
-        { data: { ids } } // gửi mảng ids qua body
-      );
-      return ids; // trả về danh sách id đã xóa
-    } catch (err: any) {
-      return rejectWithValue(err.response?.data || err.message);
+    "blogs/deletePosts",
+    async (ids: number[], { rejectWithValue }) => {
+        try {
+            const response = await api.delete(
+                `http://localhost:3636/posts`,
+                { data: { ids } } // gửi mảng ids qua body
+            );
+            return ids; // trả về danh sách id đã xóa
+        } catch (err: any) {
+            return rejectWithValue(err.response?.data || err.message);
+        }
     }
-  }
 );

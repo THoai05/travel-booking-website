@@ -40,9 +40,20 @@ const blogSlice = createSlice({
       })
 
       // UPDATE
+      .addCase(updateBlog.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updateBlog.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
       .addCase(updateBlog.fulfilled, (state, action) => {
-        const index = state.blogs.findIndex((b: any) => b.id === action.payload.id);
-        if (index !== -1) state.blogs[index] = action.payload;
+        state.isLoading = false;
+        const updatedPost = action.payload;
+        const index = state.blogs.findIndex((b: any) => b.id === updatedPost.id);
+        if (index !== -1) {
+          state.blogs[index] = updatedPost;
+        }
       })
 
       // DELETE

@@ -11,7 +11,7 @@ import {
   PURGE,
   REGISTER,
 } from 'redux-persist'
-import storage from 'redux-persist/lib/storage' // <-- Mặc định là localStorage
+import storage from 'redux-persist/lib/storage'
 import blogReducer from './features/blog/blogSlice'
 import userReducer from './features/user/userSlice'
 import bookingReducer from './features/bookingSlice'
@@ -28,7 +28,7 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: 'root', // Key cho localStorage
   version: 1,
-  storage, // Dùng localStorage
+  storage,
   whitelist: ['search'], // QUAN TRỌNG: Chỉ lưu 'search' slice.
   // Bro không nên lưu mọi thứ, ví dụ state 'isLoading'
 }
