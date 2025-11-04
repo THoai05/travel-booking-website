@@ -9,6 +9,9 @@ export interface PendingBooking {
   bookingId: number
   userId: number
   roomTypeId: number
+  hotelName: string
+  hotelAddress: string
+  hotelPhone:string
   checkinDate: string
   checkoutDate: string
   guestsCount: number
