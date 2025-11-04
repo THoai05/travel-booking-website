@@ -5,6 +5,8 @@ import * as dayjs from 'dayjs'
 import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
 import axios from 'axios';
+import Stripe from 'stripe'
+
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -14,10 +16,13 @@ export class PaymentGateService {
     private readonly tmnCode = 'O6BLWB77'
     private readonly secretKey = '0Q0XRG2HIAVOKZCPPKFPR3NN3K4HOC7D'
     private readonly vnp_Url = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'
+    private readonly momo_secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz' 
+    private readonly zaloPay_key1 = "9phuAOYhan4urywHTh0ndEXiV3pKHr5Q"
+    private readonly stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 
-    async createPaymentUrl(orderCode: string, amount: number, ipAddr: string) {
-        function sortObject(obj: Record<string, any>): Record<string, string> {
+
+      sortObject(obj: Record<string, any>): Record<string, string> {
         const sorted: Record<string, string> = {};
             const keys: string[] = Object.keys(obj).map(k => encodeURIComponent(k));
             
@@ -31,7 +36,10 @@ export class PaymentGateService {
             
             return sorted;
         }
-        console.log(orderCode)
+
+
+    async createPaymentUrl(orderCode: string, amount: number, ipAddr: string) {
+       
 
         const vnp_TmnCode = this.tmnCode
         const secretKey = this.secretKey
@@ -60,7 +68,7 @@ export class PaymentGateService {
             vnp_ExpireDate:expireDate,
             vnp_TxnRef: orderCode,
         }
-        const sortedParams = sortObject(vnp_Params)
+        const sortedParams = this.sortObject(vnp_Params)
         const signData = qs.stringify(sortedParams, { encode: false })
         console.log("Chuoi sighData: "+signData)
         const hmac = crypto.createHmac(`sha512`, secretKey)
@@ -75,7 +83,6 @@ export class PaymentGateService {
 
     async createMomoUrl(orderAmount: number, orderCode: string) {
 
-        console.log(orderAmount,orderCode)
         
         const orderAmoutString = orderAmount.toString()
 
@@ -85,7 +92,7 @@ export class PaymentGateService {
         let requestId = partnerCode + new Date().getTime();
         let orderId = orderCode;
         let orderInfo = "pay with MoMo";
-        let redirectUrl = "https://momo.vn/return";
+        let redirectUrl = "http:/localhost:3000/payment/check?gateway=momo";
         let ipnUrl = "https://callback.url/notify";
         // let ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
         let amount = orderAmoutString;
@@ -124,24 +131,84 @@ export class PaymentGateService {
     }
 
 
-    async verifyVnPay(params:Record<string,string>) {
-        const { vnp_SecureHash, ...rest } = params
-         function sortObject(obj: Record<string, any>): Record<string, string> {
-        const sorted: Record<string, string> = {};
-            const keys: string[] = Object.keys(obj).map(k => encodeURIComponent(k));
-            
-            keys.sort();
-            
-            for (const k of keys) {
-                // lấy value gốc, encode, replace space bằng '+'
-                const value = obj[decodeURIComponent(k)]; 
-                sorted[k] = encodeURIComponent(value).replace(/%20/g, "+");
+    async createZaloPayUrl(orderAmount:number ,orderCode:string) {
+        const key1 = this.zaloPay_key1
+        const config = {
+            appid: "553",
+            key2: "Iyz2habzyr7AG8SgvoBCbKwKi3UzlLi3",
+            endpoint: "https://sandbox.zalopay.com.vn/v001/tpe/createorder"
+        };
+
+        const embeddata = {
+            merchantinfo: "embeddata123",
+            redirecturl:'http://localhost:3000/payment/check?gateway=zalopay'
+        };
+
+        const vnTime = dayjs().tz('Asia/Ho_Chi_Minh')
+        const createDate = vnTime.format('YYMMDD')
+        const formatOrderCode = `${createDate}_${orderCode}`
+        const items = [{
+            itemid: 1234,
+            itemname: "John Doe",
+            itemprice: 11111,
+            itemquantity: 1
+        }];
+        const order = {
+            appid: config.appid,
+            apptransid: formatOrderCode,
+            appuser: "demo",
+            apptime: Date.now(),
+            item: JSON.stringify(items),
+            embeddata: JSON.stringify(embeddata), 
+            amount: orderAmount,
+            description: "Demo",
+            bankcode: "zalopayapp",
+            mac:''
+        }
+        const data =
+            config.appid + "|" + order.apptransid + "|" + order.appuser + "|" + order.amount + "|" + order.apptime + "|" + order.embeddata + "|" + order.item;
+        order.mac = crypto.createHmac('sha256', key1)
+            .update(data)
+            .digest('hex')
+        try {
+            const response = await axios.post(config.endpoint, null, {
+                params:order
+            })
+            if (response.data.returncode === 1) {
+                return response.data.orderurl
             }
-            
-            return sorted;
+        } catch (error) {
+            console.log(error)
         }
 
-        const sortedParams = sortObject(rest)
+           
+    }
+
+
+    async createStripeUrl(orderAmonut: number, orderCode: string) {
+        const session = await this.stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price_data: {
+                        currency: 'usd',
+                        product_data: {
+                            name:`Order_${orderCode}`
+                        },
+                        unit_amount: Math.floor(orderAmonut / 25000) * 100
+                    },
+                    quantity:1
+                }
+            ],
+            mode: 'payment',
+            success_url:'http://localhost:3000/payment/check?gateway=stripe'
+        }) 
+        return session.url
+    }
+
+    async verifyVnPay(params:Record<string,string>) {
+        const { vnp_SecureHash, ...rest } = params
+        const sortedParams = this.sortObject(rest)
         const signData = qs.stringify(sortedParams, { encode: false })
         const hmac = crypto.createHmac('sha512', this.secretKey)
         const signed = hmac.update(Buffer.from(signData,'utf-8')).digest('hex')
@@ -149,7 +216,16 @@ export class PaymentGateService {
         return signed === vnp_SecureHash
     }
 
-    
+    async verifyMomo(parmas: Record<string, string>): Promise<any> {
+        const momoSecretKey = this.momo_secretKey
+        const { signature, ...rest } = parmas
+        const sortedParams = this.sortObject(rest)
+        const signData = qs.stringify(sortedParams, { encode: false })
+        const hmac = crypto.createHmac('sha256', momoSecretKey)
+        const signed = hmac.update(Buffer.from(signData, 'utf8')).digest('hex')
+        
+        return signed === signature
+    }
 }
 
 

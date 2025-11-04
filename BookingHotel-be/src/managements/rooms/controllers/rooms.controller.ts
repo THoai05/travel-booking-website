@@ -1,6 +1,7 @@
-import { Controller, Get, Query, Param } from '@nestjs/common';
+import { Controller, Get, Query, Param, Post, Body } from '@nestjs/common';
 import { RoomsService } from '../services/rooms.service';
-
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Controller('rooms')
 export class RoomsController {
@@ -54,6 +55,24 @@ export class RoomsController {
   @Get('roomTypeDetail/:id')
   async getRoomTypeDetail(@Param('id') id: number) {
     return this.roomsService.getRoomTypeDetail(id);
+  }
+
+  // 📌 API lưu hành trình
+  @Post('save-trip')
+  async saveTrip(@Body('bookingId') bookingId: number) {
+    return this.roomsService.saveTripHistory(bookingId);
+  }
+
+  // 📌 Đọc lưu hành trình
+  @Get('trip-history')
+  async tripHistory() {
+    return this.roomsService.getTripHistory();
+  }
+
+  // 📌 API xóa hành trình
+  @Post('remove-trip')
+  async removeTrip(@Body('bookingId') bookingId: number) {
+    return this.roomsService.removeTripHistory(bookingId);
   }
 
 }

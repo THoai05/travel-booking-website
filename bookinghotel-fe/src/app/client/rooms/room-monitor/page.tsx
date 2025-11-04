@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import api from "@/axios/axios";
 import { toast } from 'react-hot-toast';
+import { useAuth } from "@/context/AuthContext";
 
 interface Room {
   id: number;
@@ -23,6 +24,8 @@ export default function RoomMonitorPage() {
   const [param, setParam] = useState<string | number>();
   const [showAll, setShowAll] = useState<"all" | "none">("all");
   const [userId, setUserId] = useState<number | null>(null);
+
+  const { user, setUser } = useAuth();
 
   const [rooms, setRooms] = useState<Room[]>([]);
   const [search, setSearch] = useState("");
@@ -59,12 +62,14 @@ export default function RoomMonitorPage() {
         }
       } catch (error) {
         console.warn("Không lấy được userId, chuyển sang xem tất cả");
+        setUser(null);
       }
       // fallback all
       setApiType("all");
       setParam(undefined);
       setShowAll("all");
       setUserId(null);
+      setUser(null);
     };
     fetchUserId();
   }, []);
@@ -92,6 +97,7 @@ export default function RoomMonitorPage() {
 
         toast("❌ Lỗi khi tải danh sách phòng!", { icon: "⚠️" });
         //console.error("❌ Lỗi khi tải danh sách phòng:", error);
+        setUser(null);
       }
     };
     fetchRooms();
