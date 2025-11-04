@@ -8,6 +8,9 @@ import { CreateBookingRequest } from '../dtos/req/CreateBookingRequest.dto';
 import { UpdateBookingRequest } from '../dtos/req/UpdateBookingRequest.dto';
 import { BookingResponseManagement } from '../interfaces/BookingResponseManagement';
 import { isValidBooking } from 'src/common/utils/booking-status.utils';
+import { Between, In } from 'typeorm';
+import { BookingStatus } from '../entities/bookings.entity';
+import { PaymentStatus, PaymentMethod } from 'src/managements/payments/entities/payments.entity';
 
 @Injectable()
 export class BookingsService {
