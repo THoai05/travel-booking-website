@@ -12,6 +12,7 @@ interface PostItemProps {
   openMenuFor: number | null;
   setOpenMenuFor: (id: number | null) => void;
   handleAction: (action: string, id: number) => void;
+  onPostUpdated: () => void;
 }
 
 export default function PostItem({
@@ -22,6 +23,7 @@ export default function PostItem({
   openMenuFor,
   setOpenMenuFor,
   handleAction,
+  onPostUpdated
 }: PostItemProps) {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -182,6 +184,7 @@ export default function PostItem({
               onUpdated={() => {
                 setShowEditModal(false);
                 alert("Cập nhật thành công!");
+                onPostUpdated();
               }}
             />
           </div>

@@ -142,6 +142,7 @@ export default function ModernSingleListPost() {
             openMenuFor={openMenuFor}
             setOpenMenuFor={setOpenMenuFor}
             handleAction={handleAction}
+            onPostUpdated={() => dispatch(fetchBlogs({ page, limit: postsPerPage }))}
           />
         ))}
 

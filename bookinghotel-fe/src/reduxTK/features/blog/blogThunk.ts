@@ -27,15 +27,17 @@ export const createBlog = createAsyncThunk(
 );
 
 export const updateBlog = createAsyncThunk(
-    "blogs/updateBlog",
-    async ({ id, updatedData }: { id: number; updatedData: any }, { rejectWithValue }) => {
-        try {
-            const res = await api.patch(`/posts/${id}`, updatedData);
-            return res.data.post;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data || "Lỗi khi cập nhật bài viết");
-        }
+  "blogs/updateBlog",
+  async ({ id, updatedData }: { id: number; updatedData: any }, { rejectWithValue }) => {
+    try {
+      const res = await api.patch(`/posts/${id}`, updatedData, {
+        withCredentials: true,
+      });
+      return res.data.post;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || "Lỗi khi cập nhật bài viết");
     }
+  }
 );
 
 export const deletePosts = createAsyncThunk(
