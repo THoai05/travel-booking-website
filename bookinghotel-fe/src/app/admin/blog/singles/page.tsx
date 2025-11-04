@@ -39,9 +39,9 @@ export default function ModernSingleListPost() {
   });
 
   const getPostImageUrl = (image: string) => {
-    if (!image) return "/post1.png";
+    if (!image) return "/post1.png"; // fallback
     if (image.startsWith("http://") || image.startsWith("https://")) return image;
-    return `http://localhost:3636${encodeURI(image)}`;
+    return `http://localhost:3636${image}`; // prepend backend host
   };
 
   const toggleSelect = (id: number) => {
