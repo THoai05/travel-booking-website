@@ -18,6 +18,11 @@ async function bootstrap() {
     credentials: true,
   });
 
+  app.use('/uploads', (req, res, next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); // cho phép frontend load
+    next();
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
