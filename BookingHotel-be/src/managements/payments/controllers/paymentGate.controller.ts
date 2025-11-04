@@ -78,7 +78,7 @@ export class PaymentGateController {
     }) {
         const { orderAmount,orderCode } = body
         return await this.paymentGateService.createMomoUrl(orderAmount,orderCode)
-  }
+    }
   
 
   
@@ -92,5 +92,27 @@ export class PaymentGateController {
        return {
       message:"success"
     }
+  }
+
+
+  //=============================ZaloPay===============================//
+   @Get('zalopay')
+    async handleCreateZalopayUrl(@Query() body: {
+        orderAmount: number,
+        orderCode:string
+    }) {
+        const { orderAmount,orderCode } = body
+        return await this.paymentGateService.createZaloPayUrl(orderAmount,orderCode)
+  }
+  
+
+  //=============================Stripe=============================//
+  @Get('stripe')
+  async handleCreateStripeUrl(@Query() body: {
+    orderAmount: number,
+    orderCode:string
+  }) {
+     const { orderAmount,orderCode } = body
+     return await this.paymentGateService.createStripeUrl(orderAmount,orderCode)
   }
 }
