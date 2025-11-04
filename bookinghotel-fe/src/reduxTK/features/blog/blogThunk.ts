@@ -38,14 +38,17 @@ export const updateBlog = createAsyncThunk(
     }
 );
 
-export const deleteBlog = createAsyncThunk(
-    "blogs/deleteBlog",
-    async (id: number, { rejectWithValue }) => {
-        try {
-            await api.delete(`/posts/${id}`);
-            return id; // trả về id để xóa khỏi store
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data || "Lỗi khi xóa bài viết");
-        }
+export const deletePosts = createAsyncThunk(
+  "blogs/deletePosts",
+  async (ids: number[], { rejectWithValue }) => {
+    try {
+      const response = await api.delete(
+        `http://localhost:3636/posts`,
+        { data: { ids } } // gửi mảng ids qua body
+      );
+      return ids; // trả về danh sách id đã xóa
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data || err.message);
     }
+  }
 );

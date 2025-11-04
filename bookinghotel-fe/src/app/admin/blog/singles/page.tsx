@@ -13,7 +13,9 @@ import {
 } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxTK/store";
+import Pagination from "../../components/Pagination";
 import { fetchBlogs } from "@/reduxTK/features/blog/blogThunk";
+import { deletePosts } from "@/reduxTK/features/blog/blogThunk";
 
 export default function ModernSingleListPost() {
   const dispatch = useDispatch<AppDispatch>();
@@ -28,6 +30,11 @@ export default function ModernSingleListPost() {
   const postsPerPage = 5;
   const { pagination } = useSelector((state: any) => state.blogs);
   const { total = 0, page: currentPage = 1, limit = postsPerPage } = pagination || {};
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > Math.ceil(total / limit)) return;
+    setPage(newPage);
+  };
 
   useEffect(() => {
     dispatch(fetchBlogs({ page, limit: postsPerPage }));
@@ -65,21 +72,37 @@ export default function ModernSingleListPost() {
       setSelectAll(true);
     }
   };
-
-  const handleDeleteSelected = () => {
+  
+  // Hàm xóa bài đã chọn
+  const handleDeleteSelected = async () => {
     if (selected.length === 0) return alert("Chọn ít nhất 1 bài để xóa");
+
     if (confirm(`Xóa ${selected.length} bài viết?`)) {
-      console.log("deleted: ", selected);
-      setSelected([]);
-      setSelectAll(false);
+      try {
+        await dispatch(deletePosts(selected)).unwrap();
+        alert("Xóa thành công!");
+        setSelected([]);
+        setSelectAll(false);
+      } catch (err) {
+        console.error(err);
+        alert("Xóa thất bại, thử lại.");
+      }
     }
   };
 
-  const handleAction = (action: string, id: number) => {
+  // Xóa 1 bài đơn lẻ từ menu
+  const handleAction = async (action: string, id: number) => {
     setOpenMenuFor(null);
-    console.log(action, id);
     if (action === "delete") {
-      if (confirm("Xác nhận xóa bài này?")) console.log("delete", id);
+      if (confirm("Xác nhận xóa bài này?")) {
+        try {
+          await dispatch(deletePosts([id])).unwrap();
+          alert("Xóa thành công!");
+        } catch (err) {
+          console.error(err);
+          alert("Xóa thất bại.");
+        }
+      }
     }
   };
 
@@ -281,36 +304,12 @@ export default function ModernSingleListPost() {
               );
             })}
           </div>
-
-          <div className="p-4 border-t bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="text-sm text-gray-600">
-              Showing <span className="font-medium">{filtered.length}</span> posts
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100 disabled:opacity-50"
-              >
-                Previous
-              </button>
-
-              <span className="text-sm text-gray-700">
-                Page <span className="font-semibold">{currentPage}</span> of{" "}
-                {Math.ceil(total / limit)}
-              </span>
-
-              <button
-                onClick={() => setPage(currentPage + 1)}
-                disabled={currentPage === Math.ceil(total / limit)}
-                className="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100 disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-
+          <Pagination
+            currentPage={currentPage}
+            total={total}
+            limit={limit}
+            onPageChange={handlePageChange}
+          />
         </div>
       </div>
     </div>

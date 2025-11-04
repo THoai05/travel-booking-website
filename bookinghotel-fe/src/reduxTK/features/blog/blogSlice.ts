@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createBlog, deleteBlog, fetchBlogs, updateBlog } from "./blogThunk";
+import { createBlog, deletePosts, fetchBlogs, updateBlog } from "./blogThunk";
 
 const blogSlice = createSlice({
   name: "blogs",
@@ -46,8 +46,17 @@ const blogSlice = createSlice({
       })
 
       // DELETE
-      .addCase(deleteBlog.fulfilled, (state, action) => {
-        state.blogs = state.blogs.filter((b: any) => b.id !== action.payload);
+      .addCase(deletePosts.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(deletePosts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const idsDeleted = action.payload;
+        state.blogs = state.blogs.filter((b) => !idsDeleted.includes(b.id));
+      })
+      .addCase(deletePosts.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
       });
   },
 });
