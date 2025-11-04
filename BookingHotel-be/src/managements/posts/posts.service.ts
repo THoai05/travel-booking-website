@@ -158,12 +158,10 @@ export class PostsService {
     };
   }
 
-  async remove(id: number) {
-    const result = await this.postRepo.delete(id);
-    if (result.affected === 0)
-      throw new NotFoundException('Không tìm thấy bài viết');
-
-    return { message: 'Xóa bài viết thành công' };
+  async removeMany(ids: number[]) {
+    // Xóa nhiều theo id
+    const result = await this.postRepo.delete(ids);
+    return { deletedCount: result.affected || 0 };
   }
 
   async search(keyword?: string, cityName?: string) {

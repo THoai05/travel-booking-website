@@ -26,26 +26,27 @@ export default function ModernSingleListPost() {
 
   const [page, setPage] = useState(1);
   const postsPerPage = 5;
-  //Pagination
   const { pagination } = useSelector((state: any) => state.blogs);
   const { total = 0, page: currentPage = 1, limit = postsPerPage } = pagination || {};
-  const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > Math.ceil(total / limit)) return;
-    setPage(newPage);
-  };
+
   useEffect(() => {
-    console.log("📘 Fetching page =", page);
     dispatch(fetchBlogs({ page, limit: postsPerPage }));
   }, [dispatch, page]);
 
-  // Lọc dữ liệu hiển thị
+  // Hàm chuẩn URL ảnh
+  const getPostImageUrl = (image: string) => {
+    if (!image) return "/post1.png";
+    if (image.startsWith("http://") || image.startsWith("https://")) return image;
+    return `http://localhost:3636${encodeURI(image)}`;
+  };
+
   const filtered = blogs.filter((p: any) => {
-    if (showPublicOnly && !p.isPublic) return false;
+    if (showPublicOnly && !p.is_public) return false;
     if (!query) return true;
     const q = query.toLowerCase();
     return (
       p.title.toLowerCase().includes(q) ||
-      (p.author && p.author.toLowerCase().includes(q))
+      (p.author?.fullName?.toLowerCase().includes(q))
     );
   });
 
@@ -169,7 +170,6 @@ export default function ModernSingleListPost() {
             )}
 
             {filtered.map((post: any) => {
-              console.log("Post data:", post);
               const isSelected = selected.includes(post.id);
               return (
                 <div
@@ -187,11 +187,12 @@ export default function ModernSingleListPost() {
                     />
 
                     <Image
-                      src={post.image || "/post1.png"}
+                      src={getPostImageUrl(post.image)}
                       width={64}
                       height={64}
-                      alt="thumb"
+                      alt={post.title}
                       className="w-16 h-16 rounded-lg object-cover shadow-sm"
+                      unoptimized
                     />
                   </div>
 
@@ -202,7 +203,7 @@ export default function ModernSingleListPost() {
                           {post.title}
                         </h3>
                         <p className="mt-1 text-sm text-gray-500 truncate">
-                          {post.content}
+                          {post.content.replace(/<[^>]+>/g, "")}
                         </p>
 
                         <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
@@ -282,15 +283,13 @@ export default function ModernSingleListPost() {
           </div>
 
           <div className="p-4 border-t bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-3">
-            {/* Hiển thị tổng số bài viết */}
             <div className="text-sm text-gray-600">
               Showing <span className="font-medium">{filtered.length}</span> posts
             </div>
 
-            {/* Pagination controls */}
             <div className="flex items-center gap-2">
               <button
-                onClick={() => handlePageChange(currentPage - 1)}
+                onClick={() => setPage(currentPage - 1)}
                 disabled={currentPage === 1}
                 className="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100 disabled:opacity-50"
               >
@@ -303,7 +302,7 @@ export default function ModernSingleListPost() {
               </span>
 
               <button
-                onClick={() => handlePageChange(currentPage + 1)}
+                onClick={() => setPage(currentPage + 1)}
                 disabled={currentPage === Math.ceil(total / limit)}
                 className="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100 disabled:opacity-50"
               >

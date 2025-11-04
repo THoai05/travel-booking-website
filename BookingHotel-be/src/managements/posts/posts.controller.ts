@@ -69,9 +69,9 @@ export class PostsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.postsService.remove(id);
+  @Delete()
+  removeMany(@Body() body: { ids: number[] }) {
+    return this.postsService.removeMany(body.ids);
   }
 
 }
