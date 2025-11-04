@@ -1,4 +1,4 @@
-import { Body, Controller, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Param, ParseIntPipe, Patch, Post, Get, Query } from '@nestjs/common';
 import { BookingsService } from '../services/bookings.service';
 import { CreateBookingRequest } from '../dtos/req/CreateBookingRequest.dto';
 import { UpdateBookingRequest } from '../dtos/req/UpdateBookingRequest.dto';
@@ -28,5 +28,33 @@ export class BookingsController {
       message: "success",
       updateData
     }
+  }
+
+
+  @Get('kpi')
+  async handleGetKPI(@Query('type') type: 'week' | 'month' | 'year' = 'week') {
+    const data = await this.bookingsService.getKPI(type);
+    return {
+      message: 'success',
+      data,
+    };
+  }
+
+  @Get('kpiBookingAndCancelledRate')
+  async handleGetKPIBookingAndCancelledRate(@Query('type') type: 'week' | 'month' | 'year' = 'week') {
+    const data = await this.bookingsService.getKPIBookingAndCancelledRate(type);
+    return {
+      message: 'success',
+      data,
+    };
+  }
+
+  @Get('kpiRevenue')
+  async handleGetKPIRevenue(@Query('type') type: 'week' | 'month' | 'year' = 'week') {
+    const data = await this.bookingsService.getRevenueKPI(type);
+    return {
+      message: 'success',
+      data,
+    };
   }
 }
