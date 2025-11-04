@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { FaEye, FaEllipsisV, FaUser, FaRegCalendar } from "react-icons/fa";
+import EditPostForm from "../../components/EditPostForm";
 
 interface PostItemProps {
   post: any;
@@ -23,6 +24,7 @@ export default function PostItem({
   handleAction,
 }: PostItemProps) {
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   return (
     <>
@@ -67,11 +69,10 @@ export default function PostItem({
                   <FaRegCalendar /> {post.created_at || "N/A"}
                 </span>
                 <span
-                  className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                    post.is_public
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
+                  className={`px-2 py-1 rounded-full text-xs font-semibold ${post.is_public
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-gray-100 text-gray-600"
+                    }`}
                 >
                   {post.is_public ? "Public" : "Private"}
                 </span>
@@ -102,11 +103,12 @@ export default function PostItem({
                 {openMenuFor === post.id && (
                   <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-20">
                     <button
-                      onClick={() => handleAction("edit", post.id)}
+                      onClick={() => setShowEditModal(true)}
                       className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
                     >
                       Edit
                     </button>
+
                     <button
                       onClick={() => handleAction("duplicate", post.id)}
                       className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
@@ -134,7 +136,7 @@ export default function PostItem({
         </div>
       </div>
 
-      {/* --- Modal --- */}
+      {/* --- Modal View --- */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-lg w-full max-h-[90vh] overflow-auto relative">
@@ -168,6 +170,24 @@ export default function PostItem({
           </div>
         </div>
       )}
+      {/* --- Modal Edit --- */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-lg w-full max-h-[90vh] overflow-auto relative">
+            <h2 className="text-xl font-bold mb-4">Chỉnh sửa bài viết</h2>
+
+            <EditPostForm
+              post={post}
+              onClose={() => setShowEditModal(false)}
+              onUpdated={() => {
+                setShowEditModal(false);
+                alert("Cập nhật thành công!");
+              }}
+            />
+          </div>
+        </div>
+      )}
+
     </>
   );
 }

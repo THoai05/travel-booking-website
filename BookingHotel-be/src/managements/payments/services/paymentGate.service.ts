@@ -18,7 +18,7 @@ export class PaymentGateService {
     private readonly vnp_Url = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'
     private readonly momo_secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz' 
     private readonly zaloPay_key1 = "9phuAOYhan4urywHTh0ndEXiV3pKHr5Q"
-    private readonly stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+    private readonly stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 
 
