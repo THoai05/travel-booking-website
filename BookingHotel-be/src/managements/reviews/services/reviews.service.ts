@@ -121,11 +121,11 @@ export class ReviewsService {
             images: dto.images ? JSON.stringify(dto.images) : null,
         });
 
-        console.log('🟡 [Before Save] Review object:', review);
+        // console.log('🟡 [Before Save] Review object:', review);
 
         const saved = await this.reviewRepo.save(review);
 
-        console.log('🟢 [After Save] Saved review:', saved);
+        // console.log('🟢 [After Save] Saved review:', saved);
 
         return saved;
     }

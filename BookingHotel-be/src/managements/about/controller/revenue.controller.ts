@@ -42,6 +42,5 @@ export class RevenueController {
         }
     }
 
-    // Lưu ý: Endpoint /api/revenue/export/excel đã bị xóa
-    // vì logic xuất Excel chi tiết đã chuyển sang BookingController.
+    
 }

@@ -1,5 +1,5 @@
 interface JwtPayload{
-    sub: number
+    userId: number
     username: string
     role:string
 }

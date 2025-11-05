@@ -1,24 +1,17 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useMemo } from 'react';
 import { Clock, Info, Wifi, Users, Bed, Coffee, MapPin, Phone, Mail, CheckCircle2, ChevronDown } from 'lucide-react';
 import PaymentMethodOption from './components/PaymentMethodOption';
 import HotelSummaryCard from './components/HotelSumaryCard';
-
-// Types
-
-
-
-
-
-
-
-
-
+import { selectBooking } from "@/reduxTK/features/bookingSlice";
+import { useAppSelector, useAppDispatch } from "@/reduxTK/hook";
+import { format, differenceInCalendarDays, parseISO } from "date-fns";
+import api from '@/axios/axios';
 
 
 // Main Component
  const TravelokaPaymentPage: React.FC = () => {
-  const [selectedPayment, setSelectedPayment] = useState('vietqr');
+  const [selectedPayment, setSelectedPayment] = useState('');
   const [showCoupon, setShowCoupon] = useState(false);
   const [usePoints, setUsePoints] = useState(false);
 
@@ -47,27 +40,81 @@ import HotelSummaryCard from './components/HotelSumaryCard';
     }
   ];
 
-  const hotelDetails: HotelDetails = {
-    bookingId: '1296078565',
-    name: 'Pariat River Front Hotel Da Nang',
-    checkIn: 'Tue, 28 October 2025',
-    checkOut: 'Wed, 29 October 2025',
-    nights: 1,
-    roomType: '(1x) Standard Room - Room Only',
-    guests: 2,
-    bedType: '1 double bed',
-    breakfast: false,
-    wifi: true,
-  };
 
-  const guestDetails: GuestDetails = {
-    name: 'Lo Thanh Ha',
-    phone: '+84812373122',
-    email: 'naconghau06@gmail.com',
-    nonRefundable: true,
-    nonReschedulable: true,
-  };
 
+
+   
+   const formatDate = (dateString: string) => {
+       try {
+         // parseISO vì date của bro là "2025-11-10"
+   
+         return format(parseISO(dateString), "EEE, dd MMMM yyyy");
+       } catch {
+         return dateString;
+       }
+     };
+   const { pendingBooking } = useAppSelector(selectBooking);
+   console.log(pendingBooking)
+
+   const hotelDetailsProps = useMemo(() => {
+       if (!pendingBooking) return null;
+   
+       // Đảm bảo tính toán nights > 0
+   
+       let nights = 1;
+   
+       try {
+         nights = differenceInCalendarDays(
+           parseISO(pendingBooking.checkoutDate),
+   
+           parseISO(pendingBooking.checkinDate)
+         );
+   
+         if (nights <= 0) nights = 1; // Fallback
+       } catch {}
+   
+       return {
+         bookingId: pendingBooking.bookingId.toString(),
+   
+         name: "Pariat River Front Hotel Da Nang", // <-- Bro nói text cứng
+   
+         checkIn: formatDate(pendingBooking.checkinDate),
+   
+         checkOut: formatDate(pendingBooking.checkoutDate),
+   
+         nights: nights,
+   
+         roomType: `(1x) ${pendingBooking.roomName}`,
+   
+         guests: pendingBooking.guestsCount, // Lấy từ booking
+   
+         // guests: searchGuests.adults + searchGuests.children, // Hoặc lấy từ search
+   
+         bedType: pendingBooking.bedType,
+
+         contactFullName:pendingBooking.contactFullName,
+         contactEmail:pendingBooking.contactEmail,
+         contactPhone:pendingBooking.contactPhone,
+         guestsFullName:pendingBooking.guestsFullName,
+   
+         breakfast: false, // <-- Bro nói text cứng
+   
+         wifi: true, // <-- Bro nói text cứng
+       };
+   }, [pendingBooking]);
+   
+
+   const handlePayment = async (paymentMethod:string) => {
+     const response = await api.get(`payment-gate/${paymentMethod}`, {
+       params: {
+         orderAmount: Number(pendingBooking?.totalPrice),
+         orderCode:pendingBooking?.bookingId.toString()
+       }
+     })
+     console.log(response.data)
+     window.location.href = response.data
+   }
+   
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -172,7 +219,7 @@ import HotelSummaryCard from './components/HotelSumaryCard';
                   </div>
                 </div>
 
-                <button className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-lg transition-colors">
+                <button onClick={()=>handlePayment(selectedPayment)} className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-lg transition-colors">
                   Pay & Show QR Code
                 </button>
 
@@ -199,7 +246,7 @@ import HotelSummaryCard from './components/HotelSumaryCard';
 
           {/* Right Column - Hotel Summary */}
           <div className="lg:col-span-1">
-            <HotelSummaryCard hotel={hotelDetails} guest={guestDetails} />
+            <HotelSummaryCard hotel={hotelDetailsProps} />
           </div>
         </div>
       </div>
