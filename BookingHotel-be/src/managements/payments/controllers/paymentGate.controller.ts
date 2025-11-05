@@ -60,13 +60,10 @@ export class PaymentGateController {
   
   @Get('verify/momo')
   async verifyVnPayPayment(@Query() query:Record<string,string>) {
-    const isValid = this.paymentGateService.verifyMomo(query)
-
-    if (!isValid) {
-      throw new BadRequestException('Giao dịch không hợp lệ')
-    }
-       return {
-      message:"success"
+   const bookingData = await this.paymentGateService.verifyMomo(query)
+    return {
+      message: "success",
+      data:bookingData
     }
   }
 

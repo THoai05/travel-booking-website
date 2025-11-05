@@ -43,7 +43,22 @@ export class PaymentGateService {
             }
             
             return sorted;
-        }
+    }
+
+    sortMomo(obj: Record<string, any>): Record<string, string> {
+        const sorted: Record<string, string> = {};
+            const keys: string[] = Object.keys(obj).map(k => encodeURIComponent(k));
+            
+            keys.sort();
+            
+            for (const key of keys) {
+                // lấy value gốc, encode, replace space bằng '+'
+                 sorted[key] = obj[key]    
+            }
+            
+            return sorted;
+    }
+    
 
 
     async createPaymentUrl(orderCode: string, amount: number, ipAddr: string) {
@@ -100,7 +115,7 @@ export class PaymentGateService {
         let requestId = partnerCode + new Date().getTime();
         let orderId = orderCode;
         let orderInfo = "pay with MoMo";
-        let redirectUrl = "http:/localhost:3000/payment/check?gateway=momo";
+        let redirectUrl = "http://localhost:3000/payment/check?gateway=momo";
         let ipnUrl = "https://callback.url/notify";
         // let ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
         let amount = orderAmoutString;
@@ -236,15 +251,44 @@ export class PaymentGateService {
         return updateBookingData
     }
 
-    async verifyMomo(parmas: Record<string, string>): Promise<any> {
-        const momoSecretKey = this.momo_secretKey
-        const { signature, ...rest } = parmas
-        const sortedParams = this.sortObject(rest)
-        const signData = qs.stringify(sortedParams, { encode: false })
-        const hmac = crypto.createHmac('sha256', momoSecretKey)
-        const signed = hmac.update(Buffer.from(signData, 'utf8')).digest('hex')
-        
-        return signed === signature
+   async verifyMomo(params: Record<string, string>): Promise<any> {
+    const momoSecretKey = this.momo_secretKey
+    const accessKey = "F8BBA842ECF85";
+
+    const {
+        amount,
+        extraData,
+        message,
+        orderId,
+        orderInfo,
+        orderType,
+        partnerCode,
+        payType,
+        requestId,
+        responseTime,
+        resultCode,
+        transId,
+        signature
+    } = params;
+
+    const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&message=${message}&orderId=${orderId}&orderInfo=${orderInfo}&orderType=${orderType}&partnerCode=${partnerCode}&payType=${payType}&requestId=${requestId}&responseTime=${responseTime}&resultCode=${resultCode}&transId=${transId}`;
+
+    const hmac = crypto.createHmac('sha256', momoSecretKey);
+    const signed = hmac.update(rawSignature).digest('hex');
+
+    console.log("Raw string:", rawSignature);
+    console.log("Signature MoMo:", signature);
+    console.log("Signature check:", signed);
+
+    if (signed !== signature) {
+        throw new BadRequestException("Giao dich khong hop le");
+    }
+
+    if (resultCode !== '0') {
+        throw new BadRequestException("Giao dich that bai");
+    }
+
+    return this.bookingService.updateBookingForGuests(Number(orderId), { status: "confirmed" });
     }
 }
 
