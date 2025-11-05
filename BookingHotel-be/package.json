@@ -63,6 +63,7 @@
     "@types/jest": "^29.5.14",
     "@types/multer": "^2.0.0",
     "@types/node": "^22.18.9",
+    "@types/nodemailer": "^7.0.3",
     "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^8.46.0",
     "@typescript-eslint/parser": "^8.46.0",
