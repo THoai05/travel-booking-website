@@ -14,6 +14,14 @@ interface RevenueDataItem {
 const formatVND = (value: number) =>
   value.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
+
+const formatVNDShort  = (value: number): string => {
+  if (value >= 1_000_000_000) return (value / 1_000_000_000).toFixed(1).replace(/\.0$/, "") + "B"; // tỷ
+  if (value >= 1_000_000) return (value / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M"; // triệu
+  if (value >= 1_000) return (value / 1_000).toFixed(1).replace(/\.0$/, "") + "K"; // nghìn
+  return value.toString();
+};
+
 export function ChartsSectionRevenue() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const types: ("week" | "month" | "year")[] = ["week", "month", "year"];
@@ -139,7 +147,7 @@ export function ChartsSectionRevenue() {
                   axisLine={false}
                   tickLine={false}
                   tick={{ fill: "#9ca3af", fontSize: 12 }}
-                  tickFormatter={formatVND}
+                  tickFormatter={formatVNDShort}
                 />
                 <Tooltip
                   contentStyle={{ backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: "8px" }}
