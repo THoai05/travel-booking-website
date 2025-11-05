@@ -40,9 +40,9 @@ export class BookingsController {
     };
   }
 
-  @Get('kpiBookingAndCancelledRate')
+  @Get('kpiAll')
   async handleGetKPIBookingAndCancelledRate(@Query('type') type: 'week' | 'month' | 'year' = 'week') {
-    const data = await this.bookingsService.getKPIBookingAndCancelledRate(type);
+    const data = await this.bookingsService.getKPIAll(type);
     return {
       message: 'success',
       data,
