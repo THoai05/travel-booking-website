@@ -9,12 +9,19 @@ export interface PendingBooking {
   bookingId: number
   userId: number
   roomTypeId: number
+  hotelName: string
+  hotelAddress: string
+  hotelPhone:string
   checkinDate: string
   checkoutDate: string
   guestsCount: number
   bedType: string
   roomName: string
   totalPrice: number
+  contactFullName?: string
+  contactEmail?: string
+  contactPhone?: string
+  guestsFullName?:string
   // Bro có thể thêm status và expiresAt vào đây nếu BE trả về
   status?: string 
 }

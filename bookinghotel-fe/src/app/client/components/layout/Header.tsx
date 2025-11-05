@@ -9,12 +9,20 @@ import Login from "@/app/auth/login/page";
 import Register from "@/app/auth/register/page";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
+import api from "@/axios/axios";
+
+import NotificationsPage from "@/app/client/notifications/page";
+
 // --- THÊM MỚI: Icons (cần cài react-icons: npm install react-icons) ---
 import {
   HiUserCircle,
   HiOutlineHeart,
   HiOutlineUser,
   HiOutlineLogout,
+  HiOutlineBell,
+  HiOutlineClipboardCheck,
+  HiOutlineCalendar,
+  HiOutlineBookmark,
 } from "react-icons/hi";
 
 interface UserProfile {
@@ -38,8 +46,12 @@ const Header = () => {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
+
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // --- THÊM MỚI: State cho dropdown ---
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -67,7 +79,7 @@ const Header = () => {
   const { user, logout } = useAuth();
 
   // --- Fetch profile
-  
+
 
   // --- useEffect mount
   // --- THÊM MỚI: Click outside để đóng dropdown ---
@@ -88,9 +100,24 @@ const Header = () => {
     };
   }, [dropdownRef]);
 
+  // 🔹 Lấy userId
+  useEffect(() => {
+    const fetchNotification = async () => {
+      try {
+        const res = await api.get(`notifications/user/${user?.id}/unread-count`);
+        setUnreadCount(res.data.unreadCount);
+
+      } catch {
+        //toast.error("Không thể lấy thông tin người dùng!");
+      }
+    };
+    fetchNotification();
+  }, [user]);
+
+
   // --- Track localStorage changes
   // --- Track token & methodShowLoginregister changes
-  
+
 
   const handleClickProfile = () => {
     router.push("/client/auth/profile");
@@ -133,10 +160,9 @@ const Header = () => {
                     after:content-[''] after:absolute after:left-0 after:bottom-0 after:h-[2px]
                     after:bg-gradient-to-r after:from-[#00C6FF] after:to-[#0072FF]
                     after:transition-all after:duration-300
-                    ${
-                      isActive
-                        ? "after:w-full text-[#0072FF]"
-                        : "after:w-0 hover:after:w-full"
+                    ${isActive
+                      ? "after:w-full text-[#0072FF]"
+                      : "after:w-0 hover:after:w-full"
                     }`}
                 >
                   {link.label}
@@ -188,13 +214,13 @@ const Header = () => {
               <div className="flex items-center gap-2 font-medium text-sm text-gray-700">
                 <HiUserCircle className="w-6 h-6" />
                 <span className="hidden sm:inline">
-                  {user.name || user.username || "bạn"}
+                  {user.username || "bạn"}
                 </span>
               </div>
             )}
 
             {/* Nếu có profile */}
-            
+
 
             {/* --- CHỈNH SỬA: DROPDOWN MENU (YÊU CẦU 2) --- */}
 
@@ -229,6 +255,20 @@ const Header = () => {
                 {/* Panel của dropdown */}
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-52 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100">
+
+                    <button
+                      onClick={() => setShowNotifications(true)}
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors relative"
+                    >
+                      <HiOutlineBell className="mr-3 w-5 h-5" />
+                      Thông báo
+                      {unreadCount > 0 && (
+                        <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </button>
+
                     <button
                       onClick={() => {
                         router.push("/favourites");
@@ -239,6 +279,41 @@ const Header = () => {
                       <HiOutlineHeart className="mr-3 w-5 h-5" />
                       Yêu thích
                     </button>
+
+                    <button
+                      onClick={() => {
+                        router.push("/rooms/room-monitor");
+                        setIsDropdownOpen(false);
+                      }}
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <HiOutlineClipboardCheck className="mr-3 w-5 h-5" />
+                      Giám sát phòng
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        router.replace("/rooms/booking-history");
+                        setIsDropdownOpen(false);
+                      }}
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <HiOutlineCalendar className="mr-3 w-5 h-5" />
+                      Lịch sử đặt phòng
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        router.replace("/rooms/trip-history");
+                        setIsDropdownOpen(false);
+                      }}
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <HiOutlineBookmark className="mr-3 w-5 h-5" />
+                      Lịch sử chuyến đi
+                    </button>
+
+
                     <button
                       onClick={() => {
                         handleClickProfile();
@@ -267,6 +342,24 @@ const Header = () => {
           </div>
         </div>
       </nav>
+
+      {showNotifications && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+          <div className="bg-white w-full max-w-lg max-h-[80vh] rounded-[5px] shadow-lg overflow-auto p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold">Thông báo</h2>
+              <button
+                onClick={() => setShowNotifications(false)}
+                className="text-gray-500 hover:text-gray-800 text-xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            <NotificationsPage />
+          </div>
+        </div>
+      )}
+
 
       {/* Modal login/register */}
       {showLogin && (

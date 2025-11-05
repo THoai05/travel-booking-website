@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation"; // ✅ thêm dòng này
 import api from "@/axios/axios";
-
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "react-hot-toast";
 
 interface User {
   id: number;
@@ -30,13 +31,17 @@ interface UpdateUserForm {
 }
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<User | null>(null);
   const [form, setForm] = useState<UpdateUserForm>({});
   const [userId, setUserId] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [error, setError] = useState("");
+  const [nofications, setNofications] = useState(0);
   const router = useRouter(); // ✅ khởi tạo router
+
+  const { user, setUser } = useAuth();
+
 
 
   // =================== sử dụng toLocaleDateString với UTC ===================
@@ -56,9 +61,13 @@ export default function ProfilePage() {
         const response = await api.get("auth/profile");
         let storedId = null;
 
-        if (response.status !== 304) {
+        if (response.status !== 401) {
           const profileData = response.data;
           storedId = profileData.id;
+          setUser(profileData);
+        }
+        else {
+          setUser(null);
         }
 
         if (!storedId) return;
@@ -70,8 +79,8 @@ export default function ProfilePage() {
         const data = res.data.user || res.data;
 
         // Nếu dữ liệu mới khác dữ liệu cũ thì cập nhật
-        if (JSON.stringify(data) !== JSON.stringify(user)) {
-          setUser(data);
+        if (JSON.stringify(data) !== JSON.stringify(userProfile)) {
+          setUserProfile(data);
           setForm({
             fullName: data.fullName,
             email: data.email,
@@ -90,10 +99,14 @@ export default function ProfilePage() {
           "Có lỗi xảy ra khi tải thông tin người dùng";
 
         if (
-          message === "Người dùng không tồn tại" ||
+          message === "Missing token" ||
           err.response?.status === 404
         ) {
-          router.replace("/admin/user");
+          if (nofications === 0) {
+            setNofications(1);
+            toast("Hết thời gian đăng nhập vui lòng đăng nhập để xem thông tin người dùng của bạn!", { icon: "⚠️" });
+          }
+          setUser(null);
         }
       }
     };
@@ -102,7 +115,7 @@ export default function ProfilePage() {
     interval = setInterval(fetchProfileAndUser, 3000); // polling mỗi 3s
 
     return () => clearInterval(interval);
-  }, [user, router]);
+  }, [userProfile, router, user, nofications]);
 
   // =================== XỬ LÝ INPUT ===================
   const handleChange = (
@@ -201,7 +214,7 @@ export default function ProfilePage() {
       const data = res.data;
 
       alert(data.message || "Cập nhật thành công");
-      setUser((prev) => (prev ? { ...prev, ...form } : prev));
+      setUserProfile((prev) => (prev ? { ...prev, ...form } : prev));
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.message || "Có lỗi xảy ra khi cập nhật");
@@ -228,7 +241,7 @@ export default function ProfilePage() {
       });
       const data = res.data;
       alert("Upload avatar thành công");
-      setUser((prev) => (prev ? { ...prev, avatar: data.avatarUrl } : prev));
+      setUserProfile((prev) => (prev ? { ...prev, avatar: data.avatarUrl } : prev));
     } catch (err: any) {
       let message = "Upload avatar thất bại";
       if (err.response?.data) {
@@ -244,14 +257,14 @@ export default function ProfilePage() {
     }
   };
 
-  if (!user) return <p>Đang tải...</p>;
+  if (!userProfile) return <p>Đang tải...</p>;
 
   return (
     <div className="relative flex flex-col md:grid md:grid-cols-2 gap-6 p-4 md:p-8 bg-gray-50 min-h-screen mt-20 md:mt-10">
       {/* ========== giữ nguyên toàn bộ phần UI ========== */}
       <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-gradient-to-b from-blue-400 to-blue-200 shadow-md">
         <img
-          src={user.avatar || "https://via.placeholder.com/150"}
+          src={userProfile.avatar || "https://via.placeholder.com/150"}
           alt="Avatar"
           className="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover border-4 border-white shadow mb-3"
         />
@@ -262,21 +275,21 @@ export default function ProfilePage() {
           className="text-sm text-gray-700 mb-3"
         />
         <h2 className="text-lg md:text-xl font-semibold text-white mb-4">
-          {user.fullName || "Họ và tên"}
+          {userProfile.fullName || "Họ và tên"}
         </h2>
 
         <div className="w-full max-w-xs md:max-w-sm space-y-2 text-left text-gray-800 bg-white/50 p-3 rounded-lg shadow-inner">
-          <InfoItem label="Quyền" value={user.role} />
+          <InfoItem label="Quyền" value={userProfile.role} />
           <InfoItem
             label="Điểm trung thành"
-            value={user.loyaltyPoints?.toLocaleString() ?? 0}
+            value={userProfile.loyaltyPoints?.toLocaleString() ?? 0}
           />
           <InfoItem
             label="Cấp độ thành viên"
-            value={user.membershipLevel ?? "0"}
+            value={userProfile.membershipLevel ?? "0"}
           />
-          <InfoItem label="created_at" value={formatDateUTC(user.createdAt)} />
-          <InfoItem label="updated_at" value={formatDateUTC(user.updatedAt)} />
+          <InfoItem label="created_at" value={formatDateUTC(userProfile.createdAt)} />
+          <InfoItem label="updated_at" value={formatDateUTC(userProfile.updatedAt)} />
         </div>
       </div>
 
@@ -294,7 +307,7 @@ export default function ProfilePage() {
         <FormField
           label="Tên truy cập"
           name="username"
-          value={user.username}
+          value={userProfile.username}
           disabled
           className="font-semibold text-gray-800 bg-gray-100"
         />
@@ -352,11 +365,11 @@ export default function ProfilePage() {
           <button
             onClick={() =>
               setForm({
-                fullName: user.fullName,
-                email: user.email,
-                phone: user.phone,
-                dob: user.dob,
-                gender: user.gender,
+                fullName: userProfile.fullName,
+                email: userProfile.email,
+                phone: userProfile.phone,
+                dob: userProfile.dob,
+                gender: userProfile.gender,
               })
             }
             className="bg-gray-300 px-4 py-2 rounded-lg hover:bg-gray-400 transition"
