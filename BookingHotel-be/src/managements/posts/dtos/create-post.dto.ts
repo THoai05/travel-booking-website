@@ -16,8 +16,10 @@ export class CreatePostDto {
   @IsString()       
   @IsOptional()
   city_title?: string; 
+
   @IsString()
   @IsOptional()
+  @IsString({ each: true }) // mỗi phần tử trong mảng là string
   image?: string;
 
   @IsBoolean()
