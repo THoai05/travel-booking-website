@@ -127,7 +127,7 @@ export class PostsService {
 
   async findAllAdmin(page = 1, limit = 10) {
     const [posts, total] = await this.postRepo.findAndCount({
-      relations: ['author', 'city'],
+      relations: ['author', 'city', 'images'],
       order: { created_at: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
@@ -143,7 +143,7 @@ export class PostsService {
   async findOne(id: number) {
     const post = await this.postRepo.findOne({
       where: { id },
-      relations: ['author'],
+      relations: ['author', 'city', 'images'],
     });
 
     if (!post) throw new NotFoundException('Không tìm thấy bài viết');

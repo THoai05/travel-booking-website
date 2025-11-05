@@ -6,6 +6,7 @@ export class PostResponseDto {
   content: string;
   is_public: boolean;
   created_at: Date;
+
   author?: {
     id: number;
     username: string;
@@ -18,6 +19,8 @@ export class PostResponseDto {
     image?: string;
   } | null;
 
+  images?: string[];
+
   constructor(post: any) {
     this.id = post.id;
     this.title = post.title;
@@ -29,18 +32,23 @@ export class PostResponseDto {
 
     this.author = post.author
       ? {
-          id: post.author.id,
-          username: post.author.username,
-          fullName: post.author.fullName,
-        }
+        id: post.author.id,
+        username: post.author.username,
+        fullName: post.author.fullName,
+      }
       : null;
 
     this.city = post.city
       ? {
-          id: post.city.id,
-          title: post.city.title,
-          image: post.city.image,
-        }
+        id: post.city.id,
+        title: post.city.title,
+        image: post.city.image,
+      }
       : null;
+
+    this.images = post.images
+      ? post.images.map((img: any) => img.url)
+      : [];
+
   }
 }
