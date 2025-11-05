@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from "recharts";
 import api from "@/axios/axios";
 
 interface RevenueDataItem {
@@ -15,7 +15,7 @@ const formatVND = (value: number) =>
   value.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
 
-const formatVNDShort  = (value: number): string => {
+const formatVNDShort = (value: number): string => {
   if (value >= 1_000_000_000) return (value / 1_000_000_000).toFixed(1).replace(/\.0$/, "") + "B"; // tỷ
   if (value >= 1_000_000) return (value / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M"; // triệu
   if (value >= 1_000) return (value / 1_000).toFixed(1).replace(/\.0$/, "") + "K"; // nghìn
@@ -99,6 +99,25 @@ export function ChartsSectionRevenue() {
   const colWidth = getColumnWidth(kpiType);
   const chartWidth = Math.max(data.length * colWidth, 500);
 
+  // Gradient màu từ xanh đậm -> xanh nhạt cho từng bar
+  const gradientColors = [
+    [16, 185, 129],  // #10b981
+    [52, 211, 153],  // #34d399
+    [110, 231, 183], // #6ee7b7
+  ];
+  const getGradientColor = (index: number) => {
+    const step = index / (data.length - 1 || 1) * (gradientColors.length - 1);
+    const lower = Math.floor(step);
+    const upper = Math.ceil(step);
+    const ratio = step - lower;
+
+    const r = Math.round(gradientColors[lower][0] + (gradientColors[upper][0] - gradientColors[lower][0]) * ratio);
+    const g = Math.round(gradientColors[lower][1] + (gradientColors[upper][1] - gradientColors[lower][1]) * ratio);
+    const b = Math.round(gradientColors[lower][2] + (gradientColors[upper][2] - gradientColors[lower][2]) * ratio);
+
+    return `rgb(${r}, ${g}, ${b})`;
+  };
+
   if (loading) {
     return (
       <div className="mb-8">
@@ -140,27 +159,29 @@ export function ChartsSectionRevenue() {
             style={{ WebkitOverflowScrolling: "touch" }}
           >
             <div style={{ minWidth: chartWidth, width: chartWidth, height: 300 }}>
+
               <BarChart width={chartWidth} height={300} data={data}>
+                <defs>
+                  <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity={1} />   {/* xanh lá đậm */}
+                    <stop offset="100%" stopColor="#6ee7b7" stopOpacity={0.6} /> {/* xanh lá nhạt */}
+                  </linearGradient>
+                </defs>
+
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 12 }} />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#9ca3af", fontSize: 12 }}
-                  tickFormatter={formatVNDShort}
-                />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 12 }} tickFormatter={formatVNDShort} />
                 <Tooltip
                   contentStyle={{ backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: "8px" }}
                   formatter={(value: number) => [formatVND(value), "Revenue"]}
                 />
-                <Bar dataKey="revenue" fill="url(#colorGradient)" radius={[6, 6, 0, 0]} maxBarSize={50} />
-                <defs>
-                  <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={1} />
-                    <stop offset="100%" stopColor="#93c5fd" stopOpacity={0.6} />
-                  </linearGradient>
-                </defs>
+                <Bar dataKey="revenue" radius={[6, 6, 0, 0]} maxBarSize={50}>
+                  {data.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={getGradientColor(index)} />
+                  ))}
+                </Bar>
               </BarChart>
+
             </div>
           </div>
         </CardContent>
