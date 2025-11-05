@@ -6,11 +6,17 @@ export class PostResponseDto {
   content: string;
   is_public: boolean;
   created_at: Date;
-  author: {
+  author?: {
     id: number;
     username: string;
     fullName: string;
-  };
+  } | null;
+
+  city?: {
+    id: number;
+    title: string;
+    image?: string;
+  } | null;
 
   constructor(post: any) {
     this.id = post.id;
@@ -20,10 +26,21 @@ export class PostResponseDto {
     this.content = post.content;
     this.is_public = post.is_public;
     this.created_at = post.created_at;
-    this.author = {
-      id: post.author?.id,
-      username: post.author?.username,
-      fullName: post.author?.fullName,
-    };
+
+    this.author = post.author
+      ? {
+          id: post.author.id,
+          username: post.author.username,
+          fullName: post.author.fullName,
+        }
+      : null;
+
+    this.city = post.city
+      ? {
+          id: post.city.id,
+          title: post.city.title,
+          image: post.city.image,
+        }
+      : null;
   }
 }
