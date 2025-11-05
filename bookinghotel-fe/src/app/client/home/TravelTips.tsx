@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Calendar, Clock, MessageSquare, ArrowRight } from "lucide-react";
 import Button from "../components/common/Button";
-import { fetchBlogs } from "@/reduxTK/features/blog/blogThunk";
+import { fetchPublicBlogs } from "@/reduxTK/features/blog/blogThunk";
 import { AppDispatch, RootState } from "@/reduxTK/store";
 import Link from "next/link";
 
@@ -13,8 +13,8 @@ export default function TravelTips() {
   const { blogs, isLoading, error } = useSelector((state: RootState) => state.blogs);
 
   useEffect(() => {
-    // Lấy 3 bài viết đầu tiên (ví dụ phần homepage)
-    dispatch(fetchBlogs({ page: 1, limit: 3 }));
+    // Lấy 3 bài viết đầu tiên (phần homepage)
+    dispatch(fetchPublicBlogs({ page: 1, limit: 3 }));
   }, [dispatch]);
 
   const getPostImageUrl = (image: string) => {

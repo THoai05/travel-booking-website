@@ -1,23 +1,25 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createBlog, deletePosts, fetchBlogs, updateBlog } from "./blogThunk";
+import { createBlog, deletePosts, fetchAdminBlogs, fetchPublicBlogs, updateBlog } from "./blogThunk";
 
 const blogSlice = createSlice({
   name: "blogs",
   initialState: {
     blogs: [],
-    pagination: { total: 0, page: 1, limit: 10 },
+    adminBlogs: [],
     isLoading: false,
+    pagination: { total: 0, page: 1, limit: 10 },
+    adminPagination: { total: 0, page: 1, limit: 5 },
     error: null as null | unknown,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
       //Fetch Blogs
-      .addCase(fetchBlogs.pending, (state) => {
+      .addCase(fetchPublicBlogs.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchBlogs.fulfilled, (state, action) => {
+      .addCase(fetchPublicBlogs.fulfilled, (state, action) => {
         state.isLoading = false;
         state.blogs = action.payload.data || [];
 
@@ -29,7 +31,30 @@ const blogSlice = createSlice({
           limit: 5,
         };
       })
-      .addCase(fetchBlogs.rejected, (state, action) => {
+      .addCase(fetchPublicBlogs.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      // Fetch Admin Blogs
+      .addCase(fetchAdminBlogs.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchAdminBlogs.fulfilled, (state, action) => {
+        // console.log("Admin blogs loaded:", action.payload);
+        state.isLoading = false;
+        state.adminBlogs = action.payload.data || [];
+
+        const meta = action.payload.meta || {};
+
+        state.adminPagination = {
+          total: meta.total || 0,
+          page: meta.page || 1,
+          limit: 5,
+        };
+      })
+      .addCase(fetchAdminBlogs.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })

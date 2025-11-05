@@ -6,12 +6,12 @@ import { FaPlus } from "react-icons/fa";
 import Toolbar from "./Toolbar";
 import PostItem from "./PostItem";
 import Pagination from "../../components/Pagination";
-import { fetchBlogs, deletePosts } from "@/reduxTK/features/blog/blogThunk";
+import { fetchAdminBlogs, deletePosts } from "@/reduxTK/features/blog/blogThunk";
 import { AppDispatch, RootState } from "@/reduxTK/store";
 
 export default function ModernSingleListPost() {
   const dispatch = useDispatch<AppDispatch>();
-  const { blogs, isLoading, error, pagination } = useSelector(
+  const { adminBlogs, isLoading, error, adminPagination } = useSelector(
     (state: RootState) => state.blogs
   );
 
@@ -24,18 +24,21 @@ export default function ModernSingleListPost() {
   const [page, setPage] = useState(1);
 
   const postsPerPage = 5;
-  const { total = 0, page: currentPage = 1, limit = postsPerPage } = pagination || {};
+  const { total = 0, page: currentPage = 1, limit = postsPerPage } = adminPagination || {};
 
   // EFFECT
   useEffect(() => {
-    dispatch(fetchBlogs({ page, limit: postsPerPage }));
+    dispatch(fetchAdminBlogs({ page, limit: postsPerPage }));
   }, [dispatch, page]);
 
-  const filtered = blogs.filter((p: any) => {
+  const filtered = adminBlogs.filter((p: any) => {
     if (showPublicOnly && !p.is_public) return false;
     if (!query) return true;
     const q = query.toLowerCase();
-    return p.title.toLowerCase().includes(q) || p.author?.fullName?.toLowerCase().includes(q);
+    return (
+      p.title.toLowerCase().includes(q) ||
+      p.author?.fullName?.toLowerCase().includes(q)
+    );
   });
 
   const getPostImageUrl = (image: string) => {
@@ -142,7 +145,7 @@ export default function ModernSingleListPost() {
             openMenuFor={openMenuFor}
             setOpenMenuFor={setOpenMenuFor}
             handleAction={handleAction}
-            onPostUpdated={() => dispatch(fetchBlogs({ page, limit: postsPerPage }))}
+            onPostUpdated={() => dispatch(fetchAdminBlogs({ page, limit: postsPerPage }))}
           />
         ))}
 
