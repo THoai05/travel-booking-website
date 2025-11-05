@@ -109,7 +109,7 @@ export class PostsService {
     return urls;
   }
 
-  async findAll(page = 1, limit = 10) {
+  async findAllPublic(page = 1, limit = 10) {
     const [posts, total] = await this.postRepo.findAndCount({
       where: { is_public: true },
       relations: ['author', 'city'],
@@ -117,15 +117,26 @@ export class PostsService {
       skip: (page - 1) * limit,
       take: limit,
     });
-    const data = posts.map((post) => new PostResponseDto(post));
 
+    const data = posts.map((post) => new PostResponseDto(post));
     return {
       data,
-      meta: {
-        total,
-        page,
-        lastPage: Math.ceil(total / limit),
-      },
+      meta: { total, page, lastPage: Math.ceil(total / limit) },
+    };
+  }
+
+  async findAllAdmin(page = 1, limit = 10) {
+    const [posts, total] = await this.postRepo.findAndCount({
+      relations: ['author', 'city'],
+      order: { created_at: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    const data = posts.map((post) => new PostResponseDto(post));
+    return {
+      data,
+      meta: { total, page, lastPage: Math.ceil(total / limit) },
     };
   }
 
