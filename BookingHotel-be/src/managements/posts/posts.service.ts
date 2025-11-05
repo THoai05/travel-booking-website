@@ -11,6 +11,7 @@ import slugify from 'slugify';
 import { join } from 'path';
 import { promises as fs } from 'fs';
 import { Brackets } from 'typeorm';
+import { ILike } from 'typeorm';
 
 @Injectable()
 export class PostsService {
@@ -164,47 +165,37 @@ export class PostsService {
     return { deletedCount: result.affected || 0 };
   }
 
-  async search(keyword?: string, cityName?: string) {
-    if (!keyword?.trim() && !cityName?.trim()) {
-      return [];
-    }
+  async searchPosts(keyword: string) {
+    if (!keyword?.trim()) return [];
 
-    const query = this.postRepo
-      .createQueryBuilder('post')
-      .leftJoinAndSelect('post.author', 'author')
-      .leftJoinAndSelect('post.city', 'city')
-      .where('post.is_public = true');
+    const normalizedKeyword = this.removeAccents(keyword.toLowerCase());
 
-    // Nếu có từ khóa
-    if (keyword) {
-      // Bỏ dấu tiếng Việt
-      const normalizedKeyword = keyword
-        .normalize('NFD') // tách dấu
-        .replace(/[\u0300-\u036f]/g, '') // xoá dấu
+    // Lấy hết bài public (hoặc thêm limit để tránh nặng)
+    const posts = await this.postRepo.find({
+      relations: ['author', 'city'],
+      where: { is_public: true },
+    });
+
+    // Lọc lại trong code bằng cách bỏ dấu cả 2 bên
+    return posts.filter((post) => {
+      const combinedText = [
+        post.title,
+        post.content,
+        post.city?.title,
+      ]
+        .join(' ')
         .toLowerCase();
 
-      query.andWhere(
-        new Brackets((qb) => {
-          qb.where('LOWER(post.title) LIKE :keyword')
-            .orWhere('LOWER(post.content) LIKE :keyword');
-        }),
-        { keyword: `%${normalizedKeyword}%` },
-      );
-    }
-
-    if (cityName) {
-      const normalizedCity = cityName
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase();
-
-      query.andWhere('LOWER(city.title) LIKE :cityName', {
-        cityName: `%${normalizedCity}%`,
-      });
-    }
-
-    const posts = await query.orderBy('post.created_at', 'DESC').getMany();
-    console.log(posts);
-    return posts;
+      return this.removeAccents(combinedText).includes(normalizedKeyword);
+    });
   }
+
+  removeAccents(str: string): string {
+    return str
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D');
+  }
+
 }

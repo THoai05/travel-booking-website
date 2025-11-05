@@ -47,11 +47,8 @@ export class PostsController {
   }
 
   @Get('search')
-  async search(
-    @Query('keyword') keyword?: string,
-    @Query('city') city?: string,
-  ) {
-    return this.postsService.search(keyword, city);
+  async searchPosts(@Query('keyword') keyword: string) {
+    return this.postsService.searchPosts(keyword);
   }
 
   @Get(':id')
