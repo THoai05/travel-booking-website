@@ -8,6 +8,6 @@ import { BookingsModule } from 'src/managements/bookings/modules/bookings.module
 @Module({
   imports:[BookingsModule],
   controllers: [PaymentsController,PaymentGateController],
-  providers: [PaymentsService,PaymentGateService],
+  providers: [PaymentsService,PaymentGateService,],
 })
 export class PaymentsModule {}
