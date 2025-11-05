@@ -19,34 +19,37 @@ export class AuthController {
   ) {
     const { usernameOrEmail, password } = body;
     const { message, token, userWithoutPassword } = await this.authService.login(usernameOrEmail, password);
+
+    // Chỉnh cookie: sameSite = 'lax' để FE localhost:3000 có thể gửi cookie tới BE localhost:3636
     res.cookie('access_Token', token, {
       httpOnly: true,
-      secure: false,
-      sameSite: 'strict',
-      maxAge: 1000 * 60 * 15,
-      signed: false
-    })
+      secure: false, // nếu HTTPS thì true
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 15, // 15 phút
+      signed: false,
+    });
+
     return {
       message,
-      userWithoutPassword
-    }
+      userWithoutPassword,
+    };
   }
 
   @Get('logout')
-  async logOut(@Res({passthrough:true}) res: any) {
-    res.cookie('access_Token', { expires: new Date(Date.now()) })
-    return {
-      message:"success"
-    }
+  async logOut(@Res({ passthrough: true }) res: Response) {
+    res.cookie('access_Token', '', {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      expires: new Date(0), // xóa cookie
+    });
+    return { message: 'success' };
   }
 
-	@UseGuards(JwtAuthGuard)
-	@Get('profile')
-	async getProfile(@Req() req) {
-	  // Lấy id từ token
-	  const userId = req.user.sub; // vì khi sign token, bạn dùng payload: { sub: user.id, username, role }
-	  
-	  // Gọi hàm getProfile trong service để đọc thông tin đầy đủ từ DB
-	  return this.authService.getProfile(userId);
-	}
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  async getProfile(@Req() req) {
+    const userId = req.user.sub;
+    return this.authService.getProfile(userId);
+  }
 }

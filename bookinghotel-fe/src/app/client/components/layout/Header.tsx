@@ -32,6 +32,20 @@ interface UserProfile {
   createdAt?: string;
   updatedAt?: string;
 }
+interface ChatMessage {
+  id: number;
+  sender: User | null;
+  receiver: User | null;
+  message: string;
+  message_type: 'text' | 'image' | 'file';
+  is_read: boolean;
+  created_at: string;
+}
+interface User {
+  id: number;
+  username: string;
+}
+
 
 const Header = () => {
   const pathname = usePathname();
@@ -39,6 +53,8 @@ const Header = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [showRegister, setShowRegister] = useState(false);
 
   // --- THÊM MỚI: State cho dropdown ---
@@ -67,7 +83,7 @@ const Header = () => {
   const { user, logout } = useAuth();
 
   // --- Fetch profile
-  
+
 
   // --- useEffect mount
   // --- THÊM MỚI: Click outside để đóng dropdown ---
@@ -90,7 +106,7 @@ const Header = () => {
 
   // --- Track localStorage changes
   // --- Track token & methodShowLoginregister changes
-  
+
 
   const handleClickProfile = () => {
     router.push("/client/auth/profile");
@@ -98,6 +114,7 @@ const Header = () => {
 
   const handleLogout = () => {
     logout();
+    localStorage.removeItem('token');
     router.replace("/client");
   };
   console.log(user);
@@ -133,10 +150,9 @@ const Header = () => {
                     after:content-[''] after:absolute after:left-0 after:bottom-0 after:h-[2px]
                     after:bg-gradient-to-r after:from-[#00C6FF] after:to-[#0072FF]
                     after:transition-all after:duration-300
-                    ${
-                      isActive
-                        ? "after:w-full text-[#0072FF]"
-                        : "after:w-0 hover:after:w-full"
+                    ${isActive
+                      ? "after:w-full text-[#0072FF]"
+                      : "after:w-0 hover:after:w-full"
                     }`}
                 >
                   {link.label}
@@ -194,7 +210,7 @@ const Header = () => {
             )}
 
             {/* Nếu có profile */}
-            
+
 
             {/* --- CHỈNH SỬA: DROPDOWN MENU (YÊU CẦU 2) --- */}
 

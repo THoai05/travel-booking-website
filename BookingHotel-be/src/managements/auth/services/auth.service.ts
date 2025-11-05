@@ -51,20 +51,35 @@ export class AuthService {
 	}
 
 	async login(usernameOrEmail: string, password: string) {
-		const user = await this.userRepo.findOne({
-			where: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
-		});
+		// 🔹 1. Tìm user theo username trước
+		let user = await this.userRepo.findOne({ where: { username: usernameOrEmail } });
 
-		if (!user) throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
+		// 🔹 2. Nếu không có, thử tìm theo email
+		if (!user) {
+			user = await this.userRepo.findOne({ where: { email: usernameOrEmail } });
+		}
+
+		// 🔹 3. Nếu vẫn không có user → throw
+		if (!user) {
+			throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
+		}
+
+		// 🔹 4. So sánh password
 		const isMatch = await bcrypt.compare(password, user.password);
-		if (!isMatch) throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
+		if (!isMatch) {
+			throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
+		}
 
+		// 🔹 5. Tạo JWT
 		const payload = { sub: user.id, username: user.username, role: user.role };
 		const token = await this.jwtService.signAsync(payload);
-		const {password:_ , ...userWithoutPassword} = user
 
-		return { message: 'success', token,userWithoutPassword };
+		// 🔹 6. Loại bỏ password
+		const { password: _, ...userWithoutPassword } = user;
+
+		return { message: 'success', token, userWithoutPassword };
 	}
+
 
 	async getProfile(userId: number) {
 		const user = await this.userRepo.findOne({ where: { id: userId } });

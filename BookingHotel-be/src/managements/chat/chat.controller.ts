@@ -1,4 +1,5 @@
-import { Controller, Get, Param, Post, Body } from '@nestjs/common';
+import { Controller, UseGuards, Req, Get, Param, Post, Body, UnauthorizedException } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ChatService } from './chat.service';
 import { ChatGateway } from './chat.gateway';
 import { Message } from './entities/chat.entity';
@@ -11,12 +12,22 @@ export class ChatController {
     ) { }
 
     @Get(':userId/:adminId')
+    @UseGuards(JwtAuthGuard)
     async getChatHistory(
-        @Param('userId') userId: string,
-        @Param('adminId') adminId: string,
+        @Param('userId') userId: number,
+        @Param('adminId') adminId: number,
+        @Req() req
     ) {
-        return this.chatService.getChatHistory(+userId, +adminId);
+        // 🔹 Dùng req.user.sub thay vì req.user.id
+        const currentUserId = req.user.sub;
+
+        if (currentUserId !== Number(userId)) {
+            throw new UnauthorizedException('Bạn không có quyền xem chat này');
+        }
+
+        return this.chatService.getChatHistory(userId, adminId);
     }
+
 
 
     @Post('send')

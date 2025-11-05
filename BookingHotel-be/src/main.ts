@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -21,6 +22,7 @@ async function bootstrap() {
   // Adapter cho Socket.IO
   app.useWebSocketAdapter(new IoAdapter(app));
 
+  app.use(cookieParser());
   await app.listen(3636);
   console.log('Backend running on http://localhost:3636');
 }
