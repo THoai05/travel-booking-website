@@ -69,3 +69,17 @@ export const deletePosts = createAsyncThunk(
         }
     }
 );
+
+// Search Blogs
+export const searchBlogs = createAsyncThunk(
+    "blogs/searchBlogs",
+    async (keyword: string, { rejectWithValue }) => {
+        try {
+            const res = await api.get(`/posts/search?keyword=${encodeURIComponent(keyword)}`);
+            return res.data; // server trả về mảng bài viết đã lọc
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data || "Lỗi khi tìm kiếm bài viết");
+        }
+    }
+);
+

@@ -1,11 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createBlog, deletePosts, fetchAdminBlogs, fetchPublicBlogs, updateBlog } from "./blogThunk";
+import { createBlog, deletePosts, fetchAdminBlogs, fetchPublicBlogs, searchBlogs, updateBlog } from "./blogThunk";
 
 const blogSlice = createSlice({
   name: "blogs",
   initialState: {
     blogs: [],
     adminBlogs: [],
+    searchResults: [],
     isLoading: false,
     pagination: { total: 0, page: 1, limit: 10 },
     adminPagination: { total: 0, page: 1, limit: 5 },
@@ -91,6 +92,21 @@ const blogSlice = createSlice({
         state.blogs = state.blogs.filter((b) => !idsDeleted.includes(b.id));
       })
       .addCase(deletePosts.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      // Search Blogs
+      .addCase(searchBlogs.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+        state.searchResults = [];
+      })
+      .addCase(searchBlogs.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.searchResults = action.payload;
+      })
+      .addCase(searchBlogs.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       });
