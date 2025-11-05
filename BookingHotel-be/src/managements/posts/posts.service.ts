@@ -106,7 +106,6 @@ export class PostsService {
       skip: (page - 1) * limit,
       take: limit,
     });
-
     const data = posts.map((post) => new PostResponseDto(post));
 
     return {
