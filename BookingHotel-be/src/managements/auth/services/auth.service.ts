@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User, UserRole, Gender, MembershipLevel } from '../../users/entities/users.entity';
+import { LoginRequestDto } from '../dtos/req/LoginRequestDto.dto';
 
 @Injectable()
 export class AuthService {
@@ -50,7 +51,8 @@ export class AuthService {
 		return { message: 'Đăng ký thành công', userId: newUser.id };
 	}
 
-	async login(usernameOrEmail: string, password: string) {
+	async login(query: LoginRequestDto) {
+		const { usernameOrEmail,password } = query
 		const user = await this.userRepo.findOne({
 			where: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
 		});

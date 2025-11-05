@@ -40,18 +40,7 @@ import api from '@/axios/axios';
     }
   ];
 
-  const hotelDetails: HotelDetails = {
-    bookingId: '1296078565',
-    name: 'Pariat River Front Hotel Da Nang',
-    checkIn: 'Tue, 28 October 2025',
-    checkOut: 'Wed, 29 October 2025',
-    nights: 1,
-    roomType: '(1x) Standard Room - Room Only',
-    guests: 2,
-    bedType: '1 double bed',
-    breakfast: false,
-    wifi: true,
-  };
+
 
 
    
