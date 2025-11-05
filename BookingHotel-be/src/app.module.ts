@@ -12,6 +12,7 @@ import { CommentsModule } from './managements/comments/comments.module';
 import { ResetPasswordModule } from './managements/reset_Password/modules/reset_password.module';
 import { FaqModule } from './managements/faq/faq.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { InvoiceModule } from './managements/invoice/invoice.module';
 import { join } from 'path';
 
 @Module({
@@ -34,6 +35,7 @@ import { join } from 'path';
     CommentsModule,
     ResetPasswordModule,
     FaqModule,
+    InvoiceModule
   ],
   controllers: [AppController],
   providers: [AppService],
