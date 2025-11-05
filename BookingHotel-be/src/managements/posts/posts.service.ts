@@ -100,6 +100,7 @@ export class PostsService {
 
   async findAll(page = 1, limit = 10) {
     const [posts, total] = await this.postRepo.findAndCount({
+      where: { is_public: true },
       relations: ['author', 'city'],
       order: { created_at: 'DESC' },
       skip: (page - 1) * limit,
