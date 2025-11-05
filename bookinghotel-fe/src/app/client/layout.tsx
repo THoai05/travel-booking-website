@@ -7,12 +7,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { HeroUIProvider } from "@heroui/system";
 import { usePathname, useRouter } from "next/navigation";
+import ChatBox from "./components/common/ChatBox";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const currentUserId = 2;
 
   // Hiển thị Splash Loader mỗi lần route thay đổi
   useEffect(() => {
@@ -64,6 +66,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             <main>{children}</main>
             <Footer />
             <ScrollToTopButton />
+            <ChatBox userId={currentUserId} />
           </>
         )}
       </QueryClientProvider>

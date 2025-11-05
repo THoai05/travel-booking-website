@@ -9,7 +9,7 @@ export const databaseConfig = (): TypeOrmModuleOptions => ({
   database: process.env.DB_NAME || 'mydb',    // 👈 tên database
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
-  synchronize: false,   // ⚠️ chỉ bật true khi dev — khi deploy thì nên false
+  synchronize: true,   // ⚠️ chỉ bật true khi dev — khi deploy thì nên false
   logging: true,
   timezone: 'Z',       // 👈 đồng bộ timezone (tùy chọn)
   charset: 'utf8mb4',  // 👈 hỗ trợ tiếng Việt & emoji
