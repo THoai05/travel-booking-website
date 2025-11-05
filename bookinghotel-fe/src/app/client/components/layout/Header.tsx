@@ -112,6 +112,11 @@ const Header = () => {
       }
     };
     fetchNotification();
+
+    if (user?.role === "admin") {
+      router.replace("/admin");
+    }
+
   }, [user]);
 
 
