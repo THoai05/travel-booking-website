@@ -20,9 +20,8 @@ import { join } from 'path';
       isGlobal: true,
     }),
 
-    // Thêm phần này để serve file tĩnh (ảnh upload)
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'), // nơi chứa ảnh
+      rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads', // prefix truy cập qua URL
     }),
 

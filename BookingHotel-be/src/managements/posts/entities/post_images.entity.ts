@@ -18,7 +18,4 @@ export class PostImage {
   @ManyToOne(() => Post, post => post.images, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'post_id' })
   post: Post;
-
-  @Column()
-  post_id: number;
 }

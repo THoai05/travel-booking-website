@@ -12,6 +12,7 @@ import { join } from 'path';
 import { promises as fs } from 'fs';
 import { Brackets } from 'typeorm';
 import { ILike } from 'typeorm';
+import { PostImage } from './entities/post_images.entity';
 
 @Injectable()
 export class PostsService {
@@ -27,7 +28,7 @@ export class PostsService {
   ) { }
 
   async create(createPostDto: CreatePostDto) {
-    const { title, content, author_name, image, slug, city_title } = createPostDto;
+    const { title, content, author_name, images, slug, city_title } = createPostDto;
 
     // Tạo slug tự động nếu chưa có
     const finalSlug =
@@ -51,16 +52,25 @@ export class PostsService {
       if (!city) throw new NotFoundException('Không tìm thấy thành phố');
     }
 
+    // Tạo Post mới
     const newPost = this.postRepo.create({
       title,
       content,
-      image,
       slug: finalSlug,
       author,
       city,
     });
 
-    await this.postRepo.save(newPost);
+    // Chuyển mảng image (string[]) sang PostImage[]
+    if (images && images.length > 0) {
+      newPost.images = images.map((url: string) => {
+        const img = new PostImage();
+        img.url = url;
+        return img;
+      });
+    }
+
+    await this.postRepo.save(newPost); // cascade sẽ tự lưu PostImage
 
     return {
       message: 'Tạo bài viết thành công',
@@ -68,7 +78,7 @@ export class PostsService {
         id: newPost.id,
         title: newPost.title,
         content: newPost.content,
-        image: newPost.image,
+        images: newPost.images.map(img => img.url), // trả về mảng URL
         slug: newPost.slug,
         is_public: newPost.is_public,
         created_at: newPost.created_at,

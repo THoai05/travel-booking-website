@@ -6,6 +6,7 @@ import { Calendar, Clock, MessageSquare, ArrowRight } from "lucide-react";
 import Button from "../components/common/Button";
 import { fetchBlogs } from "@/reduxTK/features/blog/blogThunk";
 import { AppDispatch, RootState } from "@/reduxTK/store";
+import Link from "next/link";
 
 export default function TravelTips() {
   const dispatch = useDispatch<AppDispatch>();
@@ -43,19 +44,20 @@ export default function TravelTips() {
             </p>
           </div>
           <div>
-            <Button
-              type="button"
-              title="Xem thêm"
-              icon={ArrowRight}
-              variant="bg-black text-white px-6 py-3 hover:bg-gray-800 transition"
-            />
+            <Link href="/blog">
+              <Button
+                type="button"
+                title="Xem thêm"
+                icon={ArrowRight}
+                variant="bg-black text-white px-6 py-3 hover:bg-gray-800 transition"
+              />
+            </Link>
           </div>
         </div>
 
         {/* Blog Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           {blogs.map((blog: any) => {
-            // console.log("🧩 Blog item:", blog);
             return (
               <div
                 key={blog.id}
@@ -71,7 +73,7 @@ export default function TravelTips() {
                   />
 
                   <div className="absolute top-4 left-4 bg-white text-sm font-medium px-3 py-1 rounded-full">
-                     {blog.city?.title || "Du lịch"}
+                    {blog.city?.title || "Du lịch"}
                   </div>
                 </div>
 

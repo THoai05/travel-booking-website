@@ -8,6 +8,7 @@ import { City } from '../city/entities/city.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { join } from 'path';
+import { PostImage } from './entities/post_images.entity';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { join } from 'path';
             },
           }),
         }),
-    TypeOrmModule.forFeature([Post, User, City])],
+    TypeOrmModule.forFeature([Post, User, City, PostImage])],
   controllers: [PostsController],
   providers: [PostsService],
 })

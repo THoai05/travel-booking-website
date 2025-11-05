@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { User } from 'src/managements/users/entities/users.entity';
 import { City } from 'src/managements/city/entities/city.entity';
-import { PostImage } from './post_images';
+import { PostImage } from './post_images.entity';
 
 @Entity('blog_posts')
 export class Post {
@@ -37,7 +37,7 @@ export class Post {
   @Column({ nullable: true })
   city_id: number | null;
 
-  @OneToMany(() => PostImage, image => image.post, { cascade: true }) //cho phép khi tạo Post kèm images
+  @OneToMany(() => PostImage, (image) => image.post, { cascade: true, eager: true })
   images: PostImage[];
 
   @Column({ default: true })
