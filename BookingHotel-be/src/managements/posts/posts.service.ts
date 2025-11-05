@@ -170,13 +170,13 @@ export class PostsService {
 
     const normalizedKeyword = this.removeAccents(keyword.toLowerCase());
 
-    // Lấy hết bài public (hoặc thêm limit để tránh nặng)
+    // Lấy hết bài public
     const posts = await this.postRepo.find({
       relations: ['author', 'city'],
       where: { is_public: true },
     });
 
-    // Lọc lại trong code bằng cách bỏ dấu cả 2 bên
+    // Lọc lại bỏ dấu cả 2 bên
     return posts.filter((post) => {
       const combinedText = [
         post.title,

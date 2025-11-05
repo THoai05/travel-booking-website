@@ -6,9 +6,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { User } from 'src/managements/users/entities/users.entity';
 import { City } from 'src/managements/city/entities/city.entity';
+import { PostImage } from './post_images';
 
 @Entity('blog_posts')
 export class Post {
@@ -35,8 +37,8 @@ export class Post {
   @Column({ nullable: true })
   city_id: number | null;
 
-  @Column({ nullable: true })
-  image: string;
+  @OneToMany(() => PostImage, image => image.post, { cascade: true }) //cho phép khi tạo Post kèm images
+  images: PostImage[];
 
   @Column({ default: true })
   is_public: boolean;
