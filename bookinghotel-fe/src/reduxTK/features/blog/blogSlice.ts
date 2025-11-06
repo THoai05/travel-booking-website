@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createBlog, deletePosts, fetchAdminBlogs, fetchPublicBlogs, searchBlogs, updateBlog } from "./blogThunk";
+import { createBlog, deletePosts, fetchAdminBlogs, fetchDetailBlogBySlug, fetchPublicBlogs, searchBlogs, updateBlog } from "./blogThunk";
 
 const blogSlice = createSlice({
   name: "blogs",
@@ -7,6 +7,7 @@ const blogSlice = createSlice({
     blogs: [],
     adminBlogs: [],
     searchResults: [],
+    blog: null as null | any,
     isLoading: false,
     pagination: { total: 0, page: 1, limit: 10 },
     adminPagination: { total: 0, page: 1, limit: 5 },
@@ -109,6 +110,20 @@ const blogSlice = createSlice({
       .addCase(searchBlogs.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+      })
+
+      //Fetch post by slug
+      .addCase(fetchDetailBlogBySlug.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchDetailBlogBySlug.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.blog = action.payload;
+      })
+      .addCase(fetchDetailBlogBySlug.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload ? String(action.payload) : "Có lỗi xảy ra";
       });
   },
 });

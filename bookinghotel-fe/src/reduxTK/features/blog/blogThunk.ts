@@ -70,7 +70,6 @@ export const deletePosts = createAsyncThunk(
     }
 );
 
-// Search Blogs
 export const searchBlogs = createAsyncThunk(
     "blogs/searchBlogs",
     async (keyword: string, { rejectWithValue }) => {
@@ -83,3 +82,16 @@ export const searchBlogs = createAsyncThunk(
     }
 );
 
+export const fetchDetailBlogBySlug = createAsyncThunk(
+    "blogs/fetchDetailBlogBySlug",
+    async (slug: string, { rejectWithValue }) => {
+        try {
+            const res = await api.get(`/posts/slug/${slug}`);
+            return res.data;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data || "Lỗi khi tải chi tiết bài viết"
+            );
+        }
+    }
+);

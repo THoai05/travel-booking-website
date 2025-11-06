@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { searchBlogs } from "@/reduxTK/features/blog/blogThunk";
 import { AppDispatch, RootState } from "@/reduxTK/store";
 import styles from "../css/Blog.module.css";
+import { useRouter } from "next/navigation";
 
 let debounceTimer: NodeJS.Timeout;
 
@@ -12,7 +13,8 @@ const Hero = () => {
   const dispatch = useDispatch<AppDispatch>();
   const searchResults = useSelector((state: RootState) => state.blogs.searchResults);
   const [keyword, setKeyword] = useState("");
-
+  const router = useRouter();
+  
   useEffect(() => {
     if (keyword.trim() === "") return;
 
@@ -56,6 +58,7 @@ const Hero = () => {
           {searchResults.map((post: any) => (
             <div
               key={post.id}
+              onClick={() => router.push(`/blog/${post.slug}`)}
               className="p-3 border-b border-gray-200 hover:bg-gray-100 cursor-pointer"
             >
               <p className="font-semibold">{post.title}</p>
