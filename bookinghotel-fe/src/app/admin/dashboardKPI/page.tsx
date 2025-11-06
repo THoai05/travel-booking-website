@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { DashboardHeader } from "./DashboardHeader";
 import { StatsCards } from "./StatsCards";
-import { TripsSection } from "./TripsSection";
+import { CarouselHotels } from "./TripsSection";
 import { ChartsSection } from "./ChartsSection";
 import { ChartsSectionRevenue } from "./ChartsSectionRevenue";
 import { TablesSectionKPI } from "./TablesSectionKPI";
@@ -28,7 +28,7 @@ export default function TravelDashboard() {
                 <div className="p-8">
                     <DashboardHeader />
                     <StatsCards />
-                    {/* <TripsSection /> */}
+                    <CarouselHotels />
                     <ChartsSection />
                     <ChartsSectionRevenue />
                     <CombinedBookingChart />
