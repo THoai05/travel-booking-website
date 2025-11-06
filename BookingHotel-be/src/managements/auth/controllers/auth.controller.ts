@@ -18,26 +18,31 @@ export class AuthController {
     @Body() body: LoginRequestDto,
     @Res({ passthrough: true }) res: Response
   ) {
+    const { usernameOrEmail, password } = body;
     const { message, token, userWithoutPassword } = await this.authService.login(body);
     res.cookie('access_Token', token, {
       httpOnly: true,
-      secure: false,
-      sameSite: 'strict',
-      maxAge: 1000 * 60 * 15,
-      signed: false
-    })
+      secure: false, // nếu HTTPS thì true
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 15, // 15 phút
+      signed: false,
+    });
+
     return {
       message,
-      userWithoutPassword
-    }
+      userWithoutPassword,
+    };
   }
 
   @Get('logout')
-  async logOut(@Res({passthrough:true}) res: any) {
-    res.cookie('access_Token', { expires: new Date(Date.now()) })
-    return {
-      message:"success"
-    }
+  async logOut(@Res({ passthrough: true }) res: Response) {
+    res.cookie('access_Token', '', {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      expires: new Date(0), // xóa cookie
+    });
+    return { message: 'success' };
   }
 
 	@UseGuards(JwtAuthGuard)

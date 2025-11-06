@@ -57,16 +57,21 @@ export class AuthService {
 			where: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
 		});
 
-		if (!user) throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
+		// 🔹 4. So sánh password
 		const isMatch = await bcrypt.compare(password, user.password);
-		if (!isMatch) throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
+		if (!isMatch) {
+			throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
+		}
 
 		const payload = { userId: user.id, username: user.username, role: user.role };
 		const token = await this.jwtService.signAsync(payload);
-		const {password:_ , ...userWithoutPassword} = user
 
-		return { message: 'success', token,userWithoutPassword };
+		// 🔹 6. Loại bỏ password
+		const { password: _, ...userWithoutPassword } = user;
+
+		return { message: 'success', token, userWithoutPassword };
 	}
+
 
 	async getProfile(userId: number) {
 		const user = await this.userRepo.findOne({ where: { id: userId } });
