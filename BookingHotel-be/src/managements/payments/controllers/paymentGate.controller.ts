@@ -35,7 +35,7 @@ export class PaymentGateController {
 
 
   @Get('verify/vnpay')
-  async verifyMomoPayment(@Query() query:Record<string,string>) {
+  async verifyVnpayPayment(@Query() query:Record<string,string>) {
     const bookingData = await this.paymentGateService.verifyVnPay(query)
     return {
       message: "success",
@@ -59,7 +59,7 @@ export class PaymentGateController {
 
   
   @Get('verify/momo')
-  async verifyVnPayPayment(@Query() query:Record<string,string>) {
+  async verifyMomoPayment(@Query() query:Record<string,string>) {
    const bookingData = await this.paymentGateService.verifyMomo(query)
     return {
       message: "success",
@@ -77,6 +77,15 @@ export class PaymentGateController {
         const { orderAmount,orderCode } = body
         return await this.paymentGateService.createZaloPayUrl(orderAmount,orderCode)
   }
+
+  @Get('verify/zalopay')
+  async verifyZalopayPayment(@Query() query:Record<string,string>) {
+   const bookingData = await this.paymentGateService.verifyZalopay(query)
+    return {
+      message: "success",
+      data:bookingData
+    }
+  }
   
 
   //=============================Stripe=============================//
@@ -87,5 +96,15 @@ export class PaymentGateController {
   }) {
      const { orderAmount,orderCode } = body
      return await this.paymentGateService.createStripeUrl(orderAmount,orderCode)
+  }
+
+
+  @Get('verify/stripe')
+  async verifyStripePayment(@Query('orderCode') orderCode:string) {
+   const bookingData = await this.paymentGateService.verifyStipe(orderCode)
+    return {
+      message: "success",
+      data:bookingData
+    }
   }
 }

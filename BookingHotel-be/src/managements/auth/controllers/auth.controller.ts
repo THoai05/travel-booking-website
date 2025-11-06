@@ -3,6 +3,7 @@ import { AuthService } from '../services/auth.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { Response } from 'express';
 import { LoginRequestDto } from '../dtos/req/LoginRequestDto.dto';
+import { GoogleOauthGuard } from '../guards/google.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -24,7 +25,7 @@ export class AuthController {
       httpOnly: true,
       secure: false, // nếu HTTPS thì true
       sameSite: 'lax',
-      maxAge: 1000 * 60 * 15, // 15 phút
+      maxAge: 1000 * 60 * 60 * 24, // 15 phút
       signed: false,
     });
 
@@ -55,5 +56,31 @@ export class AuthController {
 
 	  // Gọi hàm getProfile trong service để đọc thông tin đầy đủ từ DB
 	  return this.authService.getProfile(userId);
-	}
+  }
+  
+
+  @Get('google/login')
+  @UseGuards(GoogleOauthGuard)
+  async handleLogin() {
+    return 
+  }
+
+  @Get('google/callback')
+  @UseGuards(GoogleOauthGuard)
+  async handleCallback(@Req() req,
+    @Res() res) {
+    const { username } = req.user
+    const { message, token, userWithoutPassword } = await this.authService.loginGoogle(username);
+    res.cookie('access_Token', token, {
+      httpOnly: true,
+      secure: false, 
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 24, 
+      signed: false,
+    });
+
+    const redirectURL = `http://localhost:3000/client`
+    res.redirect(redirectURL)
+   
+  }
 }

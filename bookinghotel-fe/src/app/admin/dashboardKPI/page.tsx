@@ -2,12 +2,13 @@
 import { useEffect, useState } from "react";
 import { DashboardHeader } from "./DashboardHeader";
 import { StatsCards } from "./StatsCards";
-import { TripsSection } from "./TripsSection";
+import { CarouselHotels } from "./TripsSection";
 import { ChartsSection } from "./ChartsSection";
 import { ChartsSectionRevenue } from "./ChartsSectionRevenue";
-import { TablesSection } from "./TablesSection";
+import { TablesSectionKPI } from "./TablesSectionKPI";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { CombinedBookingChart } from "./PieChart";
 
 export default function TravelDashboard() {
     const { user } = useAuth();
@@ -27,10 +28,11 @@ export default function TravelDashboard() {
                 <div className="p-8">
                     <DashboardHeader />
                     <StatsCards />
-                    {/* <TripsSection /> */}
+                    <CarouselHotels />
                     <ChartsSection />
                     <ChartsSectionRevenue />
-                    {/* <TablesSection /> */}
+                    <CombinedBookingChart />
+                    <TablesSectionKPI />
                 </div>
             </div>
         </div>

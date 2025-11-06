@@ -541,4 +541,166 @@ export class BookingsService {
         return { type, revenueByPeriod: revenueArray };
     }
 
+    //PI tổng hợp cho xuất Excel (gồm dữ liệu doanh thu, tổng lượt đặt, lượt hủy, và thống kê trạng thái booking) theo ba mốc:
+    //7 ngày gần nhất, 30 (hoặc 31) ngày trong tháng vừa rồi, và 12 tháng trong năm.
+    async getExportData(type: 'week' | 'month' | 'year') {
+        const now = new Date();
+        let startDate: Date;
+        let endDate: Date;
+
+        if (type === 'week') {
+            // 7 ngày gần nhất
+            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+            endDate = now;
+        } else if (type === 'month') {
+            // Toàn bộ tháng vừa rồi
+            startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+        } else {
+            // 12 tháng trong năm hiện tại
+            startDate = new Date(now.getFullYear(), 0, 1);
+            endDate = new Date(now.getFullYear(), 11, 31);
+        }
+
+        const formatVNDate = (date: Date) => {
+            const d = new Date(date);
+            d.setHours(d.getHours() + 7);
+            return d.toISOString().split('T')[0];
+        };
+
+        const bookings = await this.bookingRepo.find({
+            where: { createdAt: Between(startDate, endDate) },
+            relations: ['payment'],
+        });
+
+        // --- Khởi tạo dữ liệu theo type ---
+        const labels: string[] = [];
+        const dataMap: Record<string, {
+            revenue: number;
+            totalBookings: number;
+            cancelledBookings: number;
+            statusCount: Record<BookingStatus, number>;
+        }> = {};
+
+        if (type === 'year') {
+            for (let m = 0; m < 12; m++) {
+                const label = `${now.getFullYear()}-${(m + 1).toString().padStart(2, '0')}`;
+                labels.push(label);
+                dataMap[label] = {
+                    revenue: 0,
+                    totalBookings: 0,
+                    cancelledBookings: 0,
+                    statusCount: {
+                        [BookingStatus.PENDING]: 0,
+                        [BookingStatus.CONFIRMED]: 0,
+                        [BookingStatus.CANCELLED]: 0,
+                        [BookingStatus.COMPLETED]: 0,
+                        [BookingStatus.EXPIRED]: 0,
+                    },
+                };
+            }
+        } else {
+            let current = new Date(startDate);
+            while (current <= endDate) {
+                const label = formatVNDate(current);
+                labels.push(label);
+                dataMap[label] = {
+                    revenue: 0,
+                    totalBookings: 0,
+                    cancelledBookings: 0,
+                    statusCount: {
+                        [BookingStatus.PENDING]: 0,
+                        [BookingStatus.CONFIRMED]: 0,
+                        [BookingStatus.CANCELLED]: 0,
+                        [BookingStatus.COMPLETED]: 0,
+                        [BookingStatus.EXPIRED]: 0,
+                    },
+                };
+                current.setDate(current.getDate() + 1);
+            }
+        }
+
+        // --- Gom dữ liệu ---
+        for (const b of bookings) {
+            const key =
+                type === 'year'
+                    ? `${b.createdAt.getFullYear()}-${(b.createdAt.getMonth() + 1)
+                        .toString()
+                        .padStart(2, '0')}`
+                    : formatVNDate(b.createdAt);
+
+            if (!dataMap[key]) continue;
+
+            dataMap[key].totalBookings++;
+            dataMap[key].statusCount[b.status]++;
+            if (b.status === BookingStatus.CANCELLED) dataMap[key].cancelledBookings++;
+
+            if (b.payment && b.payment.paymentStatus === PaymentStatus.SUCCESS) {
+                dataMap[key].revenue += Number(b.totalPrice);
+            }
+        }
+
+        // --- Trả về mảng dữ liệu để xuất Excel ---
+        const data = {
+            revenue: labels.map(l => dataMap[l].revenue),
+            totalBookings: labels.map(l => dataMap[l].totalBookings),
+            cancelledBookings: labels.map(l => dataMap[l].cancelledBookings),
+            statusCount: {
+                pending: labels.map(l => dataMap[l].statusCount[BookingStatus.PENDING]),
+                confirmed: labels.map(l => dataMap[l].statusCount[BookingStatus.CONFIRMED]),
+                cancelled: labels.map(l => dataMap[l].statusCount[BookingStatus.CANCELLED]),
+                completed: labels.map(l => dataMap[l].statusCount[BookingStatus.COMPLETED]),
+                expired: labels.map(l => dataMap[l].statusCount[BookingStatus.EXPIRED]),
+            },
+        };
+
+        return { type, labels, data };
+    }
+
+    //API thống kê tổng doanh thu theo khách sạn, đồng thời trả các thông tin cơ bản của khách sạn và gom nhóm dữ liệu
+    async getRevenueByHotel(): Promise<any[]> {
+        // Lấy tất cả booking với relations hotel, roomType, payment
+        const bookings = await this.bookingRepo.find({
+            relations: ['roomType', 'roomType.hotel', 'payment', 'roomType.hotel.city'],
+        });
+
+        // Tạo map lưu trữ dữ liệu theo hotelId
+        const hotelMap: Record<number, any> = {};
+
+        bookings.forEach(b => {
+            const hotel = b.roomType.hotel;
+            if (!hotel) return;
+
+            if (!hotelMap[hotel.id]) {
+                hotelMap[hotel.id] = {
+                    hotelId: hotel.id,
+                    hotelName: hotel.name,
+                    cityImage: hotel.city?.image || null,
+                    hotelAddress: hotel.address,
+                    description: hotel.description || null,
+                    policies: hotel.policies || null,
+                    totalRevenue: 0,
+                    totalBookings: 0,
+                    statusCount: {
+                        pending: 0,
+                        confirmed: 0,
+                        cancelled: 0,
+                        completed: 0,
+                        expired: 0
+                    }
+                };
+            }
+
+            hotelMap[hotel.id].totalBookings++;
+            hotelMap[hotel.id].statusCount[b.status]++;
+
+            if (b.payment?.paymentStatus === PaymentStatus.SUCCESS) {
+                hotelMap[hotel.id].totalRevenue += Number(b.totalPrice);
+            }
+        });
+
+        // Chuyển map thành array để trả về
+        return Object.values(hotelMap).sort((a, b) => b.totalRevenue - a.totalRevenue);
+    }
+
 }
