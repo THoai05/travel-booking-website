@@ -22,7 +22,6 @@ interface RoomTypeItem {
   roomTypeName: string;
   hotelId: number;
   hotelName: string;
-  // thêm các field nếu là của byUser
   bookingId?: number;
   bookingStatus?: string;
   checkInDate?: string;
@@ -36,7 +35,7 @@ interface HotelGroup {
 }
 
 export default function RoomMonitorPage() {
-  const [apiType, setApiType] = useState<"all" | "user">("all");
+  const [apiType, setApiType] = useState<"all" | "user" | "monitor">("all");
   const [param, setParam] = useState<string | number>();
   const [showAll, setShowAll] = useState<"all" | "none">("all");
   const [userId, setUserId] = useState<number | null>(null);
@@ -55,6 +54,9 @@ export default function RoomMonitorPage() {
 
   const [hoveredRoomTypeDetail, setHoveredRoomTypeDetail] = useState<any>(null);
   const [hoveredHotelDetail, setHoveredHotelDetail] = useState<any>(null);
+
+  // 🆕 Danh sách phòng đang theo dõi
+  const [monitoredRooms, setMonitoredRooms] = useState<number[]>([]);
 
   // Cache để tránh refetch
   const roomTypeDetailCache = useRef<Map<number, any>>(new Map());
@@ -83,6 +85,19 @@ export default function RoomMonitorPage() {
     fetchUserId();
   }, []);
 
+  // 🆕 Lấy danh sách phòng đang theo dõi
+  useEffect(() => {
+    const fetchMonitoredRooms = async () => {
+      try {
+        const res = await api.get("/rooms/get-room-monitor");
+        setMonitoredRooms(res.data.roomTypeIds.map((id: string) => parseInt(id)));
+      } catch {
+        console.warn("Không thể tải danh sách phòng theo dõi");
+      }
+    };
+    fetchMonitoredRooms();
+  }, []);
+
   // ====== Fetch danh sách phòng hoặc booking ======
   useEffect(() => {
     const fetchRooms = async () => {
@@ -92,7 +107,16 @@ export default function RoomMonitorPage() {
           url = `/rooms/roomAvailabilityMonitor/byUser/${param}`;
 
         const res = await api.get(url);
-        setRooms(res.data);
+        let data = res.data;
+
+        // 🆕 Nếu đang ở chế độ xem danh sách theo dõi
+        if (apiType === "monitor") {
+          data = data.filter((r: RoomTypeItem) =>
+            monitoredRooms.includes(r.roomTypeId)
+          );
+        }
+
+        setRooms(data);
       } catch (err) {
         toast("❌ Lỗi khi tải danh sách phòng!", { icon: "⚠️" });
         setApiType("all");
@@ -103,7 +127,25 @@ export default function RoomMonitorPage() {
     fetchRooms();
     const interval = setInterval(fetchRooms, 2000);
     return () => clearInterval(interval);
-  }, [apiType, param]);
+  }, [apiType, param, monitoredRooms]);
+
+  // 🆕 Toggle theo dõi / bỏ theo dõi
+  const toggleMonitor = async (roomTypeId: number) => {
+    try {
+      if (monitoredRooms.includes(roomTypeId)) {
+        await api.post("/rooms/remove-room-monitor", { roomTypeId });
+        setMonitoredRooms(monitoredRooms.filter((id) => id !== roomTypeId));
+        toast.success(`🗑️ Đã bỏ theo dõi phòng #${roomTypeId}`);
+      } else {
+        await api.post("/rooms/save-room-monitor", { roomTypeId });
+        setMonitoredRooms([...monitoredRooms, roomTypeId]);
+        toast.success(`👁️ Theo dõi phòng #${roomTypeId}`);
+      }
+    } catch (err) {
+      toast.error("Không thể cập nhật theo dõi phòng!");
+      console.error(err);
+    }
+  };
 
   // ====== Xử lý tìm kiếm & lọc ======
   const removeVietnameseAccents = (str: string) =>
@@ -144,7 +186,7 @@ export default function RoomMonitorPage() {
   const indexOfFirstGroup = indexOfLastGroup - groupsPerPage;
   const currentGroups = grouped.slice(indexOfFirstGroup, indexOfLastGroup);
 
-  // ====== Hover RoomType ======
+  // ====== Hover ======
   const handleRoomTypeHover = async (roomTypeId: number) => {
     if (roomTypeDetailCache.current.has(roomTypeId)) {
       setHoveredRoomTypeDetail(roomTypeDetailCache.current.get(roomTypeId));
@@ -154,12 +196,11 @@ export default function RoomMonitorPage() {
       const res = await api.get(`/rooms/roomTypeDetail/${roomTypeId}`);
       roomTypeDetailCache.current.set(roomTypeId, res.data);
       setHoveredRoomTypeDetail(res.data);
-    } catch (err) {
-      console.error("Không lấy được chi tiết room type", err);
+    } catch {
+      console.error("Không lấy được chi tiết room type");
     }
   };
 
-  // ====== Hover Hotel ======
   const handleHotelHover = async (hotelId: number) => {
     if (hotelDetailCache.current.has(hotelId)) {
       setHoveredHotelDetail(hotelDetailCache.current.get(hotelId));
@@ -169,27 +210,25 @@ export default function RoomMonitorPage() {
       const res = await api.get(`/rooms/hotelDetail/${hotelId}`);
       hotelDetailCache.current.set(hotelId, res.data);
       setHoveredHotelDetail(res.data);
-    } catch (err) {
-      console.error("Không lấy được chi tiết khách sạn", err);
+    } catch {
+      console.error("Không lấy được chi tiết khách sạn");
     }
   };
 
-  const formatDate = (date?: string) => {
-    if (!date) return "-";
-    return new Date(date).toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-  };
+  const formatDate = (date?: string) =>
+    date
+      ? new Date(date).toLocaleDateString("vi-VN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+      : "-";
 
-  // ====== Pagination number ======
   const getPaginationNumbers = () => {
     const nums: (number | string)[] = [];
     const max = 5;
-    if (totalPages <= max) {
-      for (let i = 1; i <= totalPages; i++) nums.push(i);
-    } else {
+    if (totalPages <= max) for (let i = 1; i <= totalPages; i++) nums.push(i);
+    else {
       nums.push(1);
       let start = Math.max(currentPage - 1, 2);
       let end = Math.min(currentPage + 1, totalPages - 1);
@@ -203,7 +242,10 @@ export default function RoomMonitorPage() {
 
   const formatVND = (amount: number | string) => {
     const num = typeof amount === "string" ? parseFloat(amount) : amount;
-    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(num);
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(num);
   };
 
   // ========================= RETURN =========================
@@ -222,9 +264,7 @@ export default function RoomMonitorPage() {
         />
         <select
           value={sortKey || ""}
-          onChange={(e) =>
-            setSortKey((e.target.value as any) || null)
-          }
+          onChange={(e) => setSortKey((e.target.value as any) || null)}
           className="border p-2 rounded w-full md:w-1/4"
         >
           <option value="">Sort By</option>
@@ -234,15 +274,14 @@ export default function RoomMonitorPage() {
 
         {sortKey && (
           <button
-            onClick={() =>
-              setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-            }
+            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
             className="border p-2 rounded bg-gray-200"
           >
             Order: {sortOrder.toUpperCase()}
           </button>
         )}
 
+        {/* Nút xem lịch sử */}
         <button
           onClick={() => {
             if (showAll === "none") {
@@ -265,6 +304,22 @@ export default function RoomMonitorPage() {
             ? "Xem lịch sử đặt phòng của tôi"
             : "Xem tất cả"}
         </button>
+
+        {/* 🆕 Nút xem danh sách theo dõi */}
+        <button
+          onClick={() => {
+            if (!userId) {
+              toast("Vui lòng đăng nhập để xem danh sách theo dõi!", {
+                icon: "⚠️",
+              });
+              return;
+            }
+            setApiType("monitor");
+          }}
+          className="border p-2 rounded bg-green-200 hover:bg-green-300"
+        >
+          Xem danh sách theo dõi phòng của tôi
+        </button>
       </div>
 
       {/* Bộ lọc RoomType */}
@@ -272,8 +327,8 @@ export default function RoomMonitorPage() {
         <button
           onClick={() => setRoomTypeFilter(null)}
           className={`px-4 py-2 rounded ${roomTypeFilter === null
-            ? "bg-blue-500 text-white"
-            : "bg-gray-200 hover:bg-gray-300"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200 hover:bg-gray-300"
             }`}
         >
           All
@@ -285,8 +340,8 @@ export default function RoomMonitorPage() {
               setRoomTypeFilter(roomTypeFilter === type ? null : type)
             }
             className={`px-4 py-2 rounded ${roomTypeFilter === type
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200 hover:bg-gray-300"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 hover:bg-gray-300"
               }`}
           >
             {type}
@@ -295,9 +350,11 @@ export default function RoomMonitorPage() {
       </div>
 
       <h1 className="text-2xl font-bold text-[#0068ff] mb-2 text-left">
-        {showAll === "all"
-          ? "Hiển thị tất cả loại phòng"
-          : "Lịch sử đặt phòng của tôi"}
+        {apiType === "monitor"
+          ? "Danh sách phòng đang theo dõi"
+          : showAll === "all"
+            ? "Hiển thị tất cả loại phòng"
+            : "Lịch sử đặt phòng của tôi"}
       </h1>
 
       {/* Render danh sách nhóm */}
@@ -311,42 +368,58 @@ export default function RoomMonitorPage() {
           >
             <div
               className="font-bold text-lg mb-2 cursor-pointer hover:text-blue-600"
-              onMouseEnter={() =>
-                handleHotelHover(group.rooms[0].hotelId)
-              }
+              onMouseEnter={() => handleHotelHover(group.rooms[0].hotelId)}
               onMouseLeave={() => setHoveredHotelDetail(null)}
             >
               {group.hotelName}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {group.rooms.map((room) => (
-                <div
-                  key={room.roomTypeId}
-                  className="border rounded p-2 flex justify-between items-center cursor-pointer hover:scale-105 hover:shadow-lg hover:bg-blue-50 transition duration-200"
-                  onMouseEnter={() =>
-                    handleRoomTypeHover(room.roomTypeId)
-                  }
-                  onMouseLeave={() => setHoveredRoomTypeDetail(null)}
-                >
-                  <div>
-                    <p>📌 Room Type ID: {room.roomTypeId}</p>
-                    <p>🏨 Room Type Name: {room.roomTypeName}</p>
-                    {room.bookingStatus && (
-                      <>
-                        <p>📅 {formatDate(room.checkInDate)} → {formatDate(room.checkOutDate)}</p>
-                        <p>👥 Guests: {room.guestsCount}</p>
-                        <p>
-                          🧾 Status:{" "}
-                          <span className="font-semibold">
-                            {room.bookingStatus}
-                          </span>
-                        </p>
-                      </>
-                    )}
+              {group.rooms.map((room) => {
+                const isMonitored = monitoredRooms.includes(room.roomTypeId);
+                return (
+                  <div
+                    key={room.roomTypeId}
+                    className="border rounded p-2 flex justify-between items-center cursor-pointer hover:scale-105 hover:shadow-lg hover:bg-blue-50 transition duration-200"
+                    onMouseEnter={() => handleRoomTypeHover(room.roomTypeId)}
+                    onMouseLeave={() => setHoveredRoomTypeDetail(null)}
+                  >
+                    <div>
+                      <p>📌 Room Type ID: {room.roomTypeId}</p>
+                      <p>🏨 Room Type Name: {room.roomTypeName}</p>
+                      {room.bookingStatus && (
+                        <>
+                          <p>
+                            📅 {formatDate(room.checkInDate)} →{" "}
+                            {formatDate(room.checkOutDate)}
+                          </p>
+                          <p>👥 Guests: {room.guestsCount}</p>
+                          <p>
+                            🧾 Status:{" "}
+                            <span className="font-semibold">
+                              {room.bookingStatus}
+                            </span>
+                          </p>
+                        </>
+                      )}
+                    </div>
+
+                    {/* 🆕 Nút Theo dõi / Bỏ theo dõi */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleMonitor(room.roomTypeId);
+                      }}
+                      className={`px-3 py-1 rounded text-sm font-medium ${isMonitored
+                          ? "bg-red-500 text-white hover:bg-red-600"
+                          : "bg-green-500 text-white hover:bg-green-600"
+                        }`}
+                    >
+                      {isMonitored ? "Bỏ theo dõi" : "Theo dõi"}
+                    </button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))
@@ -368,9 +441,7 @@ export default function RoomMonitorPage() {
             onClick={() =>
               typeof num === "number" && setCurrentPage(num)
             }
-            className={`px-3 py-1 border rounded ${num === currentPage
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200"
+            className={`px-3 py-1 border rounded ${num === currentPage ? "bg-blue-500 text-white" : "bg-gray-200"
               }`}
           >
             {num}

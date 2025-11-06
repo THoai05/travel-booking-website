@@ -71,19 +71,19 @@ export class RoomsController {
 
 
   //API theo dõi phòng
-  // 📌 API lưu hành trình
+  // 📌 API lưu theo dõi phòng
   @Post('save-room-monitor')
   async saveRoomMonitor(@Body('roomTypeId') roomTypeId: number) {
     return this.roomsService.saveRoomMonitor(roomTypeId);
   }
 
-  // 📌 Đọc lưu hành trình
+  // 📌 Đọc lưu theo dõi phòng
   @Get('get-room-monitor')
   async roomMonitor() {
     return this.roomsService.getRoomMonitor();
   }
 
-  // 📌 API xóa hành trình
+  // 📌 API xóa theo dõi phòng
   @Post('remove-room-monitor')
   async removeRoomMonitor(@Body('roomTypeId') roomTypeId: number) {
     return this.roomsService.removeRoomMonitor(roomTypeId);
