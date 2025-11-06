@@ -5,7 +5,7 @@ import { StatsCards } from "./StatsCards";
 import { TripsSection } from "./TripsSection";
 import { ChartsSection } from "./ChartsSection";
 import { ChartsSectionRevenue } from "./ChartsSectionRevenue";
-import { TablesSection } from "./TablesSection";
+import { TablesSectionKPI } from "./TablesSectionKPI";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 
@@ -30,7 +30,7 @@ export default function TravelDashboard() {
                     {/* <TripsSection /> */}
                     <ChartsSection />
                     <ChartsSectionRevenue />
-                    {/* <TablesSection /> */}
+                    <TablesSectionKPI />
                 </div>
             </div>
         </div>
