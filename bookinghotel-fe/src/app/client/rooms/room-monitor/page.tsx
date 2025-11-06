@@ -251,7 +251,9 @@ export default function RoomMonitorPage() {
   // ========================= RETURN =========================
   return (
     <div className="p-6 relative">
-      <h1 className="text-2xl font-bold mb-4">🏨 Room Availability Monitor</h1>
+      <div className="pt-12 relative">
+        <h1 className="text-2xl font-bold mb-4">🏨 Room Availability Monitor</h1>
+      </div>
 
       {/* Search & Filter */}
       <div className="flex flex-col md:flex-row gap-4 mb-4">
@@ -327,8 +329,8 @@ export default function RoomMonitorPage() {
         <button
           onClick={() => setRoomTypeFilter(null)}
           className={`px-4 py-2 rounded ${roomTypeFilter === null
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200 hover:bg-gray-300"
+            ? "bg-blue-500 text-white"
+            : "bg-gray-200 hover:bg-gray-300"
             }`}
         >
           All
@@ -340,8 +342,8 @@ export default function RoomMonitorPage() {
               setRoomTypeFilter(roomTypeFilter === type ? null : type)
             }
             className={`px-4 py-2 rounded ${roomTypeFilter === type
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 hover:bg-gray-300"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200 hover:bg-gray-300"
               }`}
           >
             {type}
@@ -411,8 +413,8 @@ export default function RoomMonitorPage() {
                         toggleMonitor(room.roomTypeId);
                       }}
                       className={`px-3 py-1 rounded text-sm font-medium ${isMonitored
-                          ? "bg-red-500 text-white hover:bg-red-600"
-                          : "bg-green-500 text-white hover:bg-green-600"
+                        ? "bg-red-500 text-white hover:bg-red-600"
+                        : "bg-green-500 text-white hover:bg-green-600"
                         }`}
                     >
                       {isMonitored ? "Bỏ theo dõi" : "Theo dõi"}
