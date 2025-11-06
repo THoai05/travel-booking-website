@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
@@ -162,6 +162,19 @@ export class PostsService {
     if (!post) throw new NotFoundException('Không tìm thấy bài viết với slug này');
 
     return new PostResponseDto(post);
+  }
+
+  async findRelatedPosts(cityId: number, excludeSlug: string) {
+    return this.postRepo.find({
+      where: {
+        city: { id: cityId },
+        slug: Not(excludeSlug),
+        is_public: true,
+      },
+      relations: ["city", "author"],
+      order: { created_at: "DESC" },
+      take: 3,
+    });
   }
 
 

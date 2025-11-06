@@ -53,6 +53,14 @@ export class PostsController {
   async searchPosts(@Query('keyword') keyword: string) {
     return this.postsService.searchPosts(keyword);
   }
+  
+  @Get('related')
+  findRelated(
+    @Query('cityId', ParseIntPipe) cityId: number,
+    @Query('excludeSlug') excludeSlug: string,
+  ) {
+    return this.postsService.findRelatedPosts(cityId, excludeSlug);
+  }
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {

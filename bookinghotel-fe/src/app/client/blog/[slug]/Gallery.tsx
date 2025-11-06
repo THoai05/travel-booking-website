@@ -102,7 +102,7 @@ export default function Gallery({ images }: GalleryProps) {
         </div>
       </div>
 
-      {/* ✅ Modal Lightbox */}
+      {/* Modal Lightbox */}
       {isOpen && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
           {/* Close */}
