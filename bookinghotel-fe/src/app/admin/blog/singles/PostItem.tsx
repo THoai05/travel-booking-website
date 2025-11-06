@@ -28,6 +28,32 @@ export default function PostItem({
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
 
+  // Component con để xử lý content với line-clamp
+  const PostItemContent = ({ content }: { content: string }) => {
+    const [showFull, setShowFull] = useState(false);
+    const cleanContent = content.replace(/<[^>]+>/g, "");
+
+    return (
+      <div className="mt-1">
+        <p
+          className={`text-sm text-gray-500 leading-relaxed transition-all 
+          duration-300 ${!showFull ? "line-clamp-3" : ""
+            }`}
+        >
+          {cleanContent}
+        </p>
+        {cleanContent.length > 100 && (
+          <button
+            onClick={() => setShowFull(!showFull)}
+            className="text-blue-600 hover:underline text-xs mt-1 inline-block"
+          >
+            {showFull ? "Thu gọn" : "Xem đầy đủ"}
+          </button>
+        )}
+      </div>
+    );
+  };
+
   return (
     <>
       {/* --- Post item --- */}
@@ -42,7 +68,6 @@ export default function PostItem({
             onChange={() => toggleSelect(post.id)}
             className="mt-1 w-4 h-4"
           />
-
           <Image
             src={getPostImageUrl(post.image)}
             width={64}
@@ -59,7 +84,7 @@ export default function PostItem({
               <h3 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
                 {post.title}
               </h3>
-              <p className="mt-1 text-sm text-gray-500 truncate">
+              <p className="mt-1 text-sm text-gray-500 line-clamp-3">
                 {post.content.replace(/<[^>]+>/g, "")}
               </p>
 
@@ -82,7 +107,6 @@ export default function PostItem({
             </div>
 
             <div className="flex items-center gap-2">
-              {/* --- View button --- */}
               <button
                 onClick={() => setShowModal(true)}
                 className="inline-flex items-center gap-2 px-3 py-2 rounded-lg
@@ -110,7 +134,6 @@ export default function PostItem({
                     >
                       Edit
                     </button>
-
                     <button
                       onClick={() => handleAction("duplicate", post.id)}
                       className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
@@ -172,12 +195,12 @@ export default function PostItem({
           </div>
         </div>
       )}
+
       {/* --- Modal Edit --- */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-lg w-full max-h-[90vh] overflow-auto relative">
             <h2 className="text-xl font-bold mb-4">Chỉnh sửa bài viết</h2>
-
             <EditPostForm
               post={post}
               onClose={() => setShowEditModal(false)}
@@ -190,7 +213,6 @@ export default function PostItem({
           </div>
         </div>
       )}
-
     </>
   );
 }
