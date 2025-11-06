@@ -14,14 +14,13 @@ export default function DetailBlog({ params }: { params: { slug: string } }) {
   const post = useSelector((state: RootState) => state.blogs.blog);
   const isLoading = useSelector((state: RootState) => state.blogs.isLoading);
 
-  // Gọi API khi slug thay đổi
   useEffect(() => {
     if (params.slug) {
       dispatch(fetchDetailBlogBySlug(params.slug));
     }
   }, [params.slug, dispatch]);
 
-  // 2️⃣ Log debug khi post cập nhật
+  // Log debug khi post cập nhật
   useEffect(() => {
     if (post) {
       console.log("=== Post Loaded ===");
@@ -38,15 +37,16 @@ export default function DetailBlog({ params }: { params: { slug: string } }) {
 
   return (
     <section className="w-full mx-auto py-16">
-      <h1 className="text-3xl font-bold mb-6 capitalize">{post.title}</h1>
-
-
-      {console.log("Render post:", post)}
+      {/* <h1 className="text-3xl font-bold mb-6 capitalize">{post.title}</h1> */}
 
       <Gallery images={post.images} />
-      <DetailDescription content={post.content} />
+      <DetailDescription
+        title={post.title}
+        content={post.content}
+        city={post.city}
+      />
       <InspirationStories author={post.author} />
-      
+
       <div className="w-full bg-[#1C2930]">
         <TravelTipsSection />
       </div>
