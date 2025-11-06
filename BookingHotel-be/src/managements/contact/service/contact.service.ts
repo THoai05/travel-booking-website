@@ -23,7 +23,7 @@ export class ContactService {
 
         const mailOptions = {
             from: contactData.email,
-            to: 'support@domain.com',
+            to: 'bluvera05@gmail.com',
             subject: `Liên hệ từ ${contactData.name}`,
             text: contactData.message,
         };

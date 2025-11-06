@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import * as crypto from 'crypto'
 import * as qs from 'qs'
 import * as dayjs from 'dayjs'
@@ -6,6 +6,11 @@ import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
 import axios from 'axios';
 import Stripe from 'stripe'
+import * as dotenv from 'dotenv'
+import { BookingsService } from 'src/managements/bookings/services/bookings.service';
+import { UpdateBookingRequest } from 'src/managements/bookings/dtos/req/UpdateBookingRequest.dto';
+
+dotenv.config()
 
 
 dayjs.extend(utc)
@@ -21,6 +26,9 @@ export class PaymentGateService {
     private readonly stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 
+    constructor(
+        private readonly bookingService:BookingsService
+    ){}
 
       sortObject(obj: Record<string, any>): Record<string, string> {
         const sorted: Record<string, string> = {};
@@ -35,7 +43,22 @@ export class PaymentGateService {
             }
             
             return sorted;
-        }
+    }
+
+    sortMomo(obj: Record<string, any>): Record<string, string> {
+        const sorted: Record<string, string> = {};
+            const keys: string[] = Object.keys(obj).map(k => encodeURIComponent(k));
+            
+            keys.sort();
+            
+            for (const key of keys) {
+                // lấy value gốc, encode, replace space bằng '+'
+                 sorted[key] = obj[key]    
+            }
+            
+            return sorted;
+    }
+    
 
 
     async createPaymentUrl(orderCode: string, amount: number, ipAddr: string) {
@@ -92,7 +115,7 @@ export class PaymentGateService {
         let requestId = partnerCode + new Date().getTime();
         let orderId = orderCode;
         let orderInfo = "pay with MoMo";
-        let redirectUrl = "http:/localhost:3000/payment/check?gateway=momo";
+        let redirectUrl = "http://localhost:3000/payment/check?gateway=momo";
         let ipnUrl = "https://callback.url/notify";
         // let ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
         let amount = orderAmoutString;
@@ -206,26 +229,70 @@ export class PaymentGateService {
         return session.url
     }
 
-    async verifyVnPay(params:Record<string,string>) {
+    async verifyVnPay(params:Record<string,string>):Promise<any> {
         const { vnp_SecureHash, ...rest } = params
         const sortedParams = this.sortObject(rest)
         const signData = qs.stringify(sortedParams, { encode: false })
         const hmac = crypto.createHmac('sha512', this.secretKey)
         const signed = hmac.update(Buffer.from(signData,'utf-8')).digest('hex')
         
-        return signed === vnp_SecureHash
+        const isValid = signed === vnp_SecureHash
+        if (!isValid) {
+            throw new BadRequestException("Giao dich khong hop le")
+        }
+
+        const { vnp_ResponseCode } = params
+        if (vnp_ResponseCode !== '00') {
+            throw new BadRequestException("Giao dich that bai")
+        }
+        
+        const { vnp_TxnRef } = params
+        const updateBookingData = await this.bookingService.updateBookingForGuests(Number(vnp_TxnRef), { status: "confirmed" })
+        return updateBookingData
     }
 
-    async verifyMomo(parmas: Record<string, string>): Promise<any> {
-        const momoSecretKey = this.momo_secretKey
-        const { signature, ...rest } = parmas
-        const sortedParams = this.sortObject(rest)
-        const signData = qs.stringify(sortedParams, { encode: false })
-        const hmac = crypto.createHmac('sha256', momoSecretKey)
-        const signed = hmac.update(Buffer.from(signData, 'utf8')).digest('hex')
-        
-        return signed === signature
+   async verifyMomo(params: Record<string, string>): Promise<any> {
+    const momoSecretKey = this.momo_secretKey
+    const accessKey = "F8BBA842ECF85";
+
+    const {
+        amount,
+        extraData,
+        message,
+        orderId,
+        orderInfo,
+        orderType,
+        partnerCode,
+        payType,
+        requestId,
+        responseTime,
+        resultCode,
+        transId,
+        signature
+    } = params;
+
+    const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&message=${message}&orderId=${orderId}&orderInfo=${orderInfo}&orderType=${orderType}&partnerCode=${partnerCode}&payType=${payType}&requestId=${requestId}&responseTime=${responseTime}&resultCode=${resultCode}&transId=${transId}`;
+
+    const hmac = crypto.createHmac('sha256', momoSecretKey);
+    const signed = hmac.update(rawSignature).digest('hex');
+
+    console.log("Raw string:", rawSignature);
+    console.log("Signature MoMo:", signature);
+    console.log("Signature check:", signed);
+
+    if (signed !== signature) {
+        throw new BadRequestException("Giao dich khong hop le");
     }
+
+    if (resultCode !== '0') {
+        throw new BadRequestException("Giao dich that bai");
+    }
+
+    return this.bookingService.updateBookingForGuests(Number(orderId), { status: "confirmed" });
+    }
+
+
+   
 }
 
 

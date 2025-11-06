@@ -1,7 +1,11 @@
 export interface BookingResponseManagement {
     bookingId: number
     userId: number
+    hotelName?: string
+    hotelAddress?: string
+    hotelPhone?:string
     roomTypeId: number
+    roomTypeName: string
     checkinDate: Date
     checkoutDate: Date
     guestsCount: number
@@ -11,5 +15,6 @@ export interface BookingResponseManagement {
     contactFullName?: string
     contactEmail?: string
     contactPhone?: string
-    guestsFullName?:string
+    guestsFullName?: string
+    status?:string
 }

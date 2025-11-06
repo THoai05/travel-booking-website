@@ -36,34 +36,10 @@ export class PaymentGateController {
 
   @Get('verify/vnpay')
   async verifyMomoPayment(@Query() query:Record<string,string>) {
-    const isValid = this.paymentGateService.verifyVnPay(query)
-
-    if (!isValid) {
-      throw new BadRequestException('Giao dịch không hợp lệ')
-    }
-
-    const { vnp_ResponseCode, vnp_TxnRef } = query
-    // const order = await this.orderService.getOrderByOrderCode(vnp_TxnRef)
-    // if (!order) {
-    //   throw new NotFoundException('Không tìm thấy đơn hàng ')
-    // }
-
-    // const updateDtoSucceeded: UpdateOrderDto = { status: OrderStatus.SUCCEEDED }
-    // const updateDtoWaitForPaid : UpdateOrderDto = {status:OrderStatus.WAITFORPAID}
-    // console.log(order)
-
-    let message = ''
-
-    if (vnp_ResponseCode === '00') {
-     
-        message = "success"
-      
-    } else {
-      message = "failed" 
-    }
-
+    const bookingData = await this.paymentGateService.verifyVnPay(query)
     return {
-      message
+      message: "success",
+      data:bookingData
     }
   }
 
@@ -84,13 +60,10 @@ export class PaymentGateController {
   
   @Get('verify/momo')
   async verifyVnPayPayment(@Query() query:Record<string,string>) {
-    const isValid = this.paymentGateService.verifyMomo(query)
-
-    if (!isValid) {
-      throw new BadRequestException('Giao dịch không hợp lệ')
-    }
-       return {
-      message:"success"
+   const bookingData = await this.paymentGateService.verifyMomo(query)
+    return {
+      message: "success",
+      data:bookingData
     }
   }
 

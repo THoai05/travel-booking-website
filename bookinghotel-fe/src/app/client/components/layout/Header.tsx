@@ -40,6 +40,20 @@ interface UserProfile {
   createdAt?: string;
   updatedAt?: string;
 }
+interface ChatMessage {
+  id: number;
+  sender: User | null;
+  receiver: User | null;
+  message: string;
+  message_type: 'text' | 'image' | 'file';
+  is_read: boolean;
+  created_at: string;
+}
+interface User {
+  id: number;
+  username: string;
+}
+
 
 const Header = () => {
   const pathname = usePathname();
@@ -48,6 +62,8 @@ const Header = () => {
   const [loading, setLoading] = useState(false);
 
   const [showLogin, setShowLogin] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [showRegister, setShowRegister] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -112,6 +128,11 @@ const Header = () => {
       }
     };
     fetchNotification();
+
+    if (user?.role === "admin") {
+      router.replace("/admin");
+    }
+
   }, [user]);
 
 
@@ -125,6 +146,7 @@ const Header = () => {
 
   const handleLogout = () => {
     logout();
+    localStorage.removeItem('token');
     router.replace("/client");
   };
   console.log(user);

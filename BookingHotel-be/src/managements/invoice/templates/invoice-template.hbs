@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Hóa đơn đặt phòng {{code}}</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: #f9fafb;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #007bff, #00b4d8);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            letter-spacing: 1px;
+        }
+
+        .invoice-details {
+            padding: 30px;
+            line-height: 1.8;
+        }
+
+        .invoice-details h2 {
+            color: #007bff;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+
+        .detail-item strong {
+            color: #555;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+            color: #777;
+            border-top: 1px solid #eee;
+            background-color: #fafafa;
+        }
+
+        .highlight {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .hotel-name {
+            color: #007bff;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Hóa đơn đặt phòng #{{code}}</h1>
+            <p>Cảm ơn bạn đã tin tưởng sử dụng dịch vụ của chúng tôi!</p>
+        </div>
+
+        <div class="invoice-details">
+            <h2>Thông tin đặt phòng</h2>
+            <div class="detail-item">
+                <strong>Khách hàng:</strong> <span>{{name}}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Khách sạn:</strong> <span class="hotel-name">{{hotel}}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Giá:</strong> <span class="highlight">{{price}}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Ngày đặt:</strong> <span>{{date}}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Trạng thái:</strong> <span>{{status}}</span>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p> Travel Booking — Nâng tầm trải nghiệm du lịch của bạn </p>
+            <p>Mọi thắc mắc xin liên hệ: <strong>support@travelbooking.com</strong></p>
+        </div>
+    </div>
+</body>
+
+</html>

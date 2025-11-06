@@ -16,4 +16,8 @@ export class UpdateBookingRequest{
     @IsOptional()
     @IsString()
     guestsFullName?: string
+
+    @IsOptional()
+    @IsString()
+    status?:string
 }

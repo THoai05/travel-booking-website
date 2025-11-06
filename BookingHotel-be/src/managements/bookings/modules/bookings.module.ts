@@ -10,5 +10,6 @@ import { RoomType } from 'src/managements/rooms/entities/roomType.entity';
   imports:[TypeOrmModule.forFeature([Booking,User,RoomType])],
   controllers: [BookingsController],
   providers: [BookingsService],
+  exports:[BookingsService]
 })
 export class BookingsModule {}
