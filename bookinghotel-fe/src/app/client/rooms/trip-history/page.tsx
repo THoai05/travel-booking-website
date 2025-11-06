@@ -299,6 +299,7 @@ export default function TripHistoryPage() {
         newSet.delete(bookingId);
         return newSet;
       });
+      fetchRooms();
       toast.success("❌ Đã xóa hành trình!");
     } catch (err) {
       console.error(err);
@@ -395,8 +396,8 @@ export default function TripHistoryPage() {
 
           <div
             className={`grid gap-6 ${group.rooms.length === 1
-                ? "grid-cols-1" // chiếm 1 cột full width
-                : "grid-cols-1 md:grid-cols-2" // 2 phần tử thì 2 cột trên md
+              ? "grid-cols-1" // chiếm 1 cột full width
+              : "grid-cols-1 md:grid-cols-2" // 2 phần tử thì 2 cột trên md
               }`}
           >
             {group.rooms.map((room) => (
