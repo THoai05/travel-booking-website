@@ -59,6 +59,11 @@ export class PostsController {
     return this.postsService.findOne(id);
   }
 
+  @Get('slug/:slug')
+  findBySlug(@Param('slug') slug: string) {
+    return this.postsService.findBySlug(slug);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(

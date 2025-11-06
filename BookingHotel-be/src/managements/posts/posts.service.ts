@@ -151,6 +151,20 @@ export class PostsService {
     return new PostResponseDto(post);
   }
 
+  async findBySlug(slug: string) {
+    if (!slug || !slug.trim()) throw new BadRequestException('Slug không hợp lệ');
+
+    const post = await this.postRepo.findOne({
+      where: { slug },
+      relations: ['author', 'city', 'images'],
+    });
+
+    if (!post) throw new NotFoundException('Không tìm thấy bài viết với slug này');
+
+    return new PostResponseDto(post);
+  }
+
+
   async update(id: number, updatePostDto: UpdatePostDto) {
     const post = await this.postRepo.findOne({
       where: { id },
