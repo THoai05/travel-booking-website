@@ -229,7 +229,7 @@ export class PaymentGateService {
         return session.url
     }
 
-    async verifyVnPay(params:Record<string,string>):Promise<UpdateBookingRequest> {
+    async verifyVnPay(params:Record<string,string>):Promise<any> {
         const { vnp_SecureHash, ...rest } = params
         const sortedParams = this.sortObject(rest)
         const signData = qs.stringify(sortedParams, { encode: false })
@@ -290,6 +290,9 @@ export class PaymentGateService {
 
     return this.bookingService.updateBookingForGuests(Number(orderId), { status: "confirmed" });
     }
+
+
+   
 }
 
 

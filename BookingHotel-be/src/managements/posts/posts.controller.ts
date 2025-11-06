@@ -39,24 +39,37 @@ export class PostsController {
   }
 
   @Get()
-  async findAll(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-  ) {
-    return this.postsService.findAll(page, limit);
+  findAllPublic(@Query('page') page = 1, @Query('limit') limit = 10) {
+    return this.postsService.findAllPublic(Number(page), Number(limit));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('admin')
+  findAllAdmin(@Query('page') page = 1, @Query('limit') limit = 10) {
+    return this.postsService.findAllAdmin(Number(page), Number(limit));
   }
 
   @Get('search')
-  async search(
-    @Query('keyword') keyword?: string,
-    @Query('city') city?: string,
+  async searchPosts(@Query('keyword') keyword: string) {
+    return this.postsService.searchPosts(keyword);
+  }
+  
+  @Get('related')
+  findRelated(
+    @Query('cityId', ParseIntPipe) cityId: number,
+    @Query('excludeSlug') excludeSlug: string,
   ) {
-    return this.postsService.search(keyword, city);
+    return this.postsService.findRelatedPosts(cityId, excludeSlug);
   }
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.postsService.findOne(id);
+  }
+
+  @Get('slug/:slug')
+  findBySlug(@Param('slug') slug: string) {
+    return this.postsService.findBySlug(slug);
   }
 
   @UseGuards(JwtAuthGuard)

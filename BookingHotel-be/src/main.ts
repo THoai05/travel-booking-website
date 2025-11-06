@@ -1,22 +1,22 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { IoAdapter } from '@nestjs/platform-socket.io';
+import * as cookieParser from 'cookie-parser';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import * as express from 'express';
 import { join } from 'path';
-import * as cookieParser from 'cookie-parser'
 import * as dotenv from "dotenv"
 
 async function bootstrap() {
-  // ép kiểu về NestExpressApplication
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create(AppModule);
 
   dotenv.config()
 
   app.use(helmet());
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: 'http://localhost:3000', // URL FE
     credentials: true,
   });
 
@@ -32,15 +32,11 @@ async function bootstrap() {
     }),
   );
 
-  // serve static files (ảnh, uploads, v.v.)
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
-    prefix: '/uploads/',
-  });
+  // Adapter cho Socket.IO
+  app.useWebSocketAdapter(new IoAdapter(app));
 
-  app.use(cookieParser())
-
-  app.use('/avatars', express.static(join(process.cwd(), 'uploads', 'avatars')));
-
+  app.use(cookieParser());
   await app.listen(3636);
+  console.log('Backend running on http://localhost:3636');
 }
 bootstrap();

@@ -15,22 +15,10 @@ export class RoomsController {
     return this.roomsService.getAllRooms();
   }
 
-  // 2️⃣ Theo khách sạn (id hoặc tên)
-  @Get('roomAvailabilityMonitor/byHotel')
-  async getByHotel(@Query('search') search: string) {
-    return this.roomsService.getRoomsByHotel(search);
-  }
-
   // 3️⃣ Theo user
   @Get('roomAvailabilityMonitor/byUser/:userId')
   async getByUser(@Param('userId') userId: number) {
     return this.roomsService.getRoomsByUser(userId);
-  }
-
-  // 📌 Lấy chi tiết phòng theo id
-  @Get('roomDetail/:id')
-  async getRoomDetail(@Param('id') id: number) {
-    return this.roomsService.getRoomDetail(id);
   }
 
   // 📌 Lấy chi tiết khách sạn theo id
@@ -73,6 +61,26 @@ export class RoomsController {
   @Post('remove-trip')
   async removeTrip(@Body('bookingId') bookingId: number) {
     return this.roomsService.removeTripHistory(bookingId);
+  }
+
+
+  //API theo dõi phòng
+  // 📌 API lưu theo dõi phòng
+  @Post('save-room-monitor')
+  async saveRoomMonitor(@Body('roomTypeId') roomTypeId: number) {
+    return this.roomsService.saveRoomMonitor(roomTypeId);
+  }
+
+  // 📌 Đọc lưu theo dõi phòng
+  @Get('get-room-monitor')
+  async roomMonitor() {
+    return this.roomsService.getRoomMonitor();
+  }
+
+  // 📌 API xóa theo dõi phòng
+  @Post('remove-room-monitor')
+  async removeRoomMonitor(@Body('roomTypeId') roomTypeId: number) {
+    return this.roomsService.removeRoomMonitor(roomTypeId);
   }
 
 }

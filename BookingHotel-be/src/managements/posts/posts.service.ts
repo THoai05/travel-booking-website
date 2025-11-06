@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
@@ -11,6 +11,8 @@ import slugify from 'slugify';
 import { join } from 'path';
 import { promises as fs } from 'fs';
 import { Brackets } from 'typeorm';
+import { ILike } from 'typeorm';
+import { PostImage } from './entities/post_images.entity';
 
 @Injectable()
 export class PostsService {
@@ -26,7 +28,7 @@ export class PostsService {
   ) { }
 
   async create(createPostDto: CreatePostDto) {
-    const { title, content, author_name, image, slug, city_title } = createPostDto;
+    const { title, content, author_name, images, slug, city_title } = createPostDto;
 
     // Tạo slug tự động nếu chưa có
     const finalSlug =
@@ -50,16 +52,25 @@ export class PostsService {
       if (!city) throw new NotFoundException('Không tìm thấy thành phố');
     }
 
+    // Tạo Post mới
     const newPost = this.postRepo.create({
       title,
       content,
-      image,
       slug: finalSlug,
       author,
       city,
     });
 
-    await this.postRepo.save(newPost);
+    // Chuyển mảng image (string[]) sang PostImage[]
+    if (images && images.length > 0) {
+      newPost.images = images.map((url: string) => {
+        const img = new PostImage();
+        img.url = url;
+        return img;
+      });
+    }
+
+    await this.postRepo.save(newPost); // cascade sẽ tự lưu PostImage
 
     return {
       message: 'Tạo bài viết thành công',
@@ -67,7 +78,7 @@ export class PostsService {
         id: newPost.id,
         title: newPost.title,
         content: newPost.content,
-        image: newPost.image,
+        images: newPost.images.map(img => img.url), // trả về mảng URL
         slug: newPost.slug,
         is_public: newPost.is_public,
         created_at: newPost.created_at,
@@ -98,8 +109,9 @@ export class PostsService {
     return urls;
   }
 
-  async findAll(page = 1, limit = 10) {
+  async findAllPublic(page = 1, limit = 10) {
     const [posts, total] = await this.postRepo.findAndCount({
+      where: { is_public: true },
       relations: ['author', 'city'],
       order: { created_at: 'DESC' },
       skip: (page - 1) * limit,
@@ -107,27 +119,64 @@ export class PostsService {
     });
 
     const data = posts.map((post) => new PostResponseDto(post));
-
     return {
       data,
-      meta: {
-        total,
-        page,
-        lastPage: Math.ceil(total / limit),
-      },
+      meta: { total, page, lastPage: Math.ceil(total / limit) },
+    };
+  }
+
+  async findAllAdmin(page = 1, limit = 10) {
+    const [posts, total] = await this.postRepo.findAndCount({
+      relations: ['author', 'city', 'images'],
+      order: { created_at: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    const data = posts.map((post) => new PostResponseDto(post));
+    return {
+      data,
+      meta: { total, page, lastPage: Math.ceil(total / limit) },
     };
   }
 
   async findOne(id: number) {
     const post = await this.postRepo.findOne({
       where: { id },
-      relations: ['author'],
+      relations: ['author', 'city', 'images'],
     });
 
     if (!post) throw new NotFoundException('Không tìm thấy bài viết');
 
     return new PostResponseDto(post);
   }
+
+  async findBySlug(slug: string) {
+    if (!slug || !slug.trim()) throw new BadRequestException('Slug không hợp lệ');
+
+    const post = await this.postRepo.findOne({
+      where: { slug },
+      relations: ['author', 'city', 'images'],
+    });
+
+    if (!post) throw new NotFoundException('Không tìm thấy bài viết với slug này');
+
+    return new PostResponseDto(post);
+  }
+
+  async findRelatedPosts(cityId: number, excludeSlug: string) {
+    return this.postRepo.find({
+      where: {
+        city: { id: cityId },
+        slug: Not(excludeSlug),
+        is_public: true,
+      },
+      relations: ["city", "author"],
+      order: { created_at: "DESC" },
+      take: 3,
+    });
+  }
+
 
   async update(id: number, updatePostDto: UpdatePostDto) {
     const post = await this.postRepo.findOne({
@@ -164,47 +213,37 @@ export class PostsService {
     return { deletedCount: result.affected || 0 };
   }
 
-  async search(keyword?: string, cityName?: string) {
-    if (!keyword?.trim() && !cityName?.trim()) {
-      return [];
-    }
+  async searchPosts(keyword: string) {
+    if (!keyword?.trim()) return [];
 
-    const query = this.postRepo
-      .createQueryBuilder('post')
-      .leftJoinAndSelect('post.author', 'author')
-      .leftJoinAndSelect('post.city', 'city')
-      .where('post.is_public = true');
+    const normalizedKeyword = this.removeAccents(keyword.toLowerCase());
 
-    // Nếu có từ khóa
-    if (keyword) {
-      // Bỏ dấu tiếng Việt
-      const normalizedKeyword = keyword
-        .normalize('NFD') // tách dấu
-        .replace(/[\u0300-\u036f]/g, '') // xoá dấu
+    // Lấy hết bài public
+    const posts = await this.postRepo.find({
+      relations: ['author', 'city'],
+      where: { is_public: true },
+    });
+
+    // Lọc lại bỏ dấu cả 2 bên
+    return posts.filter((post) => {
+      const combinedText = [
+        post.title,
+        post.content,
+        post.city?.title,
+      ]
+        .join(' ')
         .toLowerCase();
 
-      query.andWhere(
-        new Brackets((qb) => {
-          qb.where('LOWER(post.title) LIKE :keyword')
-            .orWhere('LOWER(post.content) LIKE :keyword');
-        }),
-        { keyword: `%${normalizedKeyword}%` },
-      );
-    }
-
-    if (cityName) {
-      const normalizedCity = cityName
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase();
-
-      query.andWhere('LOWER(city.title) LIKE :cityName', {
-        cityName: `%${normalizedCity}%`,
-      });
-    }
-
-    const posts = await query.orderBy('post.created_at', 'DESC').getMany();
-    console.log(posts);
-    return posts;
+      return this.removeAccents(combinedText).includes(normalizedKeyword);
+    });
   }
+
+  removeAccents(str: string): string {
+    return str
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D');
+  }
+
 }

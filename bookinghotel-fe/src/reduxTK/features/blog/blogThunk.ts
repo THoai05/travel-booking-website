@@ -1,15 +1,30 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/axios/axios";
 
-// Lấy danh sách bài viết
-export const fetchBlogs = createAsyncThunk(
+// Lấy danh sách bài viết cho client
+export const fetchPublicBlogs = createAsyncThunk(
     "blogs/fetchBlogs",
     async ({ page = 1, limit = 10 }: { page?: number; limit?: number }, { rejectWithValue }) => {
         try {
             const res = await api.get(`/posts?page=${page}&limit=${limit}`);
             return res.data;
         } catch (error: any) {
-            return rejectWithValue(error.response?.data || "Lỗi khi tải danh sách bài viết");
+            return rejectWithValue(error.response?.data || "Lỗi khi tải danh sách bài viết công khai");
+        }
+    }
+);
+
+//Lấy danh sách bài viết phía admin
+export const fetchAdminBlogs = createAsyncThunk(
+    "blogs/fetchAdminBlogs",
+    async ({ page = 1, limit = 10 }: { page?: number; limit?: number }, { rejectWithValue }) => {
+        try {
+            const res = await api.get(`/posts/admin?page=${page}&limit=${limit}`);
+            return res.data;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data || "Lỗi khi tải danh sách bài viết admin"
+            );
         }
     }
 );
@@ -27,17 +42,17 @@ export const createBlog = createAsyncThunk(
 );
 
 export const updateBlog = createAsyncThunk(
-  "blogs/updateBlog",
-  async ({ id, updatedData }: { id: number; updatedData: any }, { rejectWithValue }) => {
-    try {
-      const res = await api.patch(`/posts/${id}`, updatedData, {
-        withCredentials: true,
-      });
-      return res.data.post;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data || "Lỗi khi cập nhật bài viết");
+    "blogs/updateBlog",
+    async ({ id, updatedData }: { id: number; updatedData: any }, { rejectWithValue }) => {
+        try {
+            const res = await api.patch(`/posts/${id}`, updatedData, {
+                withCredentials: true,
+            });
+            return res.data.post;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data || "Lỗi khi cập nhật bài viết");
+        }
     }
-  }
 );
 
 export const deletePosts = createAsyncThunk(
@@ -53,4 +68,44 @@ export const deletePosts = createAsyncThunk(
             return rejectWithValue(err.response?.data || err.message);
         }
     }
+);
+
+export const searchBlogs = createAsyncThunk(
+    "blogs/searchBlogs",
+    async (keyword: string, { rejectWithValue }) => {
+        try {
+            const res = await api.get(`/posts/search?keyword=${encodeURIComponent(keyword)}`);
+            return res.data; // server trả về mảng bài viết đã lọc
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data || "Lỗi khi tìm kiếm bài viết");
+        }
+    }
+);
+
+export const fetchDetailBlogBySlug = createAsyncThunk(
+    "blogs/fetchDetailBlogBySlug",
+    async (slug: string, { rejectWithValue }) => {
+        try {
+            const res = await api.get(`/posts/slug/${slug}`);
+            return res.data;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data || "Lỗi khi tải chi tiết bài viết"
+            );
+        }
+    }
+);
+
+export const fetchRelatedPosts = createAsyncThunk(
+  "blogs/fetchRelatedPosts",
+  async ({ cityId, excludeSlug }: { cityId: number; excludeSlug: string }, { rejectWithValue }) => {
+    try {
+      const res = await api.get(`/posts/related?cityId=${cityId}&excludeSlug=${excludeSlug}`);
+      return res.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data || "Lỗi khi tải danh sách bài viết liên quan"
+      );
+    }
+  }
 );

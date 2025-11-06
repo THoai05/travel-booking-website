@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
-import { Room } from '../entities/rooms.entity';
 import { RoomType } from '../entities/roomType.entity';
 import { Hotel } from '../../hotels/entities/hotel.entity';
 import { Booking } from 'src/managements/bookings/entities/bookings.entity';
@@ -12,7 +11,6 @@ import * as path from 'path';
 @Injectable()
 export class RoomsService {
     constructor(
-        @InjectRepository(Room) private roomsRepo: Repository<Room>,
         @InjectRepository(RoomType) private roomTypeRepo: Repository<RoomType>,
         @InjectRepository(Hotel) private hotelsRepo: Repository<Hotel>,
         @InjectRepository(Booking) private bookingRepo: Repository<Booking>,
@@ -21,71 +19,35 @@ export class RoomsService {
 
     // 1️⃣ Tất cả phòng trên hệ thống
     async getAllRooms() {
-        return this.roomsRepo
-            .createQueryBuilder('r')
-            .leftJoin('r.hotel', 'h')
+        return this.roomTypeRepo
+            .createQueryBuilder('rt')
+            .leftJoin('rt.hotel', 'h')
             .select([
-                'r.id AS id',
-                'h.name AS hotelName',
-                'r.roomNumber AS roomNumber',
-                'r.roomType AS roomType',
-                'r.status AS status',
-                'r.hotel_id AS hotel_id',
+                'rt.id AS roomTypeId',
+                'rt.name AS roomTypeName',
+
+                'h.id AS hotelId',
+                'h.name AS hotelName',             
             ])
             .orderBy('h.name', 'ASC')
-            .addOrderBy('r.roomNumber', 'ASC')
+            .addOrderBy('rt.id', 'DESC')
             .getRawMany();
     }
-
-    // 2️⃣ Theo khách sạn (id hoặc tên)
-    async getRoomsByHotel(search: string | number) {
-        const query = this.roomsRepo
-            .createQueryBuilder('r')
-            .leftJoinAndSelect(Hotel, 'h', 'h.id = r.hotel_id')
-            .select([
-                'r.id AS id',
-                'h.name AS hotelName',
-                'r.roomNumber AS roomNumber',
-                'r.roomType AS roomType',
-                'r.status AS status',
-                'r.hotel_id AS hotel_id',
-
-            ]);
-
-        if (typeof search === 'number' || !isNaN(Number(search))) {
-            query.where('h.id = :id', { id: Number(search) }); // ép kiểu sang number
-        } else {
-            query.where('h.name LIKE :name', { name: `%${search}%` });
-        }
-        query.orderBy('r.roomNumber', 'ASC');
-        return query.getRawMany();
-    }
+    
 
     // 3️⃣ Theo user (lấy các phòng mà user đã đặt, không cần Room.id)
     async getRoomsByUser(userId: number) {
         return this.bookingRepo
             .createQueryBuilder('b')
-            .innerJoin('b.user', 'u')
-            .innerJoin('b.roomType', 'rt')
-            .innerJoin('rt.hotel', 'h')
-            .innerJoin(Room, 'r', 'r.hotel_id = h.id') // join Room qua hotel
+            .leftJoin('b.user', 'u')
+            .leftJoin('b.roomType', 'rt')
+            .leftJoin('rt.hotel', 'h')      
             .select([
                 'b.id AS bookingId',
                 'b.status AS bookingStatus',
                 'b.checkInDate AS checkInDate',
                 'b.checkOutDate AS checkOutDate',
-                'b.guestsCount AS guestsCount',
-
-                'u.id AS userId',
-                'u.fullName AS userName',
-                'u.email AS userEmail',
-
-                'r.id AS roomId',
-                'r.roomNumber AS roomNumber',
-                'r.status AS status',
-                'r.roomType AS roomType',
-                'r.id AS id',
-                'r.hotel_id AS hotel_id',
+                'b.guestsCount AS guestsCount',    
 
                 'h.id AS hotelId',
                 'h.name AS hotelName',
@@ -98,12 +60,6 @@ export class RoomsService {
             .getRawMany();
     }
 
-
-    // 📌 Lấy chi tiết 1 phòng theo id
-    async getRoomDetail(roomId: number) {
-        const room = await this.roomsRepo.findOne({ where: { id: roomId } });
-        return room;
-    }
 
     // 📌 Lấy chi tiết khách sạn theo id
     async getHotelDetail(hotelId: number) {
@@ -118,7 +74,6 @@ export class RoomsService {
             .innerJoin('b.user', 'u')
             .innerJoin('b.roomType', 'rt')
             .innerJoin('rt.hotel', 'h')
-            .innerJoin(Room, 'r', 'r.hotel_id = h.id') // join Room qua hotel
             .select([
                 'b.id AS bookingId',//
                 'b.status AS bookingStatus',
@@ -133,13 +88,6 @@ export class RoomsService {
                 'u.fullName AS userName',
                 'u.email AS userEmail',
 
-                'r.id AS roomId',
-                'r.roomNumber AS roomNumber',
-                'r.status AS status',
-                'r.roomType AS roomType',
-                'r.id AS id',//
-                'r.hotel_id AS hotel_id',//
-
                 'h.id AS hotelId',
                 'h.name AS hotelName',
 
@@ -147,7 +95,7 @@ export class RoomsService {
                 'rt.name AS roomTypeName',
             ])
             .where('b.user_id = :userId', { userId })
-            .orderBy('b.check_in_date', 'DESC')
+            .orderBy('b.createdAt', 'DESC')
             .getRawMany();
     }
 
@@ -272,6 +220,120 @@ export class RoomsService {
         } catch (err: any) {
             console.error('❌ Lỗi xóa trip-history:', err);
             throw new Error(err.message || 'Không thể xóa hành trình');
+        }
+    }
+
+
+    //Theo dõi room lưu file
+    async saveRoomMonitor(roomTypeId: number) {
+        if (!roomTypeId) throw new Error('Thiếu roomTypeId');
+
+        try {
+            // Đường dẫn tới frontend
+            const dirPath = path.join(
+                process.cwd(),
+                '..',
+                'bookinghotel-fe',
+                'src',
+                'app',
+                'client',
+                'rooms',
+                'room-monitor'
+            );
+            const filePath = path.join(dirPath, 'room-monitor.txt');
+
+            // Tạo thư mục nếu chưa tồn tại
+            if (!fs.existsSync(dirPath)) {
+                fs.mkdirSync(dirPath, { recursive: true });
+            }
+
+            let existingIds: Set<string> = new Set();
+
+            // Nếu file đã tồn tại, đọc các ID hiện có
+            if (fs.existsSync(filePath)) {
+                const data = fs.readFileSync(filePath, 'utf8');
+                const lines = data.split('\n').map(line => line.trim()).filter(line => line);
+                existingIds = new Set(lines);
+            }
+
+            // Nếu roomTypeId chưa có, thêm vào
+            if (!existingIds.has(roomTypeId.toString())) {
+                existingIds.add(roomTypeId.toString());
+                // Ghi lại toàn bộ ID, mỗi ID 1 dòng
+                fs.writeFileSync(filePath, Array.from(existingIds).join('\n') + '\n', 'utf8');
+            }
+
+            return {
+                message: 'Đã lưu phòng thành công!',
+                filePath,
+                roomTypeId,
+            };
+
+        } catch (err: any) {
+            console.error('❌ Lỗi lưu room-monitor:', err);
+            throw new Error(err.message || 'Không thể lưu phòng');
+        }
+    }
+
+    async getRoomMonitor() {
+        const filePath = path.join(
+            process.cwd(),
+            '..',
+            'bookinghotel-fe',
+            'src',
+            'app',
+            'client',
+            'rooms',
+            'room-monitor',
+            'room-monitor.txt'
+        );
+
+        if (!fs.existsSync(filePath)) return { roomTypeIds: [] };
+
+        const data = fs.readFileSync(filePath, 'utf8');
+        const roomTypeIds = data
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line); // lọc dòng trống
+
+        return { roomTypeIds };
+    }
+
+    async removeRoomMonitor(roomTypeId: number) {
+        if (!roomTypeId) throw new Error('Thiếu roomTypeId');
+
+        try {
+            const filePath = path.join(
+                process.cwd(),
+                '..',
+                'bookinghotel-fe',
+                'src',
+                'app',
+                'client',
+                'rooms',
+                'room-monitor',
+                'room-monitor.txt'
+            );
+
+            if (!fs.existsSync(filePath)) return { message: 'Chưa có phòng nào' };
+
+            // Đọc các ID hiện có
+            const data = fs.readFileSync(filePath, 'utf8');
+            const existingIds = new Set(
+                data.split('\n').map(line => line.trim()).filter(line => line)
+            );
+
+            // Xóa roomTypeId nếu có
+            if (existingIds.has(roomTypeId.toString())) {
+                existingIds.delete(roomTypeId.toString());
+                fs.writeFileSync(filePath, Array.from(existingIds).join('\n') + '\n', 'utf8');
+                return { message: 'Đã xóa phòng thành công', roomTypeId };
+            }
+
+            return { message: 'Phòng không tồn tại' };
+        } catch (err: any) {
+            console.error('❌ Lỗi xóa room-monitor:', err);
+            throw new Error(err.message || 'Không thể xóa phòng');
         }
     }
 
