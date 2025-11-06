@@ -21,12 +21,6 @@ export class RoomsController {
     return this.roomsService.getRoomsByUser(userId);
   }
 
-  // 📌 Lấy chi tiết phòng theo id
-  @Get('roomDetail/:id')
-  async getRoomDetail(@Param('id') id: number) {
-    return this.roomsService.getRoomDetail(id);
-  }
-
   // 📌 Lấy chi tiết khách sạn theo id
   @Get('hotelDetail/:id')
   async getHotelDetail(@Param('id') id: number) {
