@@ -69,4 +69,24 @@ export class RoomsController {
     return this.roomsService.removeTripHistory(bookingId);
   }
 
+
+  //API theo dõi phòng
+  // 📌 API lưu hành trình
+  @Post('save-room-monitor')
+  async saveRoomMonitor(@Body('roomTypeId') roomTypeId: number) {
+    return this.roomsService.saveRoomMonitor(roomTypeId);
+  }
+
+  // 📌 Đọc lưu hành trình
+  @Get('get-room-monitor')
+  async roomMonitor() {
+    return this.roomsService.getRoomMonitor();
+  }
+
+  // 📌 API xóa hành trình
+  @Post('remove-room-monitor')
+  async removeRoomMonitor(@Body('roomTypeId') roomTypeId: number) {
+    return this.roomsService.removeRoomMonitor(roomTypeId);
+  }
+
 }

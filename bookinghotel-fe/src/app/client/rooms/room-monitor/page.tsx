@@ -330,8 +330,8 @@ export default function RoomMonitorPage() {
                   onMouseLeave={() => setHoveredRoomTypeDetail(null)}
                 >
                   <div>
-                    <p>{room.roomTypeId}</p>
-                    <p>{room.roomTypeName}</p>
+                    <p>📌 Room Type ID: {room.roomTypeId}</p>
+                    <p>🏨 Room Type Name: {room.roomTypeName}</p>
                     {room.bookingStatus && (
                       <>
                         <p>📅 {formatDate(room.checkInDate)} → {formatDate(room.checkOutDate)}</p>
@@ -390,7 +390,8 @@ export default function RoomMonitorPage() {
       {/* Hover RoomType */}
       {hoveredRoomTypeDetail && (
         <div className="fixed top-20 left-10 p-4 bg-white border rounded shadow-lg w-72 z-50">
-          <h3 className="font-bold text-lg mb-2">🏨 Room Type: {hoveredRoomTypeDetail.name}</h3>
+          <h3 className="font-bold text-lg mb-2">📌 Room Type ID: {hoveredRoomTypeDetail.id}</h3>
+          <p>🏨 Room Type Name: {hoveredRoomTypeDetail.name}</p>
           <p>📝 Description: {hoveredRoomTypeDetail.description}</p>
           <p>👥 Max Guests: {hoveredRoomTypeDetail.max_guests}</p>
           <p>📦 Total Inventory: {hoveredRoomTypeDetail.total_inventory}</p>

@@ -239,4 +239,118 @@ export class RoomsService {
         }
     }
 
+
+    //Theo dõi room lưu file
+    async saveRoomMonitor(roomTypeId: number) {
+        if (!roomTypeId) throw new Error('Thiếu roomTypeId');
+
+        try {
+            // Đường dẫn tới frontend
+            const dirPath = path.join(
+                process.cwd(),
+                '..',
+                'bookinghotel-fe',
+                'src',
+                'app',
+                'client',
+                'rooms',
+                'room-monitor'
+            );
+            const filePath = path.join(dirPath, 'room-monitor.txt');
+
+            // Tạo thư mục nếu chưa tồn tại
+            if (!fs.existsSync(dirPath)) {
+                fs.mkdirSync(dirPath, { recursive: true });
+            }
+
+            let existingIds: Set<string> = new Set();
+
+            // Nếu file đã tồn tại, đọc các ID hiện có
+            if (fs.existsSync(filePath)) {
+                const data = fs.readFileSync(filePath, 'utf8');
+                const lines = data.split('\n').map(line => line.trim()).filter(line => line);
+                existingIds = new Set(lines);
+            }
+
+            // Nếu roomTypeId chưa có, thêm vào
+            if (!existingIds.has(roomTypeId.toString())) {
+                existingIds.add(roomTypeId.toString());
+                // Ghi lại toàn bộ ID, mỗi ID 1 dòng
+                fs.writeFileSync(filePath, Array.from(existingIds).join('\n') + '\n', 'utf8');
+            }
+
+            return {
+                message: 'Đã lưu phòng thành công!',
+                filePath,
+                roomTypeId,
+            };
+
+        } catch (err: any) {
+            console.error('❌ Lỗi lưu room-monitor:', err);
+            throw new Error(err.message || 'Không thể lưu phòng');
+        }
+    }
+
+    async getRoomMonitor() {
+        const filePath = path.join(
+            process.cwd(),
+            '..',
+            'bookinghotel-fe',
+            'src',
+            'app',
+            'client',
+            'rooms',
+            'room-monitor',
+            'room-monitor.txt'
+        );
+
+        if (!fs.existsSync(filePath)) return { roomTypeIds: [] };
+
+        const data = fs.readFileSync(filePath, 'utf8');
+        const roomTypeIds = data
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line); // lọc dòng trống
+
+        return { roomTypeIds };
+    }
+
+    async removeRoomMonitor(roomTypeId: number) {
+        if (!roomTypeId) throw new Error('Thiếu roomTypeId');
+
+        try {
+            const filePath = path.join(
+                process.cwd(),
+                '..',
+                'bookinghotel-fe',
+                'src',
+                'app',
+                'client',
+                'rooms',
+                'room-monitor',
+                'room-monitor.txt'
+            );
+
+            if (!fs.existsSync(filePath)) return { message: 'Chưa có phòng nào' };
+
+            // Đọc các ID hiện có
+            const data = fs.readFileSync(filePath, 'utf8');
+            const existingIds = new Set(
+                data.split('\n').map(line => line.trim()).filter(line => line)
+            );
+
+            // Xóa roomTypeId nếu có
+            if (existingIds.has(roomTypeId.toString())) {
+                existingIds.delete(roomTypeId.toString());
+                fs.writeFileSync(filePath, Array.from(existingIds).join('\n') + '\n', 'utf8');
+                return { message: 'Đã xóa phòng thành công', roomTypeId };
+            }
+
+            return { message: 'Phòng không tồn tại' };
+        } catch (err: any) {
+            console.error('❌ Lỗi xóa room-monitor:', err);
+            throw new Error(err.message || 'Không thể xóa phòng');
+        }
+    }
+
 }
