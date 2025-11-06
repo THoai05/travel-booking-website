@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
-import { Room } from '../entities/rooms.entity';
 import { RoomType } from '../entities/roomType.entity';
 import { Hotel } from '../../hotels/entities/hotel.entity';
 import { Booking } from 'src/managements/bookings/entities/bookings.entity';
@@ -12,7 +11,6 @@ import * as path from 'path';
 @Injectable()
 export class RoomsService {
     constructor(
-        @InjectRepository(Room) private roomsRepo: Repository<Room>,
         @InjectRepository(RoomType) private roomTypeRepo: Repository<RoomType>,
         @InjectRepository(Hotel) private hotelsRepo: Repository<Hotel>,
         @InjectRepository(Booking) private bookingRepo: Repository<Booking>,
@@ -62,12 +60,6 @@ export class RoomsService {
             .getRawMany();
     }
 
-
-    // 📌 Lấy chi tiết 1 phòng theo id
-    async getRoomDetail(roomId: number) {
-        const room = await this.roomsRepo.findOne({ where: { id: roomId } });
-        return room;
-    }
 
     // 📌 Lấy chi tiết khách sạn theo id
     async getHotelDetail(hotelId: number) {
