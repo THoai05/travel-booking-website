@@ -21,71 +21,35 @@ export class RoomsService {
 
     // 1️⃣ Tất cả phòng trên hệ thống
     async getAllRooms() {
-        return this.roomsRepo
-            .createQueryBuilder('r')
-            .leftJoin('r.hotel', 'h')
+        return this.roomTypeRepo
+            .createQueryBuilder('rt')
+            .leftJoin('rt.hotel', 'h')
             .select([
-                'r.id AS id',
-                'h.name AS hotelName',
-                'r.roomNumber AS roomNumber',
-                'r.roomType AS roomType',
-                'r.status AS status',
-                'r.hotel_id AS hotel_id',
+                'rt.id AS roomTypeId',
+                'rt.name AS roomTypeName',
+
+                'h.id AS hotelId',
+                'h.name AS hotelName',             
             ])
             .orderBy('h.name', 'ASC')
-            .addOrderBy('r.roomNumber', 'ASC')
+            .addOrderBy('rt.id', 'DESC')
             .getRawMany();
     }
-
-    // 2️⃣ Theo khách sạn (id hoặc tên)
-    async getRoomsByHotel(search: string | number) {
-        const query = this.roomsRepo
-            .createQueryBuilder('r')
-            .leftJoinAndSelect(Hotel, 'h', 'h.id = r.hotel_id')
-            .select([
-                'r.id AS id',
-                'h.name AS hotelName',
-                'r.roomNumber AS roomNumber',
-                'r.roomType AS roomType',
-                'r.status AS status',
-                'r.hotel_id AS hotel_id',
-
-            ]);
-
-        if (typeof search === 'number' || !isNaN(Number(search))) {
-            query.where('h.id = :id', { id: Number(search) }); // ép kiểu sang number
-        } else {
-            query.where('h.name LIKE :name', { name: `%${search}%` });
-        }
-        query.orderBy('r.roomNumber', 'ASC');
-        return query.getRawMany();
-    }
+    
 
     // 3️⃣ Theo user (lấy các phòng mà user đã đặt, không cần Room.id)
     async getRoomsByUser(userId: number) {
         return this.bookingRepo
             .createQueryBuilder('b')
-            .innerJoin('b.user', 'u')
-            .innerJoin('b.roomType', 'rt')
-            .innerJoin('rt.hotel', 'h')
-            .innerJoin(Room, 'r', 'r.hotel_id = h.id') // join Room qua hotel
+            .leftJoin('b.user', 'u')
+            .leftJoin('b.roomType', 'rt')
+            .leftJoin('rt.hotel', 'h')      
             .select([
                 'b.id AS bookingId',
                 'b.status AS bookingStatus',
                 'b.checkInDate AS checkInDate',
                 'b.checkOutDate AS checkOutDate',
-                'b.guestsCount AS guestsCount',
-
-                'u.id AS userId',
-                'u.fullName AS userName',
-                'u.email AS userEmail',
-
-                'r.id AS roomId',
-                'r.roomNumber AS roomNumber',
-                'r.status AS status',
-                'r.roomType AS roomType',
-                'r.id AS id',
-                'r.hotel_id AS hotel_id',
+                'b.guestsCount AS guestsCount',    
 
                 'h.id AS hotelId',
                 'h.name AS hotelName',

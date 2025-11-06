@@ -15,12 +15,6 @@ export class RoomsController {
     return this.roomsService.getAllRooms();
   }
 
-  // 2️⃣ Theo khách sạn (id hoặc tên)
-  @Get('roomAvailabilityMonitor/byHotel')
-  async getByHotel(@Query('search') search: string) {
-    return this.roomsService.getRoomsByHotel(search);
-  }
-
   // 3️⃣ Theo user
   @Get('roomAvailabilityMonitor/byUser/:userId')
   async getByUser(@Param('userId') userId: number) {
