@@ -657,5 +657,50 @@ export class BookingsService {
         return { type, labels, data };
     }
 
+    //API thống kê tổng doanh thu theo khách sạn, đồng thời trả các thông tin cơ bản của khách sạn và gom nhóm dữ liệu
+    async getRevenueByHotel(): Promise<any[]> {
+        // Lấy tất cả booking với relations hotel, roomType, payment
+        const bookings = await this.bookingRepo.find({
+            relations: ['roomType', 'roomType.hotel', 'payment', 'roomType.hotel.city'],
+        });
+
+        // Tạo map lưu trữ dữ liệu theo hotelId
+        const hotelMap: Record<number, any> = {};
+
+        bookings.forEach(b => {
+            const hotel = b.roomType.hotel;
+            if (!hotel) return;
+
+            if (!hotelMap[hotel.id]) {
+                hotelMap[hotel.id] = {
+                    hotelId: hotel.id,
+                    hotelName: hotel.name,
+                    cityImage: hotel.city?.image || null,
+                    hotelAddress: hotel.address,
+                    description: hotel.description || null,
+                    policies: hotel.policies || null,
+                    totalRevenue: 0,
+                    totalBookings: 0,
+                    statusCount: {
+                        pending: 0,
+                        confirmed: 0,
+                        cancelled: 0,
+                        completed: 0,
+                        expired: 0
+                    }
+                };
+            }
+
+            hotelMap[hotel.id].totalBookings++;
+            hotelMap[hotel.id].statusCount[b.status]++;
+
+            if (b.payment?.paymentStatus === PaymentStatus.SUCCESS) {
+                hotelMap[hotel.id].totalRevenue += Number(b.totalPrice);
+            }
+        });
+
+        // Chuyển map thành array để trả về
+        return Object.values(hotelMap).sort((a, b) => b.totalRevenue - a.totalRevenue);
+    }
 
 }

@@ -62,4 +62,9 @@ export class BookingsController {
   async getExportData(@Param('type') type: 'week' | 'month' | 'year') {
     return this.bookingsService.getExportData(type);
   }
+
+  @Get('revenue-by-hotel')
+  async getRevenueByHotel() {
+    return this.bookingsService.getRevenueByHotel();
+  }
 }
