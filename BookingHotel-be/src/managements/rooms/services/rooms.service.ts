@@ -82,7 +82,6 @@ export class RoomsService {
             .innerJoin('b.user', 'u')
             .innerJoin('b.roomType', 'rt')
             .innerJoin('rt.hotel', 'h')
-            .innerJoin(Room, 'r', 'r.hotel_id = h.id') // join Room qua hotel
             .select([
                 'b.id AS bookingId',//
                 'b.status AS bookingStatus',
@@ -97,13 +96,6 @@ export class RoomsService {
                 'u.fullName AS userName',
                 'u.email AS userEmail',
 
-                'r.id AS roomId',
-                'r.roomNumber AS roomNumber',
-                'r.status AS status',
-                'r.roomType AS roomType',
-                'r.id AS id',//
-                'r.hotel_id AS hotel_id',//
-
                 'h.id AS hotelId',
                 'h.name AS hotelName',
 
@@ -111,7 +103,7 @@ export class RoomsService {
                 'rt.name AS roomTypeName',
             ])
             .where('b.user_id = :userId', { userId })
-            .orderBy('b.check_in_date', 'DESC')
+            .orderBy('b.createdAt', 'DESC')
             .getRawMany();
     }
 
