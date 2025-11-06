@@ -39,11 +39,13 @@ export class ReviewsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  async createReview(@Body() dto: CreateReviewDto, @Req() req: Request) {
-    const userId = req.user?.userId;
+  async createReview(@Body() dto: CreateReviewDto, @Req() req: any) {
+    const userId = req.user?.userId || req.user?.sub;
+
     if (!userId) {
       throw new UnauthorizedException('User not found in request');
     }
+
     return await this.reviewsService.createReview(dto, userId);
   }
 

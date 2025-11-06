@@ -118,7 +118,7 @@ export class ReviewsService {
             rating: dto.rating,
             comment: dto.comment,
             reviewType: dto.reviewType,
-            images: dto.images ? JSON.stringify(dto.images) : null,
+            images: dto.images ?? null,
         });
 
         // console.log('🟡 [Before Save] Review object:', review);

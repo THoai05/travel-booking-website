@@ -58,7 +58,7 @@ export default class ReviewSeeder implements Seeder {
         rating: randomRating,
         comment: randomComment,
         reviewType: randomType,
-        images: randomImage,
+        images: randomImage ? [randomImage] : null,
       });
     }
 

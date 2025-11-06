@@ -20,7 +20,7 @@ export enum ReviewType {
 
 @Entity('reviews')
 @Check(`"rating" >= 1 AND "rating" <= 5`)
-@Index(['user', 'hotel']) // ✅ Tăng tốc truy vấn khi lọc theo user + hotel
+@Index(['user', 'hotel'])
 export class Review {
   @PrimaryGeneratedColumn()
   id: number;
@@ -37,10 +37,10 @@ export class Review {
   @OneToMany(() => ReviewLike, (like) => like.review)
   likes: ReviewLike[];
 
-  @Column({ type: 'tinyint', unsigned: true }) // ✅ tinyint nhẹ hơn int, rating 1–5 đủ dùng
+  @Column({ type: 'tinyint', unsigned: true })
   rating: number;
 
-  @Column({ type: 'varchar', length: 500, nullable: true }) // ✅ hạn chế comment tối đa 500 ký tự
+  @Column({ type: 'varchar', length: 500, nullable: true })
   comment: string | null;
 
   @Column({
@@ -50,9 +50,8 @@ export class Review {
   })
   reviewType: ReviewType;
 
-  @Column({ type: 'text', nullable: true })
-  // JSON string (["url1","url2",...])
-  images: string | null;
+  @Column({ type: 'json', nullable: true })
+  images: string[] | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
