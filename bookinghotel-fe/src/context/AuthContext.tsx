@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     }
     catch (error) {
-      toast.error(error.message)
+      toast.error((error as Error).message);
     }
   }
 

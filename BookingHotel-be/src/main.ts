@@ -7,7 +7,6 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import * as express from 'express';
 import { join } from 'path';
-import * as cookieParser from 'cookie-parser'
 import * as dotenv from "dotenv"
 
 async function bootstrap() {
