@@ -8,7 +8,7 @@ import { UsersService } from "src/managements/users/services/users.service";
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(private readonly configService: ConfigService,
-                private readonly userService:UsersService
+        private readonly userService: UsersService
     ) {
         super({
             jwtFromRequest: ExtractJwt.fromExtractors([
@@ -21,21 +21,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
                 }
             ]),
             ignoreExpiration: false,
-            secretOrKey:configService.get<string>('SECRET_KEY')!
-        })    
+            secretOrKey: configService.get<string>('SECRET_KEY')!
+        })
     }
 
-    async validate(payload:JwtPayload) {
-        const user = await this.userService.findById(payload.sub)
-        if (!user) {
-            throw new UnauthorizedException("Không có quyền truy cập")
-        }
-        return {
-            sub: user.id,
-            username: user.username,
-            role:user.role
-        }
+    async validate(payload: JwtPayload) {
+        const user = await this.userService.findById(payload.sub);
+        console.log('JwtStrategy validate user:', user);
+        if (!user) throw new UnauthorizedException('Không có quyền truy cập');
+        return { sub: user.id, username: user.username, role: user.role };
     }
-
-
 }

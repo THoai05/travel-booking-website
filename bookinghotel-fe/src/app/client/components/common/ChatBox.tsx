@@ -5,21 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import io from 'socket.io-client';
 import { Send, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-
-interface User {
-    id: number;
-    username: string;
-}
-
-interface ChatMessage {
-    id: number;
-    sender: User | null;
-    receiver: User | null;
-    message: string;
-    message_type: 'text' | 'image' | 'file';
-    is_read: boolean;
-    created_at: string;
-}
+import { fetchChatHistory, sendMessage, ChatMessage, SendMessagePayload } from '@/service/chat/chatService';
 
 let socket: ReturnType<typeof io> | null = null;
 
@@ -30,84 +16,71 @@ export default function ChatBox() {
     const [input, setInput] = useState('');
     const chatEndRef = useRef<HTMLDivElement>(null);
 
-    // ------------------- Connect socket & listen realtime -------------------
+    // ------------------- Socket realtime -------------------
     useEffect(() => {
         if (!isAuthenticated || !user) {
             setMessages([]);
             setOpen(false);
-            if (socket) {
-                socket.disconnect();
-                socket = null;
-            }
+            socket?.disconnect();
+            socket = null;
             return;
         }
 
-        if (!socket) {
-            socket = io('http://localhost:3636', { transports: ['websocket', 'polling'] });
-        }
-
+        if (!socket) socket = io('http://localhost:3636', { transports: ['websocket', 'polling'] });
         socket.emit('join', { user_id: user.id });
 
-        socket.on('newMessage', (msg: ChatMessage) => {
-            if (!msg || !msg.sender || !msg.receiver) return;
-            if (msg.sender.id === user.id || msg.receiver.id === user.id) {
-                setMessages((prev) => [...prev, msg]);
+        const handleNewMessage = (msg: ChatMessage) => {
+            if (!msg) return;
+            if (msg.sender?.id === user.id || msg.receiver?.id === user.id) {
+                setMessages(prev => [...prev, msg]);
             }
-        });
+        };
 
+        socket.on('newMessage', handleNewMessage);
         return () => {
-            socket?.off('newMessage');
+            socket?.off('newMessage', handleNewMessage);
         };
     }, [isAuthenticated, user]);
 
-    // ------------------- Scroll xuống cuối khi có tin nhắn mới -------------------
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    // ------------------- Fetch lịch sử chat mỗi khi mở ChatBox -------------------
     useEffect(() => {
         if (open && user && isAuthenticated) {
-            const loadHistory = async () => {
+            (async () => {
                 try {
-                    const res = await fetch(`http://localhost:3636/chat/${user.id}/1`, {
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include', // gửi cookie tự động
-                    });
-                    const data = await res.json();
-
-                    if (res.status === 401) {
-                        console.error('❌ Unauthorized. Token expired?');
-                    }
-
-                    if (Array.isArray(data)) setMessages(data);
+                    const history = await fetchChatHistory(user.id);
+                    setMessages(history);
                 } catch (err) {
-                    console.error('❌ Load chat history error:', err);
+                    console.error(err);
                 }
-            };
-            loadHistory();
+            })();
         }
     }, [open, user, isAuthenticated]);
 
+    const handleSendMessage = async () => {
+        if (!input.trim() || !user || !socket) return;
 
-
-    const sendMessage = () => {
-        if (!input.trim() || !socket || !user) return;
-
-        socket.emit('send', {
+        const payload: SendMessagePayload = {
             senderId: user.id,
-            receiverId: 1, // admin cố định
+            receiverId: 1,
             message: input,
             message_type: 'text',
-        });
+        };
 
-        setInput('');
+        try {
+            await sendMessage(payload);
+            setInput('');
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            sendMessage();
+            handleSendMessage();
         }
     };
 
@@ -117,7 +90,7 @@ export default function ChatBox() {
                 <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => user && setOpen(true)}
+                    onClick={() => setOpen(true)}
                     className="w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center text-xl font-bold"
                 >
                     💬
@@ -131,38 +104,22 @@ export default function ChatBox() {
                         transition={{ duration: 0.3 }}
                         className="w-80 h-96 bg-white border border-gray-200 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
                     >
-                        {/* Header */}
                         <div className="bg-blue-600 text-white p-3 flex justify-between items-center">
                             <span className="font-semibold">Bluvera Support</span>
-                            <button
-                                onClick={() => setOpen(false)}
-                                className="hover:bg-blue-500 p-1 rounded-md"
-                            >
+                            <button onClick={() => setOpen(false)} className="hover:bg-blue-500 p-1 rounded-md">
                                 <X size={18} />
                             </button>
                         </div>
 
-                        {/* Messages */}
                         <div className="flex-1 overflow-y-auto p-3 bg-gray-50">
                             {messages.length === 0 ? (
                                 <div className="text-center text-gray-500 mt-10 text-sm">
-                                    {user
-                                        ? 'Bắt đầu cuộc trò chuyện với đội ngũ hỗ trợ 💬'
-                                        : 'Vui lòng đăng nhập để trò chuyện 💬'}
+                                    {user ? 'Bắt đầu cuộc trò chuyện với đội ngũ hỗ trợ 💬' : 'Vui lòng đăng nhập 💬'}
                                 </div>
                             ) : (
-                                messages.map((m, index) => (
-                                    <div
-                                        key={index}
-                                        className={`mb-2 flex ${m.sender?.id === user?.id ? 'justify-end' : 'justify-start'
-                                            }`}
-                                    >
-                                        <div
-                                            className={`max-w-[70%] p-2 px-3 rounded-2xl text-sm ${m.sender?.id === user?.id
-                                                ? 'bg-blue-600 text-white rounded-br-none'
-                                                : 'bg-gray-200 text-gray-900 rounded-bl-none'
-                                                }`}
-                                        >
+                                messages.map((m, idx) => (
+                                    <div key={idx} className={`mb-2 flex ${m.sender?.id === user?.id ? 'justify-end' : 'justify-start'}`}>
+                                        <div className={`max-w-[70%] p-2 px-3 rounded-2xl text-sm ${m.sender?.id === user?.id ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-200 text-gray-900 rounded-bl-none'}`}>
                                             {m.message}
                                         </div>
                                     </div>
@@ -171,20 +128,16 @@ export default function ChatBox() {
                             <div ref={chatEndRef} />
                         </div>
 
-                        {/* Input */}
                         {user && (
                             <div className="p-2 border-t flex items-center gap-2 bg-white">
                                 <input
                                     value={input}
-                                    onChange={(e) => setInput(e.target.value)}
+                                    onChange={e => setInput(e.target.value)}
                                     onKeyDown={handleKeyPress}
                                     placeholder="Nhập tin nhắn..."
                                     className="flex-1 bg-gray-100 px-3 py-2 rounded-full outline-none text-sm"
                                 />
-                                <button
-                                    onClick={sendMessage}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full"
-                                >
+                                <button onClick={handleSendMessage} className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full">
                                     <Send size={16} />
                                 </button>
                             </div>

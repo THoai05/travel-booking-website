@@ -10,6 +10,29 @@ export class ChatController {
         private readonly chatService: ChatService,
         private readonly chatGateway: ChatGateway,
     ) { }
+    @UseGuards(JwtAuthGuard)
+    @Get('admin/clients')
+    async getClients(@Req() req) {
+        if (req.user.role !== 'admin') {
+            throw new UnauthorizedException('Chỉ admin mới xem được');
+        }
+        const adminId = req.user.sub;
+        return this.chatService.getClientsWithUnread(adminId);
+    }
+
+
+    // Lấy lịch sử chat với 1 client
+    @Get('admin/:clientId')
+    @UseGuards(JwtAuthGuard)
+    async getChatHistoryWithClient(@Param('clientId') clientId: number, @Req() req) {
+        if (req.user.role !== 'admin') {
+            throw new UnauthorizedException('Chỉ admin mới xem chat này');
+        }
+        const adminId = req.user.sub;
+        return this.chatService.getChatHistory(clientId, adminId);
+    }
+
+    // ------------------- Client / User -------------------
 
     @Get(':userId/:adminId')
     @UseGuards(JwtAuthGuard)
@@ -18,7 +41,6 @@ export class ChatController {
         @Param('adminId') adminId: number,
         @Req() req
     ) {
-        // 🔹 Dùng req.user.sub thay vì req.user.id
         const currentUserId = req.user.sub;
 
         if (currentUserId !== Number(userId)) {
@@ -28,18 +50,21 @@ export class ChatController {
         return this.chatService.getChatHistory(userId, adminId);
     }
 
-
-
     @Post('send')
+    @UseGuards(JwtAuthGuard)
     async sendMessage(
         @Body() body: { senderId: number; receiverId: number; message: string; message_type: 'text' | 'image' | 'file' }
     ): Promise<Message> {
         const msg = await this.chatService.createMessage(body.senderId, body.receiverId, body.message, body.message_type);
 
-        // ✅ Emit realtime sau khi lưu DB
+        // Emit realtime cho cả sender & receiver
         this.chatGateway.server.to(`user_${body.receiverId}`).emit('newMessage', msg);
         this.chatGateway.server.to(`user_${body.senderId}`).emit('newMessage', msg);
 
         return msg;
     }
+
+    // ------------------- Admin -------------------
+
+    // Lấy danh sách client + số tin nhắn chưa đọc
 }

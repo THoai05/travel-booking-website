@@ -65,7 +65,7 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
         { icon: Edit3, label: "About Management", path: '/admin/about' },
         { icon: HelpCircle, label: "FAQ", path: '/admin/faq' },
         { icon: Users, label: "Users", path: '/admin/user' },
-        { icon: HeadphonesIcon, label: "Support", path: '/admin/support' },
+        { icon: HeadphonesIcon, label: "Support Chat", path: '/admin/chat' },
         { icon: Settings, label: "Setting", path: '/admin/setting' },
     ];
 
@@ -150,7 +150,7 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
             <div className="p-4 border-t border-gray-200">
                 <div className="flex items-center justify-between gap-3">
                     {/* Vùng click để vào profile */}
-                    <div 
+                    <div
                         className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
                         onClick={handleClickProfile}
                     >
@@ -158,7 +158,7 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
                         <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center">
                             <Users size={18} className="text-gray-500" />
                         </div>
-                        
+
                         {/* Tên và email */}
                         <div className="flex-1 min-w-0">
                             <p className="font-medium text-gray-900 truncate">
@@ -171,7 +171,7 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
                     </div>
 
                     {/* Nút đăng xuất (THÊM MỚI) */}
-                    <button 
+                    <button
                         onClick={handleLogout}
                         className="p-2 text-gray-500 rounded-lg hover:bg-red-100 hover:text-red-600 transition-colors"
                         title="Đăng xuất"

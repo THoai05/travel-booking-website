@@ -9,6 +9,7 @@ import Login from "@/app/auth/login/page";
 import Register from "@/app/auth/register/page";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
+
 // --- THÊM MỚI: Icons (cần cài react-icons: npm install react-icons) ---
 import {
   HiUserCircle,

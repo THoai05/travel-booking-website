@@ -5,7 +5,6 @@ import 'primereact/resources/themes/lara-light-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import { AuthProvider } from "@/context/AuthContext";
-
 export const metadata: Metadata = {
   title: "Bluvera",
   description: "Find and book your perfect stay",
