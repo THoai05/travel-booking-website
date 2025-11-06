@@ -1,4 +1,4 @@
-import { Controller, Get, Res } from '@nestjs/common';
+import { Controller, Get, Res, Query } from '@nestjs/common';
 import { Response } from 'express'; // Cần import Response từ express
 import { BookingService } from '../service/booking.service';
 
@@ -6,10 +6,15 @@ import { BookingService } from '../service/booking.service';
 export class BookingController {
     constructor(private readonly bookingService: BookingService) { }
 
+    // @Get('list')
+    // findAll() {
+    //     // Trả về danh sách đã được format cho table ở Frontend
+    //     return this.bookingService.findAllBookingsForTable();
+    // }
+
     @Get('list')
-    findAll() {
-        // Trả về danh sách đã được format cho table ở Frontend
-        return this.bookingService.findAllBookingsForTable();
+    findAll(@Query('search') search?: string) {
+        return this.bookingService.findAllBookingsForTable(search);
     }
 
     // ENDPOINT: XUẤT EXCEL CHI TIẾT ĐẶT PHÒNG

@@ -52,9 +52,7 @@ export class CityService {
             throw error
        }
     }
-
-
-
+    
     async getDataCitiesByFilter(queryParam:GetDataCitiesFilterRequest):Promise<any> {
         try {
             const title = queryParam.title

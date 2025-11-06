@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User, UserRole, Gender, MembershipLevel } from '../../users/entities/users.entity';
+import { LoginRequestDto } from '../dtos/req/LoginRequestDto.dto';
 
 @Injectable()
 export class AuthService {
@@ -50,19 +51,11 @@ export class AuthService {
 		return { message: 'Đăng ký thành công', userId: newUser.id };
 	}
 
-	async login(usernameOrEmail: string, password: string) {
-		// 🔹 1. Tìm user theo username trước
-		let user = await this.userRepo.findOne({ where: { username: usernameOrEmail } });
-
-		// 🔹 2. Nếu không có, thử tìm theo email
-		if (!user) {
-			user = await this.userRepo.findOne({ where: { email: usernameOrEmail } });
-		}
-
-		// 🔹 3. Nếu vẫn không có user → throw
-		if (!user) {
-			throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
-		}
+	async login(query: LoginRequestDto) {
+		const { usernameOrEmail,password } = query
+		const user = await this.userRepo.findOne({
+			where: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
+		});
 
 		// 🔹 4. So sánh password
 		const isMatch = await bcrypt.compare(password, user.password);
@@ -70,8 +63,7 @@ export class AuthService {
 			throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
 		}
 
-		// 🔹 5. Tạo JWT
-		const payload = { sub: user.id, username: user.username, role: user.role };
+		const payload = { userId: user.id, username: user.username, role: user.role };
 		const token = await this.jwtService.signAsync(payload);
 
 		// 🔹 6. Loại bỏ password

@@ -18,6 +18,8 @@ import {
     ChevronDown,
     ChevronUp,
     LogOut, // <-- THÊM MỚI
+    ChartColumn,  // ← thêm
+    ChartArea     // ← hoặc thêm icon này
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -56,6 +58,7 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
 
     const menuItems = [
         { icon: Home, label: "Dashboard", path: '/admin' },
+        { icon: ChartArea, label: "Dashboard API", path: '/admin/dashboardKPI' },
         { icon: Hotel, label: "Hotels", path: '/admin/hotel' },
         { icon: Calendar, label: "Bookings", path: '/admin/booking' },
         { icon: CreditCard, label: "Payments", path: '/admin/payment' },

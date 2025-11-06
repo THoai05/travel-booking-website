@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import api from "@/axios/axios";
 import { toast } from "react-hot-toast";
+import { useAuth } from "@/context/AuthContext";
 
 interface Room {
   id: number;
@@ -67,18 +68,42 @@ export default function RoomMonitorPage() {
   const roomDetailCache = useRef<Map<number, any>>(new Map());
   const hotelDetailCache = useRef<Map<number, any>>(new Map());
 
+  const { user, setUser } = useAuth();
+
+  // Thêm state lưu booking đã lưu
+  const [savedTrips, setSavedTrips] = useState<Set<number>>(new Set());
+
   // Fetch user
   useEffect(() => {
     const fetchUserId = async () => {
       try {
         const res = await api.get("auth/profile");
         if (res.data?.id) setUserId(res.data.id);
-        else toast.error("Không tìm thấy thông tin người dùng!");
+        else {
+          toast.error("Không tìm thấy thông tin người dùng!");
+          setUser(null);
+        }
       } catch {
-        toast.error("Không thể lấy thông tin người dùng!");
+        toast.error("Vui lòng đăng nhập lại! Không thể lấy thông tin người dùng!");
+        setUser(null);
       }
     };
     fetchUserId();
+
+    const fetchSavedTrips = async () => {
+      try {
+        const res = await api.get("/rooms/trip-history"); // trả về object { bookingIds: [...] }
+        const ids: number[] = Array.isArray(res.data.bookingIds)
+          ? res.data.bookingIds.map((id: any) => Number(id)).filter((id: number) => !isNaN(id))
+          : [];
+        setSavedTrips(new Set(ids));
+      } catch (err) {
+        console.error("Không thể tải danh sách chuyến đi đã lưu", err);
+        setSavedTrips(new Set());
+      }
+    };
+    fetchSavedTrips();
+
   }, []);
 
   // Fetch rooms
@@ -254,6 +279,42 @@ export default function RoomMonitorPage() {
     return pageNumbers;
   };
 
+  // Cập nhật handleSaveTrip để thêm bookingId vào savedTrips khi lưu thành công
+  const handleSaveTrip = async (bookingId?: number) => {
+    if (!bookingId) return;
+    try {
+      const res = await api.post("rooms/save-trip", { bookingId });
+      toast.success("✅ Đã lưu hành trình!");
+      setSavedTrips(prev => new Set(prev).add(bookingId));
+    } catch (error: any) {
+      console.error(error);
+      toast.error(
+        error.response?.data?.message || "❌ Không thể lưu hành trình!"
+      );
+    }
+  };
+
+
+  //Xóa hành trình
+  const handleRemoveTrip = async (bookingId?: number) => {
+    if (!bookingId) return;
+    try {
+      await api.post("/rooms/remove-trip", { bookingId });
+
+      setSavedTrips(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(bookingId);
+        return newSet;
+      });
+
+      toast.success("❌ Đã xóa hành trình!");
+    } catch (err) {
+      console.error(err);
+      toast.error("❌ Không thể xóa hành trình!");
+    }
+  };
+
+
 
   const formatDateUTC = (dateStr?: string) => {
     if (!dateStr) return "-"; const d = new Date(dateStr); return d.toLocaleString("vi-VN", { timeZone: "UTC", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", });
@@ -326,12 +387,37 @@ export default function RoomMonitorPage() {
           <div
             onMouseEnter={() => handleHotelHover(group.rooms[0].hotel_id)}
             onMouseLeave={() => setHoveredHotelDetail(null)}
-            className="font-bold text-lg mb-2 cursor-pointer hover:text-blue-600"
+            className="font-bold text-lg mb-2 cursor-pointer hover:text-blue-600 flex items-center justify-between"
           >
             <p className="flex items-start gap-2">
               ⏰ <span className="leading-tight">{group.hotelName}</span>
             </p>
+
+            <div className="flex items-center gap-2">
+              {/* Button lưu hành trình */}
+              <button
+                onClick={() => handleSaveTrip(group.bookingId)}
+                className={`px-2 py-1 rounded text-sm ${savedTrips.has(group.bookingId!)
+                  ? "text-green-500 hover:text-green-600"
+                  : "text-yellow-500 hover:text-yellow-600"
+                  }`}
+                title="Đánh dấu hành trình"
+              >
+                {savedTrips.has(group.bookingId!) ? "✅ Đã lưu hành trình" : "🤍 Lưu hành trình"}
+              </button>
+
+              {savedTrips.has(group.bookingId!) && (
+                <button
+                  onClick={() => handleRemoveTrip(group.bookingId)}
+                  className="px-2 py-1 rounded text-sm text-red-500 hover:text-red-600"
+                  title="Xóa hành trình"
+                >
+                  ❌ Xóa hành trình
+                </button>
+              )}
+            </div>
           </div>
+
 
           <div
             className="border rounded p-2 flex flex-wrap justify-between items-start gap-y-2 gap-x-4 cursor-pointer hover:scale-105 hover:shadow-lg hover:bg-blue-50 transition duration-200 mb-2"

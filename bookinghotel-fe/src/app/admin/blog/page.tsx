@@ -104,9 +104,12 @@ export default function Blog() {
 
       {/* See more */}
       <div className="text-right pb-2">
-        <button className="text-sm text-blue-600 hover:underline">
+        <Link
+          href="/admin/blog/singles"
+          className="text-sm text-blue-600 hover:underline"
+        >
           See more &gt;&gt;
-        </button>
+        </Link>
       </div>
 
       {/* Grid of Posts */}

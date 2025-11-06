@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsNumber } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
 
 export class CreatePostDto {
   @IsString()
@@ -9,10 +9,13 @@ export class CreatePostDto {
   @IsNotEmpty()
   content: string;
 
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  author_id: number;
+  author_name: string; 
 
+  @IsString()       
+  @IsOptional()
+  city_title?: string; 
   @IsString()
   @IsOptional()
   image?: string;
@@ -22,10 +25,6 @@ export class CreatePostDto {
   is_public?: boolean;
 
   @IsString()
-  @IsNotEmpty()
-  slug: string;
-
   @IsOptional()
-  @IsNumber()
-  city_id?: number;
+  slug?: string;
 }

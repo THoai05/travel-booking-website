@@ -97,7 +97,7 @@ const Login = ({
       if (isAdmin) {
         router.push('/admin')
       } else {
-        router.replace('/client')
+        router.replace('/')
       }
       
     } catch (err: any) {

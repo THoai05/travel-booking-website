@@ -3,13 +3,27 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import * as cookieParser from 'cookie-parser';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import helmet from 'helmet';
+import * as express from 'express';
+import { join } from 'path';
+import * as cookieParser from 'cookie-parser'
+import * as dotenv from "dotenv"
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  dotenv.config()
+
+  app.use(helmet());
   app.enableCors({
     origin: 'http://localhost:3000', // URL FE
     credentials: true,
+  });
+
+  app.use('/uploads', (req, res, next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); // cho phép frontend load
+    next();
   });
 
   app.useGlobalPipes(

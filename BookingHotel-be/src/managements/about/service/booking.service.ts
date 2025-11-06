@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Booking } from 'src/managements/bookings/entities/bookings.entity';
 
-
 const ExcelJS = require('exceljs');
 
 @Injectable()
@@ -13,16 +12,25 @@ export class BookingService {
         private bookingRepository: Repository<Booking>,
     ) { }
 
-    // Logic findAllBookingsForTable (Logic giữ nguyên)
-    async findAllBookingsForTable(): Promise<any[]> {
-        // Sử dụng TypeORM find với relations (cần TypeORM Repository của Booking)
-        const bookings = await this.bookingRepository.find({
-            relations: ['roomType', 'roomType.hotel'],
-            order: { createdAt: 'DESC' as 'DESC' },
-            take: 100,
-        }); 
+    async findAllBookingsForTable(search?: string): Promise<any[]> {
 
-        // Map data (giữ nguyên)
+        // --- CHUYỂN SANG QueryBuilder ĐỂ XỬ LÝ JOIN VÀ TÌM KIẾM ---
+        const query = this.bookingRepository.createQueryBuilder('b')
+            // JOIN 2 tầng: Booking -> RoomType -> Hotel
+            .leftJoinAndSelect('b.roomType', 'rt')
+            .leftJoinAndSelect('rt.hotel', 'h')
+            .orderBy('b.createdAt', 'DESC')
+            .take(100);
+
+        if (search) {
+            // Lọc theo ID (cần chuyển sang string) HOẶC Tên khách sạn
+            // b.id là số, nên cần CAST sang CHAR để dùng LIKE
+            query.where("CAST(b.id AS CHAR) LIKE :search OR h.name LIKE :search", { search: `%${search}%` });
+        }
+
+        const bookings = await query.getMany();
+
+        // --- Logic Map Data ---
         return bookings.map(b => ({
             id: `#BK${String(b.id).padStart(5, '0')}`,
             name: b.roomType?.hotel?.name || 'N/A',
@@ -33,11 +41,10 @@ export class BookingService {
         }));
     }
 
-    // Logic exportBookingExcel (Logic giữ nguyên)
-    async exportBookingExcel(): Promise<Buffer> {
-        const dataToExport = await this.findAllBookingsForTable();
-
-        // ... (Code ExcelJS giữ nguyên) ...
+    // Logic exportBookingExcel cũng cần được cập nhật để nhận tham số search
+    async exportBookingExcel(search?: string): Promise<Buffer> {
+        // Gọi hàm đã sửa với tham số search
+        const dataToExport = await this.findAllBookingsForTable(search);
 
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Báo cáo Chi tiết Đặt phòng');

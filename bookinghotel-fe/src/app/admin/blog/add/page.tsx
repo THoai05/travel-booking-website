@@ -1,38 +1,145 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/reduxTK/store";
+import { createBlog } from "@/reduxTK/features/blog/blogThunk";
+import { getAllUsers } from "@/reduxTK/features/user/userThunk";
+
+const slugify = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/Đ/g, "D")
+    .replace(/đ/g, "d")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+
 
 const AddPost = () => {
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const [type, setType] = useState("text");
-  const [author, setAuthor] = useState("");
+  const [author, setAuthor] = useState<string>("");
+  const [image, setImage] = useState<File | null>(null);
+  const [cities, setCities] = useState<{ id: number; title: string }[]>([]);
+  const [city, setCity] = useState<string>("Đà Nẵng");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { users, isLoading } = useSelector((state: RootState) => state.user);
+  // console.log("🧾 users from redux:", users);
+
+  // Gọi API user khi vào trang
+  useEffect(() => {
+    dispatch(getAllUsers());
+  }, [dispatch]);
+
+  // Nếu users có dữ liệu và author rỗng -> set mặc định là user đầu tiên (id)
+  useEffect(() => {
+    if (!author && users && users.length > 0) {
+      setAuthor(String(users[0].id));
+    }
+  }, [users, author]);
+
+  // Fetch cities khi component mount
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const res = await fetch("http://localhost:3636/city");
+        const json = await res.json();
+
+        // Nếu API trả về object chứa data
+        const citiesData = Array.isArray(json) ? json : json.data || [];
+        setCities(citiesData);
+        if (citiesData.length > 0) {
+          setCity(citiesData[0].title); // default chọn city đầu tiên
+        }
+      } catch (err) {
+        console.error("Lỗi khi lấy cities:", err);
+        setCities([]);
+      }
+    };
+    fetchCities();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({
-      title,
-      type,
-      author,
-      content,
-    });
+
+    if (!title.trim() || !content.trim() || !author) {
+      return alert("Vui lòng điền đủ thông tin");
+    }
+
+    const selectedUser = users.find(u => String(u.id) === author);
+    const selectedCity = cities.find(c => c.title === city);
+
+    if (!selectedUser || !selectedCity) {
+      return alert("Author hoặc City không hợp lệ");
+    }
+
+    const slug = slugify(title);
+    let imageUrl = "/uploads/posts/post-1.png";
+
+    try {
+      // Upload ảnh nếu có
+      if (image) {
+        const formData = new FormData();
+        formData.append("files", image); // backend nhận key là 'files'
+
+        const uploadRes = await fetch("http://localhost:3636/posts/upload-images", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadRes.ok) throw new Error("Lỗi khi upload ảnh");
+
+        const uploadData = await uploadRes.json();
+        if (uploadData.urls && uploadData.urls.length > 0) {
+          imageUrl = uploadData.urls[0]; // lấy url trả về
+        }
+      }
+
+      // Gửi dữ liệu bài viết
+      const payload = {
+        title,
+        content,
+        author_name: selectedUser.fullName,
+        city_title: selectedCity.title,
+        slug,
+        is_public: true,
+        image: imageUrl,
+      };
+
+      const result = await dispatch(createBlog(payload)).unwrap();
+      console.log("Created post:", result);
+      alert("Thêm bài viết thành công!");
+
+      // Reset form
+      setTitle("");
+      setContent("");
+      setAuthor(users.length ? String(users[0].id) : "");
+      setCity(cities.length ? cities[0].title : "");
+      setType("text");
+      setImage(null);
+
+    } catch (err: any) {
+      console.error("❌ Lỗi khi tạo bài viết:", err);
+      alert("Thêm bài viết thất bại: " + (err.message || JSON.stringify(err)));
+    }
   };
 
   return (
     <div className="p-10 bg-gray-50 min-h-screen">
-      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Add Post</h1>
         <p className="text-gray-500 text-sm">/ Blog / Add Post</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {/*  Left side: Form  */}
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white p-8 rounded-xl shadow-md space-y-6"
-        >
+        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-md space-y-6">
           {/* Title */}
           <div>
             <label className="block text-sm font-semibold mb-2">Title</label>
@@ -43,6 +150,7 @@ const AddPost = () => {
               onChange={(e) => setTitle(e.target.value)}
               className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400"
             />
+            <p className="mt-1 text-gray-500 text-sm">Slug: <span className="font-mono">{slugify(title)}</span></p>
           </div>
 
           {/* Type */}
@@ -67,13 +175,34 @@ const AddPost = () => {
           {/* Author */}
           <div>
             <label className="block text-sm font-semibold mb-2">Author</label>
-            <input
-              type="text"
-              placeholder="Enter author name..."
+            <select
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
               className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400"
-            />
+            >
+              <option value="">-- Select Author --</option>
+              {users.map((user: any) => (
+                <option key={user.id} value={user.id}>
+                  {user.fullName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* City id (simple input) */}
+          <div>
+            <label className="block text-sm font-semibold mb-2">City</label>
+            <select
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              {cities.map((c) => (
+                <option key={c.id} value={c.title}>
+                  {c.title}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Content */}
@@ -88,12 +217,35 @@ const AddPost = () => {
             />
           </div>
 
-          {/* Upload */}
-          <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg py-10 hover:bg-gray-50 cursor-pointer transition">
-            <p className="text-gray-500 text-sm">
-              📤 Drag & Drop files or{" "}
-              <span className="text-blue-600">Click to browse</span>
-            </p>
+          {/* Upload image */}
+          <div
+            className="flex flex-col items-center justify-center border-2 border-dashed
+          border-gray-300 rounded-lg py-10 hover:bg-gray-50 cursor-pointer transition"
+            onClick={() => document.getElementById("fileInput")?.click()}
+          >
+            <input
+              id="fileInput"
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  setImage(e.target.files[0]);
+                }
+              }}
+            />
+            {image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={URL.createObjectURL(image)}
+                alt="Preview"
+                className="w-48 h-48 object-cover rounded-lg"
+              />
+            ) : (
+              <p className="text-gray-500 text-sm">
+                📤 Drag & Drop or <span className="text-blue-600">Click to upload</span>
+              </p>
+            )}
           </div>
 
           {/* Buttons */}
@@ -113,18 +265,16 @@ const AddPost = () => {
           </div>
         </form>
 
-        {/* Right side: Preview */}
+        {/* Right side: Live Preview */}
         <div className="bg-white p-8 rounded-xl shadow-md border border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-             Live Preview
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Live Preview</h2>
 
           {!title && !content ? (
             <p className="text-gray-400 italic">Start typing to preview...</p>
           ) : (
             <div className="space-y-4">
               <h3 className="text-2xl font-semibold text-gray-900">{title}</h3>
-              <p className="text-sm text-gray-500">By {author || "Anonymous"}</p>
+              <p className="text-sm text-gray-500">By {users.find(u => String(u.id) === author)?.fullName || "Anonymous"}</p>
               <div
                 className="prose max-w-none"
                 dangerouslySetInnerHTML={{ __html: content }}

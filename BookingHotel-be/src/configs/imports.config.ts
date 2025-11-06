@@ -16,6 +16,7 @@ import { SupportChatModule } from "src/managements/support_chat/modules/support_
 import { UsersModule } from "src/managements/users/modules/users.module";
 import { BookingModuleAbout } from "src/managements/about/module/booking.module";
 import { RevenueModule } from "src/managements/about/module/revenue.module";
+import { StatsModule } from "src/managements/bookings_ manage/modules/StatsModule";
 
 export const ManagementsImports = [
     AmenitiesModule,
@@ -35,5 +36,6 @@ export const ManagementsImports = [
     BookingsModule,
     BookingModuleAbout,
     RevenueModule,
-    PostsModule
+    PostsModule,
+    StatsModule
 ]

@@ -13,12 +13,22 @@ import { ResetPasswordModule } from './managements/reset_Password/modules/reset_
 import { FaqModule } from './managements/faq/faq.module';
 import { ContactModule } from './managements/contact/module/contact.module';
 import { ChatModule } from './managements/chat/chat.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { InvoiceModule } from './managements/invoice/invoice.module';
+import { join } from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true
+      isGlobal: true,
     }),
+
+    // Thêm phần này để serve file tĩnh (ảnh upload)
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'), // nơi chứa ảnh
+      serveRoot: '/uploads', // prefix truy cập qua URL
+    }),
+
     AuthModule,
     UsersModule,
     ...ManagementsImports,
@@ -29,6 +39,7 @@ import { ChatModule } from './managements/chat/chat.module';
     FaqModule,
     ContactModule,
     ChatModule,
+    InvoiceModule
   ],
   controllers: [AppController],
   providers: [AppService],
