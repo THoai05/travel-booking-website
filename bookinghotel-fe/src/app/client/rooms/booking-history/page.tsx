@@ -371,22 +371,28 @@ export default function RoomMonitorPage() {
             <p className="flex items-start gap-2 min-w-[150px]">💰 {formatVND(group.totalPrice || 0)}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {group.rooms.map(room => (
+          <div
+            className={`grid gap-6 ${group.rooms.length === 1
+                ? "grid-cols-1" // chiếm 1 cột full width
+                : "grid-cols-1 md:grid-cols-2" // 2 phần tử thì 2 cột trên md
+              }`}
+          >
+            {group.rooms.map((room) => (
               <div
                 key={room.roomTypeId || room.bookingId}
                 className="border rounded-xl p-4 flex flex-col md:flex-row justify-between items-start gap-4
-                  bg-white shadow hover:shadow-lg transition-transform duration-200 hover:-translate-y-1"
+                 bg-white shadow hover:shadow-lg transition-transform duration-200 hover:-translate-y-1"
                 onMouseEnter={() => handleRoomTypeHover(room.roomTypeId)}
                 onMouseLeave={() => setHoveredRoomTypeDetail(null)}
               >
                 <div className="flex flex-col gap-2">
-                <p>📌 Room Type ID: {room.roomTypeId}</p>
-                <p>🏨 Room Type Name: {room.roomTypeName}</p>
+                  <p>📌 Room Type ID: {room.roomTypeId}</p>
+                  <p>🏨 Room Type Name: {room.roomTypeName}</p>
                 </div>
               </div>
             ))}
           </div>
+
         </div>
       ))}
 
