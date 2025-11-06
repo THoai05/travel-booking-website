@@ -95,3 +95,17 @@ export const fetchDetailBlogBySlug = createAsyncThunk(
         }
     }
 );
+
+export const fetchRelatedPosts = createAsyncThunk(
+  "blogs/fetchRelatedPosts",
+  async ({ cityId, excludeSlug }: { cityId: number; excludeSlug: string }, { rejectWithValue }) => {
+    try {
+      const res = await api.get(`/posts/related?cityId=${cityId}&excludeSlug=${excludeSlug}`);
+      return res.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data || "Lỗi khi tải danh sách bài viết liên quan"
+      );
+    }
+  }
+);

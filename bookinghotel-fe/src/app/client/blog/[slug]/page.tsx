@@ -45,7 +45,11 @@ export default function DetailBlog({ params }: { params: { slug: string } }) {
         content={post.content}
         city={post.city}
       />
-      <InspirationStories author={post.author} />
+      <InspirationStories
+        cityId={post?.city?.id}
+        excludeSlug={post?.slug}
+        cityName={post?.city?.title}
+      />
 
       <div className="w-full bg-[#1C2930]">
         <TravelTipsSection />

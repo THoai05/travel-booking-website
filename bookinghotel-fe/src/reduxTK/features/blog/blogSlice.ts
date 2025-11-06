@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createBlog, deletePosts, fetchAdminBlogs, fetchDetailBlogBySlug, fetchPublicBlogs, searchBlogs, updateBlog } from "./blogThunk";
+import { createBlog, deletePosts, fetchAdminBlogs, fetchDetailBlogBySlug, fetchPublicBlogs, fetchRelatedPosts, searchBlogs, updateBlog } from "./blogThunk";
 
 const blogSlice = createSlice({
   name: "blogs",
@@ -8,7 +8,9 @@ const blogSlice = createSlice({
     adminBlogs: [],
     searchResults: [],
     blog: null as null | any,
+    related: [] as any[],
     isLoading: false,
+    isRelatedLoading: false,
     pagination: { total: 0, page: 1, limit: 10 },
     adminPagination: { total: 0, page: 1, limit: 5 },
     error: null as null | unknown,
@@ -124,7 +126,21 @@ const blogSlice = createSlice({
       .addCase(fetchDetailBlogBySlug.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload ? String(action.payload) : "Có lỗi xảy ra";
-      });
+      })
+
+      // // Fetch related posts
+      .addCase(fetchRelatedPosts.pending, (state) => {
+        state.isRelatedLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchRelatedPosts.fulfilled, (state, action) => {
+        state.isRelatedLoading = false;
+        state.related = action.payload;
+      })
+      .addCase(fetchRelatedPosts.rejected, (state, action) => {
+        state.isRelatedLoading = false;
+        state.error = action.payload;
+      })
   },
 });
 
