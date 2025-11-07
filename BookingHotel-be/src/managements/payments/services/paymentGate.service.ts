@@ -21,42 +21,43 @@ export class PaymentGateService {
     private readonly tmnCode = 'O6BLWB77'
     private readonly secretKey = '0Q0XRG2HIAVOKZCPPKFPR3NN3K4HOC7D'
     private readonly vnp_Url = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'
-    private readonly momo_secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz' 
+    private readonly momo_secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz'
     private readonly zaloPay_key1 = "9phuAOYhan4urywHTh0ndEXiV3pKHr5Q"
+    private readonly zaloPay_key2 = "Iyz2habzyr7AG8SgvoBCbKwKi3UzlLi3"
     private readonly stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 
     constructor(
-        private readonly bookingService:BookingsService
-    ){}
+        private readonly bookingService: BookingsService
+    ) { }
 
-      sortObject(obj: Record<string, any>): Record<string, string> {
+    sortObject(obj: Record<string, any>): Record<string, string> {
         const sorted: Record<string, string> = {};
-            const keys: string[] = Object.keys(obj).map(k => encodeURIComponent(k));
+        const keys: string[] = Object.keys(obj).map(k => encodeURIComponent(k));
             
-            keys.sort();
+        keys.sort();
             
-            for (const k of keys) {
-                // lấy value gốc, encode, replace space bằng '+'
-                const value = obj[decodeURIComponent(k)]; 
-                sorted[k] = encodeURIComponent(value).replace(/%20/g, "+");
-            }
+        for (const k of keys) {
+            // lấy value gốc, encode, replace space bằng '+'
+            const value = obj[decodeURIComponent(k)];
+            sorted[k] = encodeURIComponent(value).replace(/%20/g, "+");
+        }
             
-            return sorted;
+        return sorted;
     }
 
     sortMomo(obj: Record<string, any>): Record<string, string> {
         const sorted: Record<string, string> = {};
-            const keys: string[] = Object.keys(obj).map(k => encodeURIComponent(k));
+        const keys: string[] = Object.keys(obj).map(k => encodeURIComponent(k));
             
-            keys.sort();
+        keys.sort();
             
-            for (const key of keys) {
-                // lấy value gốc, encode, replace space bằng '+'
-                 sorted[key] = obj[key]    
-            }
+        for (const key of keys) {
+            // lấy value gốc, encode, replace space bằng '+'
+            sorted[key] = obj[key]
+        }
             
-            return sorted;
+        return sorted;
     }
     
 
@@ -70,36 +71,34 @@ export class PaymentGateService {
 
        
         const returnUrl = `http://localhost:3000/payment/check?gateway=vnpay`
-        const date = new Date()
-
         const vnTime = dayjs().tz('Asia/Ho_Chi_Minh')
         const createDate = vnTime.format('YYYYMMDDHHmmss')
-        const expireDate =vnTime.add(15,'minute').format('YYYYMMDDHHmmss')
+        const expireDate = vnTime.add(15, 'minute').format('YYYYMMDDHHmmss')
         
-        const vnp_Params:Record<string, string> = {
+        const vnp_Params: Record<string, string> = {
             vnp_Version: '2.1.0',
             vnp_Command: 'pay',
             vnp_TmnCode: vnp_TmnCode,
-            vnp_Amount: (amount*100).toString(),
+            vnp_Amount: (amount * 100).toString(),
             vnp_CreateDate: createDate,
             vnp_CurrCode: 'VND',
             vnp_IpAddr: ipAddr,
             vnp_Locale: 'vn',
-            vnp_OrderInfo:`Thanh toan cho don hang ${orderCode}`,
+            vnp_OrderInfo: `Thanh toan cho don hang ${orderCode}`,
             vnp_OrderType: 'billpayment',
-            vnp_ReturnUrl:returnUrl,
-            vnp_ExpireDate:expireDate,
+            vnp_ReturnUrl: returnUrl,
+            vnp_ExpireDate: expireDate,
             vnp_TxnRef: orderCode,
         }
         const sortedParams = this.sortObject(vnp_Params)
         const signData = qs.stringify(sortedParams, { encode: false })
-        console.log("Chuoi sighData: "+signData)
+        console.log("Chuoi sighData: " + signData)
         const hmac = crypto.createHmac(`sha512`, secretKey)
         const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex')
         sortedParams[`vnp_SecureHash`] = signed
 
         
-        const paymentUrl = vnpUrl + '?' + qs.stringify(sortedParams, { encode: false}) 
+        const paymentUrl = vnpUrl + '?' + qs.stringify(sortedParams, { encode: false })
         
         return paymentUrl
     }
@@ -109,43 +108,42 @@ export class PaymentGateService {
         
         const orderAmoutString = orderAmount.toString()
 
-        let partnerCode = "MOMO";
-        let accessKey = "F8BBA842ECF85";
-        let secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
-        let requestId = partnerCode + new Date().getTime();
-        let orderId = orderCode;
-        let orderInfo = "pay with MoMo";
-        let redirectUrl = "http://localhost:3000/payment/check?gateway=momo";
-        let ipnUrl = "https://callback.url/notify";
-        // let ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
-        let amount = orderAmoutString;
-        let requestType = "captureWallet"
-        let extraData = ""; 
+        const partnerCode = "MOMO";
+        const accessKey = "F8BBA842ECF85";
+        const secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
+        const requestId = partnerCode + new Date().getTime();
+        const orderId = orderCode;
+        const orderInfo = "pay with MoMo";
+        const redirectUrl = "http://localhost:3000/payment/check?gateway=momo";
+        const ipnUrl = "https://callback.url/notify";
+        // const ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
+        const amount = orderAmoutString;
+        const requestType = "captureWalssslet"
+        const extraData = "";
 
-        let rawSignature = "accessKey="+accessKey+"&amount=" + amount+"&extraData=" + extraData+"&ipnUrl=" + ipnUrl+"&orderId=" + orderId+"&orderInfo=" + orderInfo+"&partnerCode=" + partnerCode +"&redirectUrl=" + redirectUrl+"&requestId=" + requestId+"&requestType=" + requestType
-        const crypto = require('crypto');
-        let signature = crypto.createHmac('sha256', secretkey)
+        const rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId + "&requestType=" + requestType
+        const signature = crypto.createHmac('sha256', secretkey)
             .update(rawSignature)
             .digest('hex');
 
         const requestBody = JSON.stringify({
-            partnerCode : partnerCode,
-            accessKey : accessKey,
-            requestId : requestId,
-            amount : amount,
-            orderId : orderId,
-            orderInfo : orderInfo,
-            redirectUrl : redirectUrl,
-            ipnUrl : ipnUrl,
-            extraData : extraData,
-            requestType : requestType,
-            signature : signature,
+            partnerCode: partnerCode,
+            accessKey: accessKey,
+            requestId: requestId,
+            amount: amount,
+            orderId: orderId,
+            orderInfo: orderInfo,
+            redirectUrl: redirectUrl,
+            ipnUrl: ipnUrl,
+            extraData: extraData,
+            requestType: requestType,
+            signature: signature,
             lang: 'en'
         });
         try {
-            const response = await axios.post('https://test-payment.momo.vn/v2/gateway/api/create', 
+            const response = await axios.post('https://test-payment.momo.vn/v2/gateway/api/create',
                 requestBody,
-                 { headers: { 'Content-Type': 'application/json' } }
+                { headers: { 'Content-Type': 'application/json' } }
             )
             return response.data.payUrl
         } catch (error) {
@@ -154,7 +152,7 @@ export class PaymentGateService {
     }
 
 
-    async createZaloPayUrl(orderAmount:number ,orderCode:string) {
+    async createZaloPayUrl(orderAmount: number, orderCode: string) {
         const key1 = this.zaloPay_key1
         const config = {
             appid: "553",
@@ -164,7 +162,7 @@ export class PaymentGateService {
 
         const embeddata = {
             merchantinfo: "embeddata123",
-            redirecturl:'http://localhost:3000/payment/check?gateway=zalopay'
+            redirecturl: 'http://localhost:3000/payment/check?gateway=zalopay'
         };
 
         const vnTime = dayjs().tz('Asia/Ho_Chi_Minh')
@@ -182,11 +180,11 @@ export class PaymentGateService {
             appuser: "demo",
             apptime: Date.now(),
             item: JSON.stringify(items),
-            embeddata: JSON.stringify(embeddata), 
+            embeddata: JSON.stringify(embeddata),
             amount: orderAmount,
             description: "Demo",
             bankcode: "zalopayapp",
-            mac:''
+            mac: ''
         }
         const data =
             config.appid + "|" + order.apptransid + "|" + order.appuser + "|" + order.amount + "|" + order.apptime + "|" + order.embeddata + "|" + order.item;
@@ -195,7 +193,7 @@ export class PaymentGateService {
             .digest('hex')
         try {
             const response = await axios.post(config.endpoint, null, {
-                params:order
+                params: order
             })
             if (response.data.returncode === 1) {
                 return response.data.orderurl
@@ -216,25 +214,25 @@ export class PaymentGateService {
                     price_data: {
                         currency: 'usd',
                         product_data: {
-                            name:`Order_${orderCode}`
+                            name: `Order_${orderCode}`
                         },
                         unit_amount: Math.floor(orderAmonut / 25000) * 100
                     },
-                    quantity:1
+                    quantity: 1
                 }
             ],
             mode: 'payment',
-            success_url:'http://localhost:3000/payment/check?gateway=stripe'
-        }) 
+            success_url: `http://localhost:3000/payment/check?gateway=stripe&orderCode=${orderCode}`
+        })
         return session.url
     }
 
-    async verifyVnPay(params:Record<string,string>):Promise<any> {
+    async verifyVnPay(params: Record<string, string>): Promise<any> {
         const { vnp_SecureHash, ...rest } = params
         const sortedParams = this.sortObject(rest)
         const signData = qs.stringify(sortedParams, { encode: false })
         const hmac = crypto.createHmac('sha512', this.secretKey)
-        const signed = hmac.update(Buffer.from(signData,'utf-8')).digest('hex')
+        const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex')
         
         const isValid = signed === vnp_SecureHash
         if (!isValid) {
@@ -251,48 +249,59 @@ export class PaymentGateService {
         return updateBookingData
     }
 
-   async verifyMomo(params: Record<string, string>): Promise<any> {
-    const momoSecretKey = this.momo_secretKey
-    const accessKey = "F8BBA842ECF85";
+    async verifyMomo(params: Record<string, string>): Promise<any> {
+        const momoSecretKey = this.momo_secretKey
+        const accessKey = "F8BBA842ECF85";
 
-    const {
-        amount,
-        extraData,
-        message,
-        orderId,
-        orderInfo,
-        orderType,
-        partnerCode,
-        payType,
-        requestId,
-        responseTime,
-        resultCode,
-        transId,
-        signature
-    } = params;
+        const {
+            amount,
+            extraData,
+            message,
+            orderId,
+            orderInfo,
+            orderType,
+            partnerCode,
+            payType,
+            requestId,
+            responseTime,
+            resultCode,
+            transId,
+            signature
+        } = params;
 
-    const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&message=${message}&orderId=${orderId}&orderInfo=${orderInfo}&orderType=${orderType}&partnerCode=${partnerCode}&payType=${payType}&requestId=${requestId}&responseTime=${responseTime}&resultCode=${resultCode}&transId=${transId}`;
+        const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&message=${message}&orderId=${orderId}&orderInfo=${orderInfo}&orderType=${orderType}&partnerCode=${partnerCode}&payType=${payType}&requestId=${requestId}&responseTime=${responseTime}&resultCode=${resultCode}&transId=${transId}`;
 
-    const hmac = crypto.createHmac('sha256', momoSecretKey);
-    const signed = hmac.update(rawSignature).digest('hex');
+        const hmac = crypto.createHmac('sha256', momoSecretKey);
+        const signed = hmac.update(rawSignature).digest('hex');
 
-    console.log("Raw string:", rawSignature);
-    console.log("Signature MoMo:", signature);
-    console.log("Signature check:", signed);
+        console.log("Raw string:", rawSignature);
+        console.log("Signature MoMo:", signature);
+        console.log("Signature check:", signed);
 
-    if (signed !== signature) {
-        throw new BadRequestException("Giao dich khong hop le");
+        if (signed !== signature) {
+            throw new BadRequestException("Giao dich khong hop le");
+        }
+
+        if (resultCode !== '0') {
+            throw new BadRequestException("Giao dich that bai");
+        }
+
+        return this.bookingService.updateBookingForGuests(Number(orderId), { status: "confirmed" });
     }
 
-    if (resultCode !== '0') {
-        throw new BadRequestException("Giao dich that bai");
+    async verifyZalopay(params: Record<string, string>): Promise<any> {
+        const { apptransid,status } = params
+        const id = apptransid.split('_')[1];
+        if (status !== '1') {
+            throw new BadRequestException("Giao dịch thất bại");
+        }
+
+        return this.bookingService.updateBookingForGuests(Number(id), { status: "confirmed" });
     }
 
-    return this.bookingService.updateBookingForGuests(Number(orderId), { status: "confirmed" });
+    async verifyStipe(orderCode:string): Promise<any> {
+        return this.bookingService.updateBookingForGuests(Number(orderCode), { status: "confirmed" });
     }
-
-
-   
 }
 
 
