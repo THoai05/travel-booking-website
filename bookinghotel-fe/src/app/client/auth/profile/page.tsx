@@ -104,7 +104,7 @@ export default function ProfilePage() {
         ) {
           if (nofications === 0) {
             setNofications(1);
-            toast("Hết thời gian đăng nhập vui lòng đăng nhập để xem thông tin người dùng của bạn!", { icon: "⚠️" });
+            //toast("Hết thời gian đăng nhập vui lòng đăng nhập để xem thông tin người dùng của bạn!", { icon: "⚠️" });
           }
           setUser(null);
         }
