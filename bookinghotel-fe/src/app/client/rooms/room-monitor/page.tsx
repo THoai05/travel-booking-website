@@ -118,7 +118,7 @@ export default function RoomMonitorPage() {
 
         setRooms(data);
       } catch (err) {
-        toast("❌ Lỗi khi tải danh sách phòng!", { icon: "⚠️" });
+        //toast("❌ Lỗi khi tải danh sách phòng!", { icon: "⚠️" });
         setApiType("all");
         setShowAll("all");
       }
@@ -389,7 +389,25 @@ export default function RoomMonitorPage() {
                     <div>
                       <p>📌 Room Type ID: {room.roomTypeId}</p>
                       <p>🏨 Room Type Name: {room.roomTypeName}</p>
-                      {room.bookingStatus && (
+
+                      <p>
+                        🧾 Status:{" "}
+                        <span
+                          className={`font-semibold px-2 py-1 rounded-full text-sm ${["pending", "confirmed"].includes(room.bookingStatus || "")
+                              ? "bg-red-100 text-red-800"
+                              : "bg-green-100 text-green-800"
+                            }`}
+                        >
+                          {["pending", "confirmed"].includes(room.bookingStatus || "")
+                            ? "Có người ở"
+                            : "Phòng trống"}
+                        </span>
+                      </p>
+
+
+
+
+                      {apiType === "user" && (
                         <>
                           <p>
                             📅 {formatDate(room.checkInDate)} →{" "}

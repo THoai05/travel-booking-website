@@ -17,23 +17,55 @@ export class RoomsService {
         @InjectRepository(User) private usersRepo: Repository<User>,
     ) { }
 
-    // 1️⃣ Tất cả phòng trên hệ thống
+    //Lấy tất cá các phòng roomType
+    //Xác định roomType đã đặt chỗ, roomType chưa được đặt
     async getAllRooms() {
-        return this.roomTypeRepo
-            .createQueryBuilder('rt')
+        const allBookings = await this.bookingRepo
+            .createQueryBuilder('b')
+            .leftJoin('b.roomType', 'rt')
             .leftJoin('rt.hotel', 'h')
             .select([
+                'b.id AS bookingId',
+                'b.status AS bookingStatus',
                 'rt.id AS roomTypeId',
                 'rt.name AS roomTypeName',
-
                 'h.id AS hotelId',
-                'h.name AS hotelName',             
+                'h.name AS hotelName',
             ])
             .orderBy('h.name', 'ASC')
             .addOrderBy('rt.id', 'DESC')
             .getRawMany();
+
+        const priorityMap = new Map<number, any>();
+        const hasPersonStatus = ['pending', 'confirmed'];
+
+        for (const r of allBookings) {
+            // Nếu roomTypeId chưa có trong map → thêm luôn
+            const existing = priorityMap.get(r.roomTypeId);
+            if (!existing) {
+                priorityMap.set(r.roomTypeId, r);
+                continue;
+            }
+
+            // Nếu r.bookingId là null → vẫn giữ existing (không ghi đè)
+            if (r.bookingId === null) continue;
+
+            const rStatus = hasPersonStatus.includes(r.bookingStatus);
+            const existingStatus = hasPersonStatus.includes(existing.bookingStatus);
+
+            // Ưu tiên "có người"
+            if (rStatus && !existingStatus) {
+                priorityMap.set(r.roomTypeId, r);
+            }
+            // Nếu cùng loại, giữ existing (cả 2 đều trống hoặc cùng có người)
+        }
+
+        return Array.from(priorityMap.values());
     }
-    
+
+
+
+
 
     // 3️⃣ Theo user (lấy các phòng mà user đã đặt, không cần Room.id)
     async getRoomsByUser(userId: number) {
@@ -41,13 +73,13 @@ export class RoomsService {
             .createQueryBuilder('b')
             .leftJoin('b.user', 'u')
             .leftJoin('b.roomType', 'rt')
-            .leftJoin('rt.hotel', 'h')      
+            .leftJoin('rt.hotel', 'h')
             .select([
                 'b.id AS bookingId',
                 'b.status AS bookingStatus',
                 'b.checkInDate AS checkInDate',
                 'b.checkOutDate AS checkOutDate',
-                'b.guestsCount AS guestsCount',    
+                'b.guestsCount AS guestsCount',
 
                 'h.id AS hotelId',
                 'h.name AS hotelName',
@@ -56,7 +88,7 @@ export class RoomsService {
                 'rt.name AS roomTypeName',
             ])
             .where('b.user_id = :userId', { userId })
-            .orderBy('b.check_in_date', 'DESC')
+            .orderBy('b.createdAt', 'DESC')
             .getRawMany();
     }
 
