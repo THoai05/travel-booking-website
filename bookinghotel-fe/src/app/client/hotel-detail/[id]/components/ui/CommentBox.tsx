@@ -26,13 +26,25 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
 
   const handleEmojiSelect = (emoji: any) => {
     if (!editableRef.current) return;
+
+    // Focus lại vào vùng nhập
+    editableRef.current.focus();
+
     const sel = window.getSelection();
-    if (!sel || !sel.rangeCount) return;
-    const range = sel.getRangeAt(0);
-    range.deleteContents();
-    range.insertNode(document.createTextNode(emoji.native));
-    sel.removeAllRanges();
-    sel.addRange(range);
+
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(document.createTextNode(emoji.native));
+      sel.collapseToEnd();
+    } else {
+      // Nếu mất selection, chèn vào cuối nội dung hiện tại
+      editableRef.current.innerHTML += emoji.native;
+    }
+
+    // Cập nhật lại state để hiển thị
+    setCommentHtml(editableRef.current.innerHTML);
+
     setShowEmojiPicker(false);
   };
 
@@ -44,13 +56,13 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
   const removeImage = (idx: number) => setImages(images.filter((_, i) => i !== idx));
 
   const handleSubmit = async () => {
-    // ✅ Kiểm tra rating bắt buộc
+    // Kiểm tra rating bắt buộc
     if (rating < 1) {
       setWarning("Vui lòng chọn số sao trước khi gửi đánh giá!");
       return;
     }
 
-    // ✅ Kiểm tra comment và ảnh (ít nhất 1 trong 2)
+    // Kiểm tra comment và ảnh (ít nhất 1 trong 2)
     if (!commentHtml.trim() && images.length === 0) {
       setWarning("Vui lòng nhập nhận xét hoặc tải lên ít nhất một hình ảnh!");
       return;
@@ -61,7 +73,6 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
     try {
       let uploadedImageUrls: string[] = [];
 
-      //  Upload ảnh trước (nếu có)
       if (images.length > 0) {
         const formData = new FormData();
         images.forEach((image) => formData.append("files", image));
@@ -87,14 +98,14 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
       };
 
       const resultAction = await dispatch(createReviewThunk(reviewData));
-      console.log("✅ Kết quả trả về từ API:", resultAction);
+      console.log("Kết quả trả về từ API:", resultAction);
 
       setCommentHtml("");
       setRating(0);
       setImages([]);
       setWarning(null);
     } catch (error) {
-      console.error("❌ Lỗi khi gửi review:", error);
+      console.error("Lỗi khi gửi review:", error);
       setWarning("Gửi đánh giá thất bại. Vui lòng thử lại!");
     }
   };
@@ -175,7 +186,8 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
         innerRef={editableRef}
         html={commentHtml}
         onChange={(e: ContentEditableEvent) => setCommentHtml(e.target.value)}
-        className="w-full min-h-[100px] p-2 border border-blue-100 rounded-lg text-gray-700 focus:ring-1 focus:ring-sky-300 bg-white"
+        className="w-full min-h-[100px] p-2 border border-blue-100 rounded-lg
+      text-gray-700 focus:ring-1 focus:ring-sky-300 bg-white"
       />
 
       {/* Image preview */}
