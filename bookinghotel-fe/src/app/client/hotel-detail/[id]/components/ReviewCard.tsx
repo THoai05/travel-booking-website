@@ -1,5 +1,3 @@
-// components/ReviewCard.tsx
-
 import { Review } from '../types';
 import { Card, CardContent } from './ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -34,9 +32,8 @@ export default function ReviewCard({ review }: ReviewCardProps) {
     }
   };
 
-  // Hàm xử lý text “Hữu ích” (demo)
+  // Hàm xử lý text “Hữu ích”
   const helpfulText = () => {
-    // Giả lập dữ liệu — sau này bạn có thể thay bằng trường `helpfulCount` trong DB
     const randomCount = Math.floor(Math.random() * 10);
     return randomCount > 0 ? `${randomCount} người thấy hữu ích` : '';
   };

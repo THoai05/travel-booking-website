@@ -130,6 +130,7 @@ export default function CommentBox() {
         <div className="flex gap-2 mt-2 mb-3 flex-wrap">
           {images.map((img, idx) => (
             <div key={idx} className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={URL.createObjectURL(img)}
                 alt={`preview-${idx}`}

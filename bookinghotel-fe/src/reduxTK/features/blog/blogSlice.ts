@@ -128,7 +128,7 @@ const blogSlice = createSlice({
         state.error = action.payload ? String(action.payload) : "Có lỗi xảy ra";
       })
 
-      // // Fetch related posts
+      //Fetch related posts
       .addCase(fetchRelatedPosts.pending, (state) => {
         state.isRelatedLoading = true;
         state.error = null;
