@@ -7,6 +7,7 @@ import { JwtStrategy } from '../strategies/jwt.strategy';
 import { UsersModule } from '../../users/modules/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GoogleStrategy } from '../strategies/google.strategy';
+import { GithubOauthStrategy } from '../strategies/github.stargery';
 
 @Module({
   imports: [
@@ -21,8 +22,9 @@ import { GoogleStrategy } from '../strategies/google.strategy';
         signOptions: { expiresIn:"12h" },
       }),
     }),
+    ConfigModule
   ],
-  providers: [AuthService, JwtStrategy,GoogleStrategy],
+  providers: [AuthService, JwtStrategy,GoogleStrategy,GithubOauthStrategy],
   controllers: [AuthController],
 })
 export class AuthModule {}

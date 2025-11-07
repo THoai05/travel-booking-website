@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { Response } from 'express';
 import { LoginRequestDto } from '../dtos/req/LoginRequestDto.dto';
 import { GoogleOauthGuard } from '../guards/google.guard';
+import { GithubOauthGuard } from '../guards/github.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -19,7 +20,6 @@ export class AuthController {
     @Body() body: LoginRequestDto,
     @Res({ passthrough: true }) res: Response
   ) {
-    const { usernameOrEmail, password } = body;
     const { message, token, userWithoutPassword } = await this.authService.login(body);
     res.cookie('access_Token', token, {
       httpOnly: true,
@@ -68,6 +68,32 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleOauthGuard)
   async handleCallback(@Req() req,
+    @Res() res) {
+    const { username } = req.user
+    const { message, token, userWithoutPassword } = await this.authService.loginGoogle(username);
+    res.cookie('access_Token', token, {
+      httpOnly: true,
+      secure: false, 
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 24, 
+      signed: false,
+    });
+
+    const redirectURL = `http://localhost:3000/client`
+    res.redirect(redirectURL)
+   
+  }
+
+
+  @Get('github/login')
+  @UseGuards(GithubOauthGuard)
+  async handleGithubLogin() {
+    return 
+  }
+
+  @Get('github/callback')
+  @UseGuards(GithubOauthGuard)
+  async handleGithubCallback(@Req() req,
     @Res() res) {
     const { username } = req.user
     const { message, token, userWithoutPassword } = await this.authService.loginGoogle(username);
