@@ -1,22 +1,20 @@
-// components/ReviewsSection.tsx
 'use client'
 
 import { useHandleGetReviewsByHotelId } from '@/service/reviews/reviewService';
 import { Review, ReviewSummary } from '../types';
 import ReviewCard from './ReviewCard';
 import { Button } from './ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'; // Import Tabs
-import { Building, Globe, ShieldCheck , Bird} from 'lucide-react'; // Icons ví dụ
-
-//--- DỮ LIỆU MOCK (Thay thế bằng API của bro) ---
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Building, Globe, ShieldCheck, Bird } from 'lucide-react';
+import CommentBox from './ui/CommentBox';
 
 // Dữ liệu mock cho tóm tắt (Giống hình 2)
 function generateFakeSummary(avgRating: number) {
   // Dao động nhỏ theo mức rating
-  const range = avgRating*2 >= 8 ? 0.5 : avgRating >= 5 ? 0.7 : 1.0;
+  const range = avgRating * 2 >= 8 ? 0.5 : avgRating >= 5 ? 0.7 : 1.0;
 
   const randomOffset = (maxDiff: number) =>
-    avgRating*2 + (Math.random() * maxDiff - maxDiff / 2);
+    avgRating * 2 + (Math.random() * maxDiff - maxDiff / 2);
 
   return {
     categoryScores: [
@@ -32,7 +30,6 @@ function generateFakeSummary(avgRating: number) {
   };
 }
 
-
 // Dữ liệu mock cho các review (Giống hình 1)
 // Cập nhật ngày để 'formatDistanceToNow' hoạt động đúng
 const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
@@ -42,41 +39,42 @@ const sixDaysAgo = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString();
 
 //--- KẾT THÚC DỮ LIỆU MOCK ---
 
-interface DataReview{
+interface DataReview {
   avgRating: number
   reviewCount: number
 }
 
 interface ReviewSectionProbs {
   data: DataReview
-  hotelId:number
+  hotelId: number
 }
 
 
 
-export default function ReviewsSection({ data,hotelId }: ReviewSectionProbs) {
+export default function ReviewsSection({ data, hotelId }: ReviewSectionProbs) {
   console.log(hotelId)
-  
-  const {data:mockReviews} = useHandleGetReviewsByHotelId(hotelId)
+
+  const { data: mockReviews } = useHandleGetReviewsByHotelId(hotelId)
 
   // Dùng dữ liệu mock
   const reviews = mockReviews || [];
 
   const getRatingText = (rating: number) => {
-  if (rating >= 9) return 'Tuyệt vời';
-  if (rating >= 8) return 'Rất tốt';
-  if (rating >= 7) return 'Tốt';
-  if (rating >= 6) return 'Hài lòng';
-  return 'Tạm ổn';
+    if (rating >= 9) return 'Tuyệt vời';
+    if (rating >= 8) return 'Rất tốt';
+    if (rating >= 7) return 'Tốt';
+    if (rating >= 6) return 'Hài lòng';
+    return 'Tạm ổn';
   };
-  
+
   const summary = generateFakeSummary(data?.avgRating || 8);
-  
+
 
   return (
     <section className="py-8 border-b">
-      <h2 className="mb-6 text-2xl font-bold">Đánh giá của khách hàng</h2>
-      
+      <CommentBox />
+      <h2 className="my-6 text-2xl font-bold">Đánh giá của khách hàng</h2>
+
       {/* --- Phần Tóm tắt (Hình 2) --- */}
       <div className="mb-8">
         <Tabs defaultValue="Bluevera">
@@ -84,15 +82,15 @@ export default function ReviewsSection({ data,hotelId }: ReviewSectionProbs) {
             <TabsTrigger value="Bluevera">Bluevera ({data?.reviewCount})</TabsTrigger>
             <TabsTrigger value="others">Nguồn khác (1)</TabsTrigger>
           </TabsList>
-          
+
           {/* Content cho Tab Bluevera */}
           <TabsContent value="Bluevera">
             <div className="grid md:grid-cols-3 gap-8">
-              
+
               {/* Cột 1: Điểm tổng quan */}
               <div className="flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 rounded-lg p-6 shadow-md border border-blue-100">
                 <div className="text-7xl font-bold text-sky-600 mb-2">{Number(data?.avgRating * 2).toFixed(1)}</div>
-                <div className="text-2xl font-semibold mb-2">{ getRatingText(Number(data?.avgRating*2)) }</div>
+                <div className="text-2xl font-semibold mb-2">{getRatingText(Number(data?.avgRating * 2))}</div>
                 <p className="text-gray-600 text-sm mb-4">Đến từ {data?.reviewCount} đánh giá</p>
                 <div className="flex items-center gap-1 text-xs text-gray-500">
                   <span>Được cung cấp bởi</span>
@@ -123,7 +121,7 @@ export default function ReviewsSection({ data,hotelId }: ReviewSectionProbs) {
 
           {/* Content cho Tab Other sources */}
           <TabsContent value="others">
-             <p>No reviews from other sources.</p>
+            <p>No reviews from other sources.</p>
           </TabsContent>
         </Tabs>
       </div>
@@ -131,8 +129,8 @@ export default function ReviewsSection({ data,hotelId }: ReviewSectionProbs) {
       {/* --- Phần Danh sách Review (Hình 1) --- */}
       <div className="space-y-4 mb-6">
         {reviews && reviews.length > 0 && reviews.map((review) => (
-  <ReviewCard key={review.id} review={review} />
-))}
+          <ReviewCard key={review.id} review={review} />
+        ))}
       </div>
 
       <div className="text-center">

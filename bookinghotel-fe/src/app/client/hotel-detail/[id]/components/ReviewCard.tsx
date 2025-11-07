@@ -4,19 +4,16 @@ import { Review } from '../types';
 import { Card, CardContent } from './ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Button } from './ui/button';
-import { Bird, ThumbsUp } from 'lucide-react';
+import { Bird, ThumbsUp, Star } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { vi } from 'date-fns/locale'; // ✅ để format tiếng Việt (tùy chọn)
+import { vi } from 'date-fns/locale';
 
-// --- Interface props ---
 interface ReviewCardProps {
   review: Review;
 }
 
-// --- Component ---
 export default function ReviewCard({ review }: ReviewCardProps) {
-
-  // 🧩 1. Lấy chữ cái đầu của tên user
+  // Lấy chữ cái đầu của tên user
   const getInitials = (name?: string): string => {
     if (!name) return '?';
     return name
@@ -26,7 +23,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
       .toUpperCase();
   };
 
-  // 🧩 2. Format ngày “cách đây x ngày”
+  // Format ngày “cách đây x ngày”
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -37,11 +34,26 @@ export default function ReviewCard({ review }: ReviewCardProps) {
     }
   };
 
-  // 🧩 3. Hàm xử lý text “Hữu ích” (demo)
+  // Hàm xử lý text “Hữu ích” (demo)
   const helpfulText = () => {
     // Giả lập dữ liệu — sau này bạn có thể thay bằng trường `helpfulCount` trong DB
     const randomCount = Math.floor(Math.random() * 10);
     return randomCount > 0 ? `${randomCount} người thấy hữu ích` : '';
+  };
+
+  const renderStars = (rating?: number) => {
+    const stars = [];
+    const normalizedRating = typeof rating === 'number' ? Math.round(rating) : 0;
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <Star
+          key={i}
+          className={`w-4 h-4 ${i <= normalizedRating ? 'text-yellow-400' : 'text-gray-300'
+            }`}
+        />
+      );
+    }
+    return <div className="flex gap-1">{stars}</div>;
   };
 
   return (
@@ -60,22 +72,16 @@ export default function ReviewCard({ review }: ReviewCardProps) {
           {/* Nội dung review */}
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2">
-              
+
               {/* Tên người review */}
               <div className="mb-2 sm:mb-0">
                 <h4 className="font-semibold">{review?.user?.username || 'Ẩn danh'}</h4>
+                <div>{renderStars(review?.rating)}</div>
               </div>
 
               {/* Điểm + Ngày */}
               <div className="flex flex-col sm:items-end gap-2">
-                <div className="flex items-center gap-1 rounded-full bg-blue-100 text-sky-700 px-3 py-1 text-sm font-semibold">
-                  <Bird className="w-4 h-4" />
-                  <span>
-                    {typeof review?.rating === 'number'
-                      ? `${(review.rating * 2).toFixed(1)} / 10`
-                      : 'Chưa có điểm'}
-                  </span>
-                </div>
+                
                 <p className="text-sm text-gray-500">{formatDate(review?.createdAt)}</p>
               </div>
             </div>
