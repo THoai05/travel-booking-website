@@ -34,6 +34,8 @@ const PaymentCheck = () => {
                 case "zalopay":
                     paymentVerifyEndpoint = `payment-gate/verify/zalopay${finalQueryString}`
                     break
+                case "stripe":
+                    paymentVerifyEndpoint = `payment-gate/verify/stripe${finalQueryString}`
             }
 
             console.log(paymentVerifyEndpoint)
