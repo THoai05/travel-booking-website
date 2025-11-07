@@ -13,6 +13,8 @@ import { CombinedPaymentStats } from "./CombinedPaymentStats";
 
 import { TablesSectionPaymentStats } from "./TablesSectionPaymentStats";
 
+import { CarouselPaymentStats } from "./CarouselPaymentStats";
+
 export default function TravelDashboard() {
     const { user } = useAuth();
     const router = useRouter();
@@ -34,6 +36,7 @@ export default function TravelDashboard() {
                     <CarouselHotels />
                     <ChartsSection />
                     <ChartsSectionRevenue />
+                    <CarouselPaymentStats />
                     <CombinedBookingChart />
                     <CombinedPaymentStats />
                     <TablesSectionKPI />
