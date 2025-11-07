@@ -6,10 +6,10 @@ import { UpdateBookingRequest } from '../dtos/req/UpdateBookingRequest.dto';
 @Controller('bookings')
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) { }
-  
+
 
   @Post('')
-  async handleCreateBooking(@Body() body: CreateBookingRequest): Promise<any>{
+  async handleCreateBooking(@Body() body: CreateBookingRequest): Promise<any> {
     const data = await this.bookingsService.createBooking(body)
     return {
       message: "success",
@@ -20,7 +20,7 @@ export class BookingsController {
   @Patch(':id')
   async handleUpdateBooking(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body:UpdateBookingRequest
+    @Body() body: UpdateBookingRequest
   ) {
     console.log(id)
     const updateData = await this.bookingsService.updateBookingForGuests(id, body)
@@ -56,5 +56,15 @@ export class BookingsController {
       message: 'success',
       data,
     };
+  }
+
+  @Get('export-data/:type')
+  async getExportData(@Param('type') type: 'week' | 'month' | 'year') {
+    return this.bookingsService.getExportData(type);
+  }
+
+  @Get('revenue-by-hotel')
+  async getRevenueByHotel() {
+    return this.bookingsService.getRevenueByHotel();
   }
 }

@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/users.entity';
+import { GoogleRegisterDto } from '../dtos/GoogleRegisterDto.dto';
 
 @Injectable()
 export class UsersService {
@@ -65,5 +66,24 @@ export class UsersService {
   }
 
 
+
   
+    async findByGoogleId(id: string): Promise<User|null>{
+        const userGoogle = await this.usersRepository.findOne({
+            where: {
+                googleId:id
+            }
+        })
+        if (!userGoogle) {
+            return null
+        }
+        return userGoogle
+    }
+  
+  
+   async createGoogleUser(data: GoogleRegisterDto): Promise<User> {
+      const newUser = this.usersRepository.create({ ...data });
+      const savedUser = await this.usersRepository.save(newUser);
+      return savedUser;
+    }
 }

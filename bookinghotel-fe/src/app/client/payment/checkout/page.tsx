@@ -111,7 +111,6 @@ import api from '@/axios/axios';
          orderCode:pendingBooking?.bookingId.toString()
        }
      })
-     console.log(response.data)
      window.location.href = response.data
    }
    

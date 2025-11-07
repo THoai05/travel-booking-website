@@ -21,9 +21,9 @@ export class ReviewsController {
     @Param('id', ParseIntPipe) hotelId: number,
     @Query('page') page = '1',
     @Query('limit') limit = '10',
-    @Req() req: Request,
+    @Req() req,
   ) {
-    const userId = req.user?.userId;
+    const userId = req.user?.sub;
     const pageNum = Math.max(parseInt(page), 1);
     const limitNum = Math.max(parseInt(limit), 1);
 

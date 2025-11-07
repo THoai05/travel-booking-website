@@ -1,104 +1,135 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { MapPin } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import api from "@/axios/axios";
+import { motion, AnimatePresence } from "framer-motion";
 
-interface TripCardProps {
-    image: string;
-    price: string;
-    title: string;
-    location: string;
-    tags: Array<{ label: string; color: string }>;
+interface Hotel {
+    hotelId: number;
+    hotelName: string;
+    cityImage: string;
+    hotelAddress: string;
+    totalRevenue: number;
+    totalBookings: number;
+    description: string;
 }
 
-function TripCard({ image, price, title, location, tags }: TripCardProps) {
+function HotelCard({ hotel }: { hotel: Hotel }) {
     return (
-        <Card className="overflow-hidden border-0 shadow-sm hover:shadow-md transition-shadow">
-            <div className="relative h-48">
+        <div className="border rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 bg-white">
+            {/* Hình ảnh khách sạn */}
+            <div className="relative h-52 md:h-48 overflow-hidden rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-500">
                 <Image
-                    src={image}
-                    alt={title}
+                    src={hotel.cityImage}
+                    alt={hotel.hotelName}
                     fill
-                    className="object-cover"
+                    className="object-cover transform transition-transform duration-700 ease-out hover:scale-110 hover:rotate-1 hover:brightness-110"
                 />
-                <div className="absolute top-3 right-3 bg-white rounded-full px-3 py-1">
-                    <span className="text-gray-900">${price}</span>
+                {/* Doanh thu */}
+                <div className="absolute top-3 right-3 bg-white rounded-full px-3 py-1 shadow-md">
+                    <span className="text-gray-900 font-semibold text-sm">
+                        {hotel.totalRevenue.toLocaleString()}₫
+                    </span>
                 </div>
             </div>
-            <CardContent className="p-4">
-                <h3 className="text-gray-900 mb-2">{title}</h3>
-                <div className="flex items-center gap-1 text-gray-500 mb-3">
-                    <MapPin className="h-4 w-4" />
-                    <span className="text-sm">{location}</span>
+
+
+            {/* Nội dung */}
+            <div className="p-4 flex flex-col justify-between h-full">
+                {/* Tiêu đề và địa chỉ */}
+                <div className="mb-3">
+                    <h3 className="text-gray-900 font-semibold text-lg truncate">{hotel.hotelName}</h3>
+                    <div className="flex items-center gap-2 text-gray-500 text-sm mt-3">
+                        <span className="text-blue-500">📌</span>
+                        <span className="truncate">{hotel.hotelAddress}</span>
+                    </div>
+
+                    <p className="text-sm text-gray-600 leading-snug mt-1">
+                        📝 {hotel.description.length > 200
+                            ? hotel.description.substring(0, 200) + "..."
+                            : hotel.description}
+                    </p>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                    {tags.map((tag, index) => (
-                        <Badge
-                            key={index}
-                            variant="secondary"
-                            className={`${tag.color} border-0`}
-                        >
-                            {tag.label}
-                        </Badge>
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
+                {/* Mô tả */}
+
+            </div>
+        </div>
+
     );
 }
 
-export function TripsSection() {
-    const trips = [
-        {
-            image: "/images/ks1.jpg",
-            price: "300",
-            title: "Thornridge Cir. Shiloh",
-            location: "Port St.George Ln Singapore",
-            tags: [
-                { label: "Mountains", color: "bg-teal-100 text-teal-700" },
-                { label: "City", color: "bg-blue-100 text-blue-700" },
-            ],
-        },
-        {
-            image: "/images/ks2.jpg",
-            price: "1780",
-            title: "Roraima Tepui",
-            location: "Canaima Park, Venezuela",
-            tags: [
-                { label: "Solo travel", color: "bg-orange-100 text-orange-700" },
-                { label: "Budget", color: "bg-amber-100 text-amber-700" },
-            ],
-        },
-        {
-            image: "/images/ks3.jpg",
-            price: "870",
-            title: "Socotra Island",
-            location: "Yemen",
-            tags: [
-                { label: "Luxury", color: "bg-purple-100 text-purple-700" },
-                { label: "Beach", color: "bg-cyan-100 text-cyan-700" },
-            ],
-        },
-        {
-            image: "/images/ks4.jpg",
-            price: "604",
-            title: "San Lake Baikal",
-            location: "Siberia, Russia",
-            tags: [
-                { label: "Sports", color: "bg-pink-100 text-pink-700" },
-                { label: "Adventures", color: "bg-red-100 text-red-700" },
-            ],
-        },
-    ];
+export function CarouselHotels() {
+    const [hotels, setHotels] = useState<Hotel[]>([]);
+    const [currentSlide, setCurrentSlide] = useState(0);
+    const SLIDE_SIZE = 4;
+
+    useEffect(() => {
+        const fetchHotels = async () => {
+            try {
+                const res = await api.get("/bookings/revenue-by-hotel");
+                const sorted = res.data.sort((a: Hotel, b: Hotel) => b.totalRevenue - a.totalRevenue);
+                setHotels(sorted);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchHotels();
+    }, []);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentSlide(prev =>
+                hotels.length ? (prev + 1) % Math.ceil(hotels.length / SLIDE_SIZE) : 0
+            );
+        }, 8000);
+        return () => clearInterval(interval);
+    }, [hotels]);
+
+    const totalSlides = Math.ceil(hotels.length / SLIDE_SIZE);
+
+    // Animation variants
+    const slideVariants = {
+        enter: { x: "100%", opacity: 0 },
+        center: { x: 0, opacity: 1 },
+        exit: { x: "-100%", opacity: 0 },
+    };
 
     return (
         <div className="mb-8">
             <div className="bg-white border-2 border-dashed border-blue-300 rounded-xl p-6">
                 <h2 className="text-gray-900 mb-4">Trips</h2>
-                <div className="grid grid-cols-4 gap-4">
-                    {trips.map((trip, index) => (
-                        <TripCard key={index} {...trip} />
-                    ))}
+                <div className="relative overflow-hidden">
+                    <AnimatePresence initial={false} mode="wait">
+                        <motion.div
+                            key={currentSlide}
+                            className="grid grid-cols-1 md:grid-cols-4 gap-4"
+                            variants={slideVariants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            transition={{ duration: 0.8, ease: "easeInOut" }}
+                        >
+                            {hotels
+                                .slice(currentSlide * SLIDE_SIZE, currentSlide * SLIDE_SIZE + SLIDE_SIZE)
+                                .map(hotel => (
+                                    <HotelCard key={hotel.hotelId} hotel={hotel} />
+                                ))}
+                        </motion.div>
+                    </AnimatePresence>
+
+                    {/* Dots */}
+                    <div className="flex justify-center gap-2 mt-4">
+                        {Array.from({ length: totalSlides }).map((_, idx) => (
+                            <span
+                                key={idx}
+                                className={`w-3 h-3 rounded-full cursor-pointer ${idx === currentSlide ? "bg-blue-500" : "bg-gray-300"
+                                    }`}
+                                onClick={() => setCurrentSlide(idx)}
+                            />
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

@@ -78,4 +78,24 @@ export class AuthService {
 		const { password, ...safeUser } = user;
 		return safeUser;
 	}
+
+
+	async loginGoogle(username:string) {
+		const user = await this.userRepo.findOne({
+			where: {
+				username
+			},
+		});
+
+		if (!user) throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
+
+		const payload = { sub: user.id, username: user.username, role: user.role };
+		const token = await this.jwtService.signAsync(payload);
+
+		// Loại bỏ password
+		const { password: _, ...userWithoutPassword } = user;
+
+		return { message: 'success', token, userWithoutPassword };
+	}
+
 }

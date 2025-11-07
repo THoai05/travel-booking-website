@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import api from "@/axios/axios";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from 'react-hot-toast';
-
+import { FcGoogle } from 'react-icons/fc'
+import { FaGithub } from "react-icons/fa"
 
 const Login = ({
   onClose,
@@ -108,6 +109,10 @@ const Login = ({
     }
   };
 
+    const handleOauthGoogle =  () => {
+    window.location.href =  'http://localhost:3636/auth/google/login'
+  }
+
   // Không thay đổi CSS hay layout hiện tại
   return (
     <AnimatePresence>
@@ -197,6 +202,35 @@ const Login = ({
               {loading ? loadingMessage : "Đăng nhập"}
             </button>
           </form>
+
+          <div className="flex flex-row items-center gap-4 mt-8 justify-center">
+                              <div onClick={()=>handleOauthGoogle()} className="
+                            w-10
+                            h-10
+                            bg-gray-300
+                            rounded-full
+                            flex
+                            items-center
+                            justify-center
+                            cursor-pointer
+                            hover:opacity-80
+                            transition">
+                            <FcGoogle size={30} />
+                            </div>
+                            <div className="
+                            w-10
+                            h-10
+                            bg-gray-300
+                            rounded-full
+                            flex
+                            items-center
+                            justify-center
+                            cursor-pointer
+                            hover:opacity-80
+                            transition">
+                            <FaGithub size={30} />
+                            </div>
+                      </div>
 
           <div className="mt-6 text-sm text-gray-700 border-t pt-3 text-center">
             Bạn chưa có tài khoản?{" "}

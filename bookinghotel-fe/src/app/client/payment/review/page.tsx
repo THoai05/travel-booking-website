@@ -523,7 +523,7 @@ const TravelokaBookingPage: React.FC = () => {
             {/* FIX: Check user.userWithoutPassword an toàn hơn */}
             Logged in as{" "}
             <span className="font-semibold">
-              {user?.userWithoutPassword?.fullName || "User"} (Google)
+              {user?.fullName || "User"} (Google)
             </span>
           </p>
         </div>

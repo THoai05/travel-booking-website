@@ -32,6 +32,14 @@ export enum MembershipLevel {
   PLATINUM = 'Platinum',
 }
 
+
+export enum ProviderLogin  {
+  LOCAL = 'local',
+  GOOGLE = 'google',
+  GITHUB = 'github'  
+}
+
+
 @Entity({ name: 'users' })
 export class User {
   @PrimaryGeneratedColumn({ name: 'id', type: 'int' })
@@ -56,6 +64,7 @@ export class User {
     name: 'role',
     type: 'nvarchar',
     nullable: false,
+    default:UserRole.CUSTOMER
   })
   role: UserRole;
 
@@ -110,6 +119,24 @@ export class User {
 
   @OneToMany(() => Post, (post) => post.author)
   posts: Post[];
+
+  @Column({
+    type:'varchar',
+    default:null
+  })
+  googleId: string
+  
+  @Column({type:'varchar',
+    default:null
+  })
+  githubId:string
+    
+  @Column({
+    type: 'enum',
+    enum: ProviderLogin,
+    default:ProviderLogin.LOCAL
+  })
+  provider:  ProviderLogin
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
