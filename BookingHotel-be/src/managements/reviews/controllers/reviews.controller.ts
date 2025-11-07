@@ -21,9 +21,9 @@ export class ReviewsController {
     @Param('id', ParseIntPipe) hotelId: number,
     @Query('page') page = '1',
     @Query('limit') limit = '10',
-    @Req() req: Request,
+    @Req() req,
   ) {
-    const userId = req.user?.userId;
+    const userId = req.user?.sub;
     const pageNum = Math.max(parseInt(page), 1);
     const limitNum = Math.max(parseInt(limit), 1);
 
@@ -39,8 +39,8 @@ export class ReviewsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  async createReview(@Body() dto: CreateReviewDto, @Req() req: Request) {
-    const userId = req.user?.userId;
+  async createReview(@Body() dto: CreateReviewDto, @Req() req) {
+    const userId = req.user?.sub;
     if (!userId) {
       throw new UnauthorizedException('User not found in request');
     }
@@ -62,9 +62,9 @@ export class ReviewsController {
   async updateReview(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateReviewDto,
-    @Req() req: Request
+    @Req() req
   ) {
-    const userId = req.user?.userId;
+    const userId = req.user?.sub;
     if (!userId) throw new UnauthorizedException('User not found in request');
     return this.reviewsService.updateReview(id, dto, userId);
   }
@@ -73,17 +73,17 @@ export class ReviewsController {
   @Delete(':id')
   async deleteReview(
     @Param('id', ParseIntPipe) id: number,
-    @Req() req: Request
+    @Req() req
   ) {
-    const userId = req.user?.userId;
+    const userId = req.user?.sub;
     if (!userId) throw new UnauthorizedException('User not found in request');
     return this.reviewsService.deleteReview(id, userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/like')
-  async likeReview(@Param('id', ParseIntPipe) reviewId: number, @Req() req: Request) {
-    const userId = req.user?.userId;
+  async likeReview(@Param('id', ParseIntPipe) reviewId: number, @Req() req) {
+    const userId = req.user?.sub;
     if (!userId) throw new UnauthorizedException('User not found in request');
     return this.reviewsService.toggleLikeReview(reviewId, userId);
   }
