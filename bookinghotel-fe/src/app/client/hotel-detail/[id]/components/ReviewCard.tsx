@@ -45,7 +45,9 @@ export default function ReviewCard({ review }: ReviewCardProps) {
       stars.push(
         <Star
           key={i}
-          className={`w-4 h-4 ${i <= normalizedRating ? 'text-yellow-400' : 'text-gray-300'
+          className={`w-5 h-5 ${i <= normalizedRating
+            ? 'text-yellow-400 fill-yellow-400'
+            : 'text-gray-300 fill-gray-200'
             }`}
         />
       );
@@ -78,7 +80,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
 
               {/* Điểm + Ngày */}
               <div className="flex flex-col sm:items-end gap-2">
-                
+
                 <p className="text-sm text-gray-500">{formatDate(review?.createdAt)}</p>
               </div>
             </div>
@@ -95,6 +97,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
             </p>
 
             {/* Nút hữu ích */}
+            {/* Nút hữu ích */}
             <div className="flex items-center">
               <Button
                 variant="ghost"
@@ -103,8 +106,13 @@ export default function ReviewCard({ review }: ReviewCardProps) {
               >
                 <ThumbsUp className="w-4 h-4" />
               </Button>
-              <p className="text-sm text-gray-600">{helpfulText()}</p>
+              {review.likeCount > 0 && (
+                <p className="text-sm text-gray-600">
+                  {review.likeCount} người thấy hữu ích
+                </p>
+              )}
             </div>
+
           </div>
         </div>
       </CardContent>
