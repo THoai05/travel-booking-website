@@ -49,7 +49,7 @@ export class AuthController {
 	@Get('profile')
 	async getProfile(@Req() req) {
 	  // Lấy id từ token
-    const userId = req.user.userId; 
+    const userId = req.user?.sub; 
     
     console.log(userId)
 

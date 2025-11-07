@@ -96,7 +96,6 @@ export class ReviewsController {
     return this.reviewsService.toggleLikeReview(reviewId, userId);
   }
 
-
   // @UseGuards(JwtAuthGuard)
   // @Post('hotel/rate')
   // async submitRating(@Body() dto: SubmitRatingDto, @Req() req: Request) {
