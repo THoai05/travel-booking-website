@@ -8,7 +8,9 @@ import { ChartsSectionRevenue } from "./ChartsSectionRevenue";
 import { TablesSectionKPI } from "./TablesSectionKPI";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { CombinedBookingChart } from "./PieChart";
+import { CombinedBookingChart } from "./CombinedBookingChart";
+
+import { TablesSectionPaymentStats } from "./TablesSectionPaymentStats";
 
 export default function TravelDashboard() {
     const { user } = useAuth();
@@ -33,6 +35,7 @@ export default function TravelDashboard() {
                     <ChartsSectionRevenue />
                     <CombinedBookingChart />
                     <TablesSectionKPI />
+                    <TablesSectionPaymentStats />
                 </div>
             </div>
         </div>
