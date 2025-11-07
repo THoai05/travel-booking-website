@@ -15,13 +15,15 @@ import storage from 'redux-persist/lib/storage'
 import blogReducer from './features/blog/blogSlice'
 import userReducer from './features/user/userSlice'
 import bookingReducer from './features/bookingSlice'
+import reviewReducer from './features/review/reviewSlice'
 
 // --- Tạo root reducer ---
 const rootReducer = combineReducers({
   search: searchReducer,
   blogs: blogReducer,
   user: userReducer,
-  booking:bookingReducer
+  booking:bookingReducer,
+  reviews:reviewReducer
 })
 
 // --- 4. Cấu hình persist ---
