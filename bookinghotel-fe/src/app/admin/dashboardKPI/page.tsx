@@ -2,13 +2,14 @@
 import { useEffect, useState } from "react";
 import { DashboardHeader } from "./DashboardHeader";
 import { StatsCards } from "./StatsCards";
-import { CarouselHotels } from "./TripsSection";
+import { CarouselHotels } from "./CarouselHotels";
 import { ChartsSection } from "./ChartsSection";
 import { ChartsSectionRevenue } from "./ChartsSectionRevenue";
 import { TablesSectionKPI } from "./TablesSectionKPI";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { CombinedBookingChart } from "./CombinedBookingChart";
+import { CombinedPaymentStats } from "./CombinedPaymentStats";
 
 import { TablesSectionPaymentStats } from "./TablesSectionPaymentStats";
 
@@ -34,6 +35,7 @@ export default function TravelDashboard() {
                     <ChartsSection />
                     <ChartsSectionRevenue />
                     <CombinedBookingChart />
+                    <CombinedPaymentStats />
                     <TablesSectionKPI />
                     <TablesSectionPaymentStats />
                 </div>
