@@ -2,16 +2,21 @@
 
 import { useState, useRef } from "react";
 import ContentEditable, { ContentEditableEvent } from "react-contenteditable";
+import { useAppDispatch } from "@/reduxTK/hook";
+import { createReviewThunk } from "@/reduxTK/features/review/reviewThunk";
 import { FaBold, FaItalic, FaUnderline, FaSmile, FaImage, FaStar } from "react-icons/fa";
-import Picker from '@emoji-mart/react';
-import data from '@emoji-mart/data';
+import Picker from "@emoji-mart/react";
+import data from "@emoji-mart/data";
 
-export default function CommentBox() {
+export default function CommentBox({ hotelId }: { hotelId: number }) {
+  const dispatch = useAppDispatch();
+
   const [commentHtml, setCommentHtml] = useState("");
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [images, setImages] = useState<File[]>([]);
+  const [warning, setWarning] = useState<string | null>(null);
   const editableRef = useRef<HTMLElement>(null);
 
   const applyFormat = (command: string) => {
@@ -38,16 +43,64 @@ export default function CommentBox() {
 
   const removeImage = (idx: number) => setImages(images.filter((_, i) => i !== idx));
 
-  const handleSubmit = () => {
-    if (!commentHtml.trim() && images.length === 0) return;
-    console.log("Comment HTML:", commentHtml, "Rating:", rating, "Images:", images);
-    setCommentHtml("");
-    setRating(0);
-    setImages([]);
+  const handleSubmit = async () => {
+    // ✅ Kiểm tra rating bắt buộc
+    if (rating < 1) {
+      setWarning("Vui lòng chọn số sao trước khi gửi đánh giá!");
+      return;
+    }
+
+    // ✅ Kiểm tra comment và ảnh (ít nhất 1 trong 2)
+    if (!commentHtml.trim() && images.length === 0) {
+      setWarning("Vui lòng nhập nhận xét hoặc tải lên ít nhất một hình ảnh!");
+      return;
+    }
+
+    setWarning(null);
+
+    try {
+      let uploadedImageUrls: string[] = [];
+
+      //  Upload ảnh trước (nếu có)
+      if (images.length > 0) {
+        const formData = new FormData();
+        images.forEach((image) => formData.append("files", image));
+
+        const uploadRes = await fetch("http://localhost:3636/reviews/upload-images", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadRes.ok) throw new Error(`Upload failed: ${uploadRes.status}`);
+
+        const data = await uploadRes.json();
+        uploadedImageUrls = data.urls || data || [];
+      }
+
+      // Chuẩn bị payload để gửi tạo review
+      const reviewData = {
+        hotelId,
+        rating,
+        comment: commentHtml,
+        reviewType: "hotel",
+        images: uploadedImageUrls,
+      };
+
+      const resultAction = await dispatch(createReviewThunk(reviewData));
+      console.log("✅ Kết quả trả về từ API:", resultAction);
+
+      setCommentHtml("");
+      setRating(0);
+      setImages([]);
+      setWarning(null);
+    } catch (error) {
+      console.error("❌ Lỗi khi gửi review:", error);
+      setWarning("Gửi đánh giá thất bại. Vui lòng thử lại!");
+    }
   };
 
   return (
-    <div className="w-full max-w-5xl bg-[#f3f7fb] border border-blue-100 rounded-2xl p-4 shadow-sm">
+    <div className="w-full max-w-5xl bg-[#f3f7fb] border border-blue-100 rounded-2xl p-4 shadow-sm relative">
       {/* Star rating */}
       <div className="flex items-center mb-3 gap-1">
         {[...Array(5)].map((_, idx) => {
@@ -131,11 +184,7 @@ export default function CommentBox() {
           {images.map((img, idx) => (
             <div key={idx} className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={URL.createObjectURL(img)}
-                alt={`preview-${idx}`}
-                className="w-20 h-20 object-cover rounded border"
-              />
+              <img src={URL.createObjectURL(img)} alt={`preview-${idx}`} className="w-20 h-20 object-cover rounded border" />
               <button
                 onClick={() => removeImage(idx)}
                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
@@ -147,11 +196,16 @@ export default function CommentBox() {
         </div>
       )}
 
+      {/* Warning */}
+      {warning && (
+        <p className="text-red-500 text-sm mb-2">{warning}</p>
+      )}
+
       {/* Submit */}
       <button
         onClick={handleSubmit}
         className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-1.5 rounded-full text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={!commentHtml.trim() && images.length === 0}
+        disabled={rating === 0 || (!commentHtml.trim() && images.length === 0)}
       >
         Gửi
       </button>

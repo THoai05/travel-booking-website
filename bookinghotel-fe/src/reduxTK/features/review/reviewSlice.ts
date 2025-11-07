@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { fetchReviewsByHotel } from "./reviewThunk";
+import { createReviewThunk, fetchReviewsByHotel } from "./reviewThunk";
 
 const reviewSlice = createSlice({
   name: "reviews",
@@ -20,6 +20,7 @@ const reviewSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+        //Fetch review by hotel id
       .addCase(fetchReviewsByHotel.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -37,6 +38,21 @@ const reviewSlice = createSlice({
       .addCase(fetchReviewsByHotel.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+
+      //Create
+      .addCase(createReviewThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(createReviewThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        // Thêm review mới lên đầu danh sách
+        state.reviews.unshift(action.payload);
+        state.total += 1;
+      })
+      .addCase(createReviewThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

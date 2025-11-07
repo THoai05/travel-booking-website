@@ -46,7 +46,7 @@ export default function ReviewsSection({ data, hotelId }: ReviewSectionProps) {
 
   return (
     <section className="py-8 border-b">
-      <CommentBox />
+      <CommentBox hotelId={hotelId} />
       <h2 className="my-6 text-2xl font-bold">Đánh giá của khách hàng</h2>
 
       <div className="mb-8">
