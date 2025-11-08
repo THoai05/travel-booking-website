@@ -67,4 +67,9 @@ export class BookingsController {
   async getRevenueByHotel() {
     return this.bookingsService.getRevenueByHotel();
   }
+
+  @Get('payment-stats')
+  async getPaymentStats(@Query('type') type: 'week' | 'month' | 'year') {
+    return await this.bookingsService.getPaymentStatsForExcel(type);
+  }
 }

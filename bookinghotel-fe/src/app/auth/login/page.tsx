@@ -113,6 +113,10 @@ const Login = ({
     window.location.href =  'http://localhost:3636/auth/google/login'
   }
 
+  const handleOauthGithub =  () => {
+    window.location.href =  'http://localhost:3636/auth/github/login'
+  }
+
   // Không thay đổi CSS hay layout hiện tại
   return (
     <AnimatePresence>
@@ -217,7 +221,7 @@ const Login = ({
                             transition">
                             <FcGoogle size={30} />
                             </div>
-                            <div className="
+                            <div onClick={handleOauthGithub} className="
                             w-10
                             h-10
                             bg-gray-300

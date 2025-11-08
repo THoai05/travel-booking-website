@@ -703,4 +703,82 @@ export class BookingsService {
         return Object.values(hotelMap).sort((a, b) => b.totalRevenue - a.totalRevenue);
     }
 
+    //Thống kê theo phương thức thanh toán cho từng khoảng thời gian (tuần, tháng, năm) và xuất ra Excel
+    async getPaymentStatsForExcel(type: 'week' | 'month' | 'year') {
+        const now = new Date();
+        let startDate: Date;
+        let endDate: Date;
+
+        // Xác định khoảng thời gian
+        if (type === 'week') {
+            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6); // 7 ngày
+            endDate = now;
+        } else if (type === 'month') {
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        } else { // year
+            startDate = new Date(now.getFullYear(), 0, 1);
+            endDate = new Date(now.getFullYear(), 11, 31);
+        }
+
+        const formatDateVN = (date: Date) => {
+            const d = new Date(date);
+            d.setHours(d.getHours() + 7); // UTC+7
+            return d.toISOString().split('T')[0];
+        }
+
+        // Lấy bookings trong khoảng thời gian
+        const bookings = await this.bookingRepo.find({
+            where: { createdAt: Between(startDate, endDate) },
+            relations: ['payment'],
+        });
+
+        // Khởi tạo map theo payment method
+        const paymentData: Record<string, number[]> = {
+            cod: [],
+            momo: [],
+            vnpay: [],
+        };
+
+        const labels: string[] = [];
+
+        // Xác định từng ngày/tháng
+        if (type === 'year') {
+            for (let m = 0; m < 12; m++) {
+                const monthKey = `${now.getFullYear()}-${(m + 1).toString().padStart(2, '0')}`;
+                labels.push(monthKey);
+                paymentData.cod.push(0);
+                paymentData.momo.push(0);
+                paymentData.vnpay.push(0);
+            }
+            bookings.forEach(b => {
+                if (b.payment?.paymentStatus !== PaymentStatus.SUCCESS) return;
+                const key = `${b.createdAt.getFullYear()}-${(b.createdAt.getMonth() + 1).toString().padStart(2, '0')}`;
+                const idx = labels.indexOf(key);
+                if (idx === -1) return;
+                const method = b.payment.paymentMethod.toLowerCase() as keyof typeof paymentData;
+                paymentData[method][idx] += Number(b.totalPrice);
+            });
+        } else {
+            let current = new Date(startDate);
+            while (current <= endDate) {
+                const dayKey = formatDateVN(current);
+                labels.push(dayKey);
+                paymentData.cod.push(0);
+                paymentData.momo.push(0);
+                paymentData.vnpay.push(0);
+                current.setDate(current.getDate() + 1);
+            }
+            bookings.forEach(b => {
+                if (b.payment?.paymentStatus !== PaymentStatus.SUCCESS) return;
+                const key = formatDateVN(b.createdAt);
+                const idx = labels.indexOf(key);
+                if (idx === -1) return;
+                const method = b.payment.paymentMethod.toLowerCase() as keyof typeof paymentData;
+                paymentData[method][idx] += Number(b.totalPrice);
+            });
+        }
+
+        return { type, labels, paymentData };
+    }
 }

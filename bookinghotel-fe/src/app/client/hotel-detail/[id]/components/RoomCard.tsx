@@ -1,4 +1,5 @@
 'use client';
+import { useMemo } from 'react';
 import { Room, RoomOption } from '../types';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
@@ -21,6 +22,8 @@ import { useAppDispatch, useAppSelector } from '@/reduxTK/hook';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { setPendingBooking } from '@/reduxTK/features/bookingSlice'
+import { differenceInCalendarDays, parseISO } from 'date-fns';
+
 
 // --- Helper Functions ---
 const getAmenityIcon = (amenity: string | undefined, size = 'w-4 h-4') => {
@@ -82,7 +85,25 @@ export default function RoomCard({ room }: RoomCardProps) {
     checkOut,
     guests
   } = useAppSelector((state) => state.search)
-  const { adults, children, rooms } = guests
+
+  
+  const { adults, children } = guests
+  const { nights, } = useMemo(() => {
+     try {
+       const nightCount = differenceInCalendarDays(
+         parseISO(checkOut),
+         parseISO(checkIn)
+       );
+       // Đảm bảo số đêm tối thiểu là 1
+       const validNights = nightCount > 0 ? nightCount : 1;
+       return {
+         nights: validNights,
+         rooms: guests.rooms,
+       };
+     } catch {
+       return { nights: 1, rooms: 1 }; // Fallback
+     }
+   }, [checkIn, checkOut, guests.rooms]);
   const totalGuests =  Number( adults + children )
   
   const { user } = useAuth()
@@ -268,7 +289,7 @@ const router = useRouter()
                         checkIn,
                         checkOut,
                         totalGuests,
-                        Number(option?.salePrice),
+                        Number(option?.salePrice)*nights,
                         user?.id,
                         option?.id
                       )} className="w-full md:w-24 bg-sky-500 hover:bg-sky-700 text-white mt-2">

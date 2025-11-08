@@ -1,8 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/users.entity';
 import { GoogleRegisterDto } from '../dtos/GoogleRegisterDto.dto';
+import { GithubRegisterDto } from '../dtos/GithubRegisterDto.dto';
 
 @Injectable()
 export class UsersService {
@@ -85,5 +86,25 @@ export class UsersService {
       const newUser = this.usersRepository.create({ ...data });
       const savedUser = await this.usersRepository.save(newUser);
       return savedUser;
+  }
+
+  async findByGithubId(id: string): Promise<User | null>{
+    const githubUser = await this.usersRepository.findOne({
+      where: {
+        githubId:id
+      }
+    })
+    if (!githubUser) {
+      return null
     }
+    return githubUser
+  }
+
+  async createGithubUser(data: GithubRegisterDto): Promise<User> {
+      const newUser = this.usersRepository.create({ ...data });
+      const savedUser = await this.usersRepository.save(newUser);
+      return savedUser;
+  }
+  
+
 }
