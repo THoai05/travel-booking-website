@@ -52,3 +52,18 @@ export const createReviewThunk = createAsyncThunk(
     }
   }
 );
+
+// Xóa review theo id
+export const deleteReviewThunk = createAsyncThunk(
+  "reviews/deleteReview",
+  async (reviewId: number, { rejectWithValue }) => {
+    try {
+      const res = await api.delete(`/reviews/${reviewId}`);
+      return { id: reviewId, message: res.data?.message || "Deleted" };
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || "Delete review failed"
+      );
+    }
+  }
+);

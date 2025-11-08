@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createReviewThunk, fetchReviewsByHotel } from "./reviewThunk";
+import { createReviewThunk, deleteReviewThunk, fetchReviewsByHotel } from "./reviewThunk";
 
 const reviewSlice = createSlice({
   name: "reviews",
@@ -53,7 +53,24 @@ const reviewSlice = createSlice({
       .addCase(createReviewThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
+      })
+
+      // Delete
+      .addCase(deleteReviewThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteReviewThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        // Xoá review khỏi danh sách
+        state.reviews = state.reviews.filter(
+          (review: any) => review.id !== action.payload.id
+        );
+        state.total -= 1;
+      })
+      .addCase(deleteReviewThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
   },
 });
 

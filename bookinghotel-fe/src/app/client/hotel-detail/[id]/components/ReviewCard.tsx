@@ -2,17 +2,23 @@ import { Review } from "../types";
 import { Card, CardContent } from "./ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { ThumbsUp, Star } from "lucide-react";
+import { ThumbsUp, Star, MoreVertical, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { useState } from "react";
+import { useAppDispatch, useAppSelector } from "@/reduxTK/hook";
+import { deleteReviewThunk } from "@/reduxTK/features/review/reviewThunk";
 
 interface ReviewCardProps {
   review: Review;
 }
 
 export default function ReviewCard({ review }: ReviewCardProps) {
+  const dispatch = useAppDispatch();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showMenu, setShowMenu] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const currentUser = useAppSelector((state) => state.user);
 
   // Lấy chữ cái đầu của tên user
   const getInitials = (name?: string): string => {
@@ -24,11 +30,14 @@ export default function ReviewCard({ review }: ReviewCardProps) {
       .toUpperCase();
   };
 
-  // Format ngày “cách đây x ngày”
+  // Format ngày
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      return `Đánh giá ${formatDistanceToNow(date, { addSuffix: true, locale: vi })}`;
+      return `Đánh giá ${formatDistanceToNow(date, {
+        addSuffix: true,
+        locale: vi,
+      })}`;
     } catch (error) {
       console.error("Invalid date:", dateString);
       return "Đánh giá gần đây";
@@ -53,9 +62,20 @@ export default function ReviewCard({ review }: ReviewCardProps) {
     return <div className="flex gap-1">{stars}</div>;
   };
 
+  const handleDelete = async () => {
+    if (!confirm("Bạn có chắc chắn muốn xoá đánh giá này không?")) return;
+    try {
+      setDeleting(true);
+      await dispatch(deleteReviewThunk(review.id));
+    } finally {
+      setDeleting(false);
+      setShowMenu(false);
+    }
+  };
+
   return (
     <>
-      <Card className="border border-sky-100 bg-gradient-to-br from-sky-50 via-white to-blue-50 shadow-sm rounded-lg">
+      <Card className="border border-sky-100 bg-gradient-to-br from-sky-50 via-white to-blue-50 shadow-sm rounded-lg relative">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
             {/* Avatar */}
@@ -69,20 +89,41 @@ export default function ReviewCard({ review }: ReviewCardProps) {
 
             {/* Nội dung review */}
             <div className="flex-1">
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 relative">
                 {/* Tên người review */}
                 <div className="mb-2 sm:mb-0">
-                  <h4 className="font-semibold">
-                    {review?.user?.username || "Ẩn danh"}
-                  </h4>
+                  <h4 className="font-semibold">{review?.user?.username || "Ẩn danh"}</h4>
                   <div>{renderStars(review?.rating)}</div>
                 </div>
 
-                {/* Ngày */}
-                <div className="flex flex-col sm:items-end gap-2">
-                  <p className="text-sm text-gray-500">
-                    {formatDate(review?.createdAt)}
-                  </p>
+                {/* Ngày + menu */}
+                <div className="flex flex-col sm:items-end gap-2 relative">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-gray-500">
+                      {formatDate(review?.createdAt)}
+                    </p>
+                    {/* Dấu ba chấm */}
+                    <button
+                      onClick={() => setShowMenu((prev) => !prev)}
+                      className="p-1 hover:bg-sky-100 rounded-full transition"
+                    >
+                      <MoreVertical className="w-5 h-5 text-gray-500" />
+                    </button>
+                  </div>
+
+                  {/* Menu thả xuống */}
+                  {showMenu && (
+                    <div className="absolute top-7 right-0 bg-white border border-gray-200 rounded-lg shadow-md w-36 z-10">
+                      <button
+                        onClick={handleDelete}
+                        disabled={deleting}
+                        className="w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 flex items-center gap-2 text-sm"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        {deleting ? "Đang xoá..." : "Xoá đánh giá"}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
