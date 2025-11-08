@@ -17,6 +17,7 @@ export enum RoomTypeName {
   TRIPPLE_ROOM = "triple room",
 }
 
+
 // ================== INTERFACE ==================
 interface RoomTypeItem {
   roomTypeId: number;
@@ -427,7 +428,7 @@ export default function RoomMonitorPage() {
                     <div>
                       <p>📌 Room Type ID: {room.roomTypeId}</p>
                       <p>🏨 Room Type Name: {room.roomTypeName}</p>
-                      {["pending", "confirmed"].includes(room.bookingStatus || "") ?  <p>🧑 User ID: {room.userId}</p> : ""}
+                      {["pending", "confirmed"].includes(room.bookingStatus || "") ? <p>🧑 User ID: {room.userId}</p> : ""}
 
                       <p>
                         🧾 Status:{" "}
@@ -569,9 +570,30 @@ export default function RoomMonitorPage() {
             <p>🎭 Role: {hoveredUserDetail.role}</p>
             <p>🎂 Dob: {formatDateUTC(hoveredUserDetail.dob)}</p>
             <p>⚧ Gender: {hoveredUserDetail.gender}</p>
-            <p className="font-medium text-yellow-600">
-              🎖 {hoveredUserDetail.membershipLevel} ({hoveredUserDetail.loyaltyPoints} điểm)
+
+
+            <p
+              className={`font-bold text-lg flex items-center gap-2 ${hoveredUserDetail?.membershipLevel === "Silver"
+                ? "text-gray-400"
+                : hoveredUserDetail?.membershipLevel === "Gold"
+                  ? "text-yellow-400"
+                  : hoveredUserDetail?.membershipLevel === "Platinum"
+                    ? "text-blue-600"
+                    : "text-gray-400"
+                }`}
+              style={{ textDecoration: "none" }}
+            >
+              {hoveredUserDetail?.membershipLevel === "Silver"
+                ? "🥈"
+                : hoveredUserDetail?.membershipLevel === "Gold"
+                  ? "🥇"
+                  : hoveredUserDetail?.membershipLevel === "Platinum"
+                    ? "🏆"
+                    : "🥈"}{" "}
+              {hoveredUserDetail?.membershipLevel ?? "Silver"} ({hoveredUserDetail?.loyaltyPoints ?? 0} điểm)
             </p>
+
+
           </div>
         </div>
       )}
