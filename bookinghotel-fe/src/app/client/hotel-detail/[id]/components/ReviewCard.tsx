@@ -93,9 +93,9 @@ export default function ReviewCard({ review }: ReviewCardProps) {
               />
 
               {/* Hình ảnh review */}
-              {review?.images && review.images.length > 0 && (
+              {review?.images && review?.images?.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-4">
-                  {review.images.map((img, idx) => (
+                  {review?.images?.map((img, idx) => (
                     <div
                       key={idx}
                       className="relative cursor-pointer group"
@@ -132,9 +132,9 @@ export default function ReviewCard({ review }: ReviewCardProps) {
                 >
                   <ThumbsUp className="w-4 h-4" />
                 </Button>
-                {review.likeCount > 0 && (
+                {review?.likeCount > 0 && (
                   <p className="text-sm text-gray-600">
-                    {review.likeCount} người thấy hữu ích
+                    {review?.likeCount} người thấy hữu ích
                   </p>
                 )}
               </div>
