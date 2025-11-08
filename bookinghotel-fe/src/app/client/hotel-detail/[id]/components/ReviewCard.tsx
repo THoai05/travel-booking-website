@@ -1,3 +1,5 @@
+"use client";
+
 import { Review } from "../types";
 import { Card, CardContent } from "./ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
@@ -6,8 +8,9 @@ import { ThumbsUp, Star, MoreVertical, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { useState } from "react";
-import { useAppDispatch, useAppSelector } from "@/reduxTK/hook";
+import { useAppDispatch } from "@/reduxTK/hook";
 import { deleteReviewThunk } from "@/reduxTK/features/review/reviewThunk";
+import { useAuth } from "@/context/AuthContext";
 
 interface ReviewCardProps {
   review: Review;
@@ -15,12 +18,13 @@ interface ReviewCardProps {
 
 export default function ReviewCard({ review }: ReviewCardProps) {
   const dispatch = useAppDispatch();
+  const { user: currentUser } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const currentUser = useAppSelector((state) => state.user);
 
-  // Lấy chữ cái đầu của tên user
+  const canDelete = currentUser?.id === review.user.id; // chỉ tác giả mới xóa được
+
   const getInitials = (name?: string): string => {
     if (!name) return "?";
     return name
@@ -30,14 +34,10 @@ export default function ReviewCard({ review }: ReviewCardProps) {
       .toUpperCase();
   };
 
-  // Format ngày
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      return `Đánh giá ${formatDistanceToNow(date, {
-        addSuffix: true,
-        locale: vi,
-      })}`;
+      return `Đánh giá ${formatDistanceToNow(date, { addSuffix: true, locale: vi })}`;
     } catch (error) {
       console.error("Invalid date:", dateString);
       return "Đánh giá gần đây";
@@ -52,9 +52,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
         <Star
           key={i}
           className={`w-5 h-5 ${
-            i <= normalizedRating
-              ? "text-yellow-400 fill-yellow-400"
-              : "text-gray-300 fill-gray-200"
+            i <= normalizedRating ? "text-yellow-400 fill-yellow-400" : "text-gray-300 fill-gray-200"
           }`}
         />
       );
@@ -80,10 +78,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
           <div className="flex items-start gap-4">
             {/* Avatar */}
             <Avatar className="w-12 h-12">
-              <AvatarImage
-                src={review?.user?.avatar || "/default-avatar.jpg"}
-                alt={review?.user?.name || "User"}
-              />
+              <AvatarImage src={review?.user?.avatar || "/default-avatar.jpg"} alt={review?.user?.name || "User"} />
               <AvatarFallback>{getInitials(review?.user?.username)}</AvatarFallback>
             </Avatar>
 
@@ -99,20 +94,20 @@ export default function ReviewCard({ review }: ReviewCardProps) {
                 {/* Ngày + menu */}
                 <div className="flex flex-col sm:items-end gap-2 relative">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm text-gray-500">
-                      {formatDate(review?.createdAt)}
-                    </p>
-                    {/* Dấu ba chấm */}
-                    <button
-                      onClick={() => setShowMenu((prev) => !prev)}
-                      className="p-1 hover:bg-sky-100 rounded-full transition"
-                    >
-                      <MoreVertical className="w-5 h-5 text-gray-500" />
-                    </button>
+                    <p className="text-sm text-gray-500">{formatDate(review?.createdAt)}</p>
+
+                    {canDelete && (
+                      <button
+                        onClick={() => setShowMenu((prev) => !prev)}
+                        className="p-1 hover:bg-sky-100 rounded-full transition"
+                      >
+                        <MoreVertical className="w-5 h-5 text-gray-500" />
+                      </button>
+                    )}
                   </div>
 
                   {/* Menu thả xuống */}
-                  {showMenu && (
+                  {showMenu && canDelete && (
                     <div className="absolute top-7 right-0 bg-white border border-gray-200 rounded-lg shadow-md w-36 z-10">
                       <button
                         onClick={handleDelete}
@@ -128,21 +123,16 @@ export default function ReviewCard({ review }: ReviewCardProps) {
               </div>
 
               {/* Nội dung bình luận */}
-              <p
-                className="text-gray-700 mb-4 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: review?.comment || "" }}
-              />
+              <p className="text-gray-700 mb-4 leading-relaxed" dangerouslySetInnerHTML={{ __html: review?.comment || "" }} />
 
               {/* Hình ảnh review */}
-              {review?.images && review.images.length > 0 && (
+              {review?.images?.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-4">
                   {review.images.map((img, idx) => (
                     <div
                       key={idx}
                       className="relative cursor-pointer group"
-                      onClick={() =>
-                        setSelectedImage(`http://localhost:3636${img}`)
-                      }
+                      onClick={() => setSelectedImage(`http://localhost:3636${img}`)}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -166,18 +156,10 @@ export default function ReviewCard({ review }: ReviewCardProps) {
 
               {/* Nút hữu ích */}
               <div className="flex items-center">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-600 hover:text-sky-500 gap-2 px-2"
-                >
+                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-sky-500 gap-2 px-2">
                   <ThumbsUp className="w-4 h-4" />
                 </Button>
-                {review.likeCount > 0 && (
-                  <p className="text-sm text-gray-600">
-                    {review.likeCount} người thấy hữu ích
-                  </p>
-                )}
+                {review.likeCount > 0 && <p className="text-sm text-gray-600">{review.likeCount} người thấy hữu ích</p>}
               </div>
             </div>
           </div>
@@ -186,16 +168,9 @@ export default function ReviewCard({ review }: ReviewCardProps) {
 
       {/* Modal xem ảnh lớn */}
       {selectedImage && (
-        <div
-          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
-          onClick={() => setSelectedImage(null)}
-        >
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={() => setSelectedImage(null)}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={selectedImage}
-            alt="zoom"
-            className="max-w-[90%] max-h-[85%] rounded-lg shadow-lg border border-gray-300"
-          />
+          <img src={selectedImage} alt="zoom" className="max-w-[90%] max-h-[85%] rounded-lg shadow-lg border border-gray-300" />
         </div>
       )}
     </>
