@@ -5,6 +5,7 @@ import api from "@/axios/axios";
 import { toast } from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import DashboardPage from "./dashboard/page"; // import trực tiếp component
 
 // ================== ENUM ROOM TYPE ==================
 export enum RoomTypeName {
@@ -62,6 +63,7 @@ export default function RoomMonitorPage() {
   const roomTypeDetailCache = useRef<Map<number, any>>(new Map());
   const hotelDetailCache = useRef<Map<number, any>>(new Map());
 
+  const [showDashboard, setShowDashboard] = useState(false);
 
   const router = useRouter();
 
@@ -360,6 +362,35 @@ export default function RoomMonitorPage() {
         >
           Xem danh sách theo dõi phòng của tôi
         </button>
+
+        <div>
+          <button
+            onClick={() => setShowDashboard(true)}
+            className="border p-2 rounded bg-green-200 hover:bg-green-300"
+          >
+            Xem thống kê của tôi
+          </button>
+
+          {showDashboard && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+              <div className="bg-white w-full max-w-4xl max-h-[80vh] rounded-lg shadow-lg overflow-auto p-4 relative">
+                {/* Header với nút đóng */}
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-bold">Dashboard Room Monitor</h2>
+                  <button
+                    onClick={() => setShowDashboard(false)}
+                    className="text-gray-500 hover:text-gray-800 text-xl font-bold"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                {/* Nội dung dashboard */}
+                <DashboardPage />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Bộ lọc RoomType */}
