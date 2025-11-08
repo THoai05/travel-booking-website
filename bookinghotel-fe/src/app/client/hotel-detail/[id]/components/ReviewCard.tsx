@@ -132,31 +132,11 @@ export default function ReviewCard({ review }: ReviewCardProps) {
 
               <p className="text-gray-700 mb-4 leading-relaxed" dangerouslySetInnerHTML={{ __html: review?.comment || "" }} />
 
-<<<<<<< HEAD
               {review?.images?.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-4">
                   {review.images.map((img, idx) => (
                     <div key={idx} className="relative cursor-pointer group" onClick={() => setSelectedImage(`http://localhost:3636${img}`)}>
                       <img src={`http://localhost:3636${img}`} alt={`review-${idx}`} className="w-full h-32 object-cover rounded-lg border border-sky-100 group-hover:opacity-80 transition-all" />
-=======
-              {/* Hình ảnh review */}
-              {review?.images && review?.images?.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-4">
-                  {review?.images?.map((img, idx) => (
-                    <div
-                      key={idx}
-                      className="relative cursor-pointer group"
-                      onClick={() =>
-                        setSelectedImage(`http://localhost:3636${img}`)
-                      }
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={`http://localhost:3636${img}`}
-                        alt={`review-${idx}`}
-                        className="w-full h-32 object-cover rounded-lg border border-sky-100 group-hover:opacity-80 transition-all"
-                      />
->>>>>>> 5379417ad3cc37c42958195154d1a75da5bd3285
                       <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
                     </div>
                   ))}
@@ -177,15 +157,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
                 >
                   <ThumbsUp className="w-4 h-4" />
                 </Button>
-<<<<<<< HEAD
                 {likeCount > 0 && <p className="text-sm text-gray-600">{likeCount} người thấy hữu ích</p>}
-=======
-                {review?.likeCount > 0 && (
-                  <p className="text-sm text-gray-600">
-                    {review?.likeCount} người thấy hữu ích
-                  </p>
-                )}
->>>>>>> 5379417ad3cc37c42958195154d1a75da5bd3285
               </div>
             </div>
           </div>
@@ -193,8 +165,10 @@ export default function ReviewCard({ review }: ReviewCardProps) {
       </Card>
 
       {selectedImage && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={() => setSelectedImage(null)}>
-          <img src={selectedImage} alt="zoom" className="max-w-[90%] max-h-[85%] rounded-lg shadow-lg border border-gray-300" />
+        <div className="fixed inset-0 bg-black/70 flex items-center 
+        justify-center z-50" onClick={() => setSelectedImage(null)}>
+          <img src={selectedImage} alt="zoom" className="max-w-[90%]
+          max-h-[85%] rounded-lg shadow-lg border border-gray-300" />
         </div>
       )}
     </>
