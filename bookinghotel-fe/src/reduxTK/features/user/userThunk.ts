@@ -7,3 +7,15 @@ export const getAllUsers = createAsyncThunk("user/getAllUsers", async () => {
     //console.log("API /users response:", res.data);
     return res.data;
 });
+
+export const fetchCurrentUser = createAsyncThunk(
+  "user/fetchCurrentUser",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/auth/profile");
+      return res.data.user;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || "Failed to fetch user");
+    }
+  }
+);

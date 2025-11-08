@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { NAV_LINKS } from "../../../../constants/index";
-import { useEffect, useState, useRef } from "react"; // <-- THÊM MỚI: useRef
+import { useEffect, useState, useRef } from "react";
 import Login from "@/app/auth/login/page";
 import Register from "@/app/auth/register/page";
 import { useAuth } from "@/context/AuthContext";
@@ -13,7 +13,6 @@ import api from "@/axios/axios";
 
 import NotificationsPage from "@/app/client/notifications/page";
 
-// --- THÊM MỚI: Icons (cần cài react-icons: npm install react-icons) ---
 import {
   HiUserCircle,
   HiOutlineHeart,
