@@ -14,7 +14,7 @@ cd BookingHotel-be
 npm install
 
 npm run start:dev
-# => http://localhost:8080
+# => http://localhost:3636
 
 # Cài đặt FE
 cd ../BookingHotel-fe
