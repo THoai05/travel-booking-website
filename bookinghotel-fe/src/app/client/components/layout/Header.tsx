@@ -303,17 +303,6 @@ const Header = () => {
 
                     <button
                       onClick={() => {
-                        router.push("/rooms/room-monitor");
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      <HiOutlineClipboardCheck className="mr-3 w-5 h-5" />
-                      Giám sát phòng
-                    </button>
-
-                    <button
-                      onClick={() => {
                         router.replace("/rooms/booking-history");
                         setIsDropdownOpen(false);
                       }}

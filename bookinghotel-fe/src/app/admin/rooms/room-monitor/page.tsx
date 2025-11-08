@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import api from "@/axios/axios";
 import { toast } from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 // ================== ENUM ROOM TYPE ==================
 export enum RoomTypeName {
@@ -27,6 +28,7 @@ interface RoomTypeItem {
   checkInDate?: string;
   checkOutDate?: string;
   guestsCount?: number;
+  userId?: number;
 }
 
 interface HotelGroup {
@@ -52,10 +54,15 @@ export default function RoomMonitorPage() {
 
   const [hoveredRoomTypeDetail, setHoveredRoomTypeDetail] = useState<any>(null);
   const [hoveredHotelDetail, setHoveredHotelDetail] = useState<any>(null);
+  const [hoveredBookingDetail, setHoveredBookingDetail] = useState<any>(null);
+  const [hoveredUserDetail, setHoveredUserDetail] = useState<any>(null);
 
   const [monitoredRooms, setMonitoredRooms] = useState<number[]>([]);
   const roomTypeDetailCache = useRef<Map<number, any>>(new Map());
   const hotelDetailCache = useRef<Map<number, any>>(new Map());
+
+
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -78,6 +85,12 @@ export default function RoomMonitorPage() {
     };
     fetchUserId();
   }, []);
+
+  useEffect(() => {
+    if (user?.role !== "admin") {
+      router.replace("/");
+    }
+  }, [user, router]);
 
   useEffect(() => {
     const fetchMonitoredRooms = async () => {
@@ -207,13 +220,49 @@ export default function RoomMonitorPage() {
     }
   };
 
+  const handleBookingHover = async (bookingId?: number) => {
+    if (!bookingId) return;
+    try {
+      const res = await api.get(`/rooms/bookingDetail/${bookingId}`);
+      setHoveredBookingDetail(res.data);
+    } catch { }
+  };
+
+  const handleUserHover = async (userId?: number) => {
+    if (!userId) return;
+    try {
+      const res = await api.get(`/users/${userId}`);
+      setHoveredUserDetail(res.data.user);
+    } catch { }
+  };
+
+
+
+  const formatDateExact = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr.replace(" ", "T"));
+    return d.toLocaleString("vi-VN", { year: "numeric", month: "2-digit", day: "2-digit" });
+  };
+
+
+  // =================== sử dụng toLocaleDateString với UTC =================== 
+  const formatDateUTC = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    return d.toLocaleString("vi-VN", {
+      timeZone: "UTC",
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+    });
+  };
+
   const formatDate = (date?: string) =>
     date
       ? new Date(date).toLocaleDateString("vi-VN", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        })
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
       : "-";
 
   const getPaginationNumbers = () => {
@@ -242,7 +291,7 @@ export default function RoomMonitorPage() {
 
   return (
     <div className="p-6 relative">
-      <div className="pt-12 relative">
+      <div className="relative">
         <h1 className="text-2xl font-bold mb-4">🏨 Room Availability Monitor</h1>
       </div>
 
@@ -280,12 +329,17 @@ export default function RoomMonitorPage() {
               setShowAll("all");
               setApiType("all");
               setParam(undefined);
-            } else if (userId) {
-              setShowAll("none");
-              setApiType("user");
-              setParam(userId);
-            } else {
-              toast("Vui lòng đăng nhập để xem danh sách của bạn!", { icon: "⚠️" });
+            }
+            // else if (userId) {
+            //   setShowAll("none");
+            //   setApiType("user");
+            //   setParam(userId);
+            // }
+            else {
+              //toast("Vui lòng đăng nhập để xem danh sách của bạn!", { icon: "⚠️" });
+              setShowAll("all");
+              setApiType("all");
+              setParam(undefined);
             }
           }}
           className="border p-2 rounded bg-gray-200 hover:bg-gray-300"
@@ -330,8 +384,8 @@ export default function RoomMonitorPage() {
         {apiType === "monitor"
           ? "Danh sách phòng đang theo dõi"
           : showAll === "all"
-          ? "Hiển thị tất cả loại phòng"
-          : "Lịch sử đặt phòng của tôi"}
+            ? "Hiển thị tất cả loại phòng"
+            : "Lịch sử đặt phòng của tôi"}
       </h1>
 
       {currentGroups.length === 0 ? (
@@ -356,21 +410,32 @@ export default function RoomMonitorPage() {
                   <div
                     key={key}
                     className="border rounded p-2 flex justify-between items-center cursor-pointer hover:scale-105 hover:shadow-lg hover:bg-blue-50 transition duration-200"
-                    onMouseEnter={() => handleRoomTypeHover(room.roomTypeId)}
-                    onMouseLeave={() => setHoveredRoomTypeDetail(null)}
+                    onMouseEnter={() => {
+                      handleRoomTypeHover(room.roomTypeId);
+                      if (["pending", "confirmed"].includes(room.bookingStatus || "")) {
+                        handleBookingHover(group.rooms[0].bookingId);
+                        handleUserHover(room.userId);
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredRoomTypeDetail(null);
+                      setHoveredUserDetail(null);
+                      setHoveredBookingDetail(null);
+                    }}
                   >
+
                     <div>
                       <p>📌 Room Type ID: {room.roomTypeId}</p>
                       <p>🏨 Room Type Name: {room.roomTypeName}</p>
+                      {["pending", "confirmed"].includes(room.bookingStatus || "") ?  <p>🧑 User ID: {room.userId}</p> : ""}
 
                       <p>
                         🧾 Status:{" "}
                         <span
-                          className={`font-semibold px-2 py-1 rounded-full text-sm ${
-                            ["pending", "confirmed"].includes(room.bookingStatus || "")
-                              ? "bg-red-100 text-red-800"
-                              : "bg-green-100 text-green-800"
-                          }`}
+                          className={`font-semibold px-2 py-1 rounded-full text-sm ${["pending", "confirmed"].includes(room.bookingStatus || "")
+                            ? "bg-red-100 text-red-800"
+                            : "bg-green-100 text-green-800"
+                            }`}
                         >
                           {["pending", "confirmed"].includes(room.bookingStatus || "") ? "Có người ở" : "Phòng trống"}
                         </span>
@@ -382,9 +447,8 @@ export default function RoomMonitorPage() {
                         e.stopPropagation();
                         toggleMonitor(room.roomTypeId);
                       }}
-                      className={`px-3 py-1 rounded text-sm font-medium ${
-                        isMonitored ? "bg-red-500 text-white hover:bg-red-600" : "bg-green-500 text-white hover:bg-green-600"
-                      }`}
+                      className={`px-3 py-1 rounded text-sm font-medium ${isMonitored ? "bg-red-500 text-white hover:bg-red-600" : "bg-green-500 text-white hover:bg-green-600"
+                        }`}
                     >
                       {isMonitored ? "Bỏ theo dõi" : "Theo dõi"}
                     </button>
@@ -457,6 +521,61 @@ export default function RoomMonitorPage() {
           </p>
         </div>
       )}
+
+      {hoveredBookingDetail && (
+        <div className="fixed top-20 right-10 p-4 bg-white border rounded shadow-lg w-64 z-50">
+          <h3 className="font-bold flex items-start gap-2">🧑 <span className="leading-tight">Guest: {hoveredBookingDetail.guestFullName}</span></h3>
+          <p className="flex items-start gap-2">📝 <span className="leading-tight">Contact: {hoveredBookingDetail.contactFullName}</span></p>
+          <p className="flex items-start gap-2">📧 <span className="leading-tight">Email: {hoveredBookingDetail.contactEmail}</span></p>
+          <p className="flex items-start gap-2">📞 <span className="leading-tight">Phone: {hoveredBookingDetail.contactPhone}</span></p>
+          <p className="flex items-start gap-2">👥 <span className="leading-tight">Guests Count: {hoveredBookingDetail.guestsCount || "-"}</span></p>
+          <p className="flex items-start gap-2">🗓️ <span className="leading-tight">Check-in: {formatDateExact(hoveredBookingDetail.checkInDate)}</span></p>
+          <p className="flex items-start gap-2">🗓️ <span className="leading-tight">Check-out: {formatDateExact(hoveredBookingDetail.checkOutDate)}</span></p>
+          <p className="flex items-start gap-2">✅ <span className="leading-tight">Status: {hoveredBookingDetail.status}</span></p>
+          <p className="flex items-start gap-2">💰 <span className="leading-tight">Price: {formatVND(hoveredBookingDetail.totalPrice)}</span></p>
+          <p className="flex items-start gap-2">📋 <span className="leading-tight">Special Requests: {hoveredBookingDetail.specialRequests || "-"}</span></p>
+          <p className="flex items-start gap-2">❌ <span className="leading-tight">Cancellation Reason: {hoveredBookingDetail.cancellationReason || "-"}</span></p>
+          <p className="flex items-start gap-2">⏱️ <span className="leading-tight">Created At: {formatDateUTC(hoveredBookingDetail.createdAt) || "-"}</span></p>
+          <p className="flex items-start gap-2">⏱️ <span className="leading-tight">Updated At: {formatDateUTC(hoveredBookingDetail.updatedAt) || "-"}</span></p>
+        </div>
+      )}
+
+      {hoveredUserDetail && (
+        <div className="fixed bottom-4 left-10 p-4 bg-white border rounded-2xl shadow-lg w-72 z-50">
+          {/* Ảnh + tên */}
+          <div className="flex items-center gap-3 mb-3">
+            <img
+              src={
+                hoveredUserDetail.avatar
+                  ? `${hoveredUserDetail.avatar}`
+                  : "/avatars/default.png" // fallback ảnh mặc định
+              }
+              alt="User Avatar"
+              className="w-12 h-12 rounded-full object-cover border"
+            />
+            <div>
+              <h3 className="font-bold text-gray-800 flex items-center gap-1">
+                🧑 <span>User ID: {hoveredUserDetail.id}</span>
+              </h3>
+              <p className="text-sm text-gray-600">{hoveredUserDetail.fullName}</p>
+            </div>
+          </div>
+
+          {/* Thông tin chi tiết */}
+          <div className="space-y-1 text-sm text-gray-700">
+            <p>👤 Username: {hoveredUserDetail.username}</p>
+            <p>📧 Email: {hoveredUserDetail.email}</p>
+            <p>📱 Phone: {hoveredUserDetail.phone}</p>
+            <p>🎭 Role: {hoveredUserDetail.role}</p>
+            <p>🎂 Dob: {formatDateUTC(hoveredUserDetail.dob)}</p>
+            <p>⚧ Gender: {hoveredUserDetail.gender}</p>
+            <p className="font-medium text-yellow-600">
+              🎖 {hoveredUserDetail.membershipLevel} ({hoveredUserDetail.loyaltyPoints} điểm)
+            </p>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
