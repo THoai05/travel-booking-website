@@ -27,8 +27,11 @@ export class RoomsService {
             .select([
                 'b.id AS bookingId',
                 'b.status AS bookingStatus',
+                'b.user_id AS userId',
+
                 'rt.id AS roomTypeId',
                 'rt.name AS roomTypeName',
+
                 'h.id AS hotelId',
                 'h.name AS hotelName',
             ])
@@ -63,10 +66,6 @@ export class RoomsService {
         return Array.from(priorityMap.values());
     }
 
-
-
-
-
     // 3️⃣ Theo user (lấy các phòng mà user đã đặt, không cần Room.id)
     async getRoomsByUser(userId: number) {
         return this.bookingRepo
@@ -80,6 +79,7 @@ export class RoomsService {
                 'b.checkInDate AS checkInDate',
                 'b.checkOutDate AS checkOutDate',
                 'b.guestsCount AS guestsCount',
+                'b.user_id AS userId',
 
                 'h.id AS hotelId',
                 'h.name AS hotelName',
