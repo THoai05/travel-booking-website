@@ -155,78 +155,80 @@ export function TablesSectionPaymentStats() {
 
 
   return (
-    <Card className="p-4">
-      <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <CardTitle>Payment Stats</CardTitle>
-        <div className="flex gap-2 items-center">
-          <div className="flex gap-2">
-            {["week", "month", "year"].map((t) => (
-              <button
-                key={t}
-                onClick={() => setType(t as "week" | "month" | "year")}
-                className={`px-4 py-2 rounded font-medium transition ${type === t
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
-              >
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </button>
-            ))}
+    <div className="mb-8">
+      <Card className="bg-white border-2 border-dashed border-blue-300 rounded-xl p-4">
+        <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <CardTitle>Payment Stats</CardTitle>
+          <div className="flex gap-2 items-center">
+            <div className="flex gap-2">
+              {["week", "month", "year"].map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setType(t as "week" | "month" | "year")}
+                  className={`px-4 py-2 rounded font-medium transition ${type === t
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                >
+                  {t.charAt(0).toUpperCase() + t.slice(1)}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={exportPaymentStatsExcel}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            >
+              Export Excel
+            </button>
           </div>
-          <button
-            onClick={exportPaymentStatsExcel}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          >
-            Export Excel
-          </button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div>Loading...</div>
-        ) : !paymentData.length ? (
-          <div>No payment stats available.</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full border border-gray-200">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="border p-2 text-left">Date</th>
-                  <th className="border p-2 text-left">COD</th>
-                  <th className="border p-2 text-left">Momo</th>
-                  <th className="border p-2 text-left">VNPay</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paymentData.map((item, index) => (
-                  <tr key={index} className="hover:bg-gray-50 transition-colors">
-                    <td className="border p-2">{item.date}</td>
-                    <td
-                      className={`border p-2 font-semibold ${item.cod > 0 ? "bg-blue-100 text-blue-800" : ""
-                        }`}
-                    >
-                      {item.cod.toLocaleString("vi-VN")} ₫
-                    </td>
-                    <td
-                      className={`border p-2 font-semibold ${item.momo > 0 ? "bg-purple-100 text-purple-800" : ""
-                        }`}
-                    >
-                      {item.momo.toLocaleString("vi-VN")} ₫
-                    </td>
-                    <td
-                      className={`border p-2 font-semibold ${item.vnpay > 0 ? "bg-green-100 text-green-800" : ""
-                        }`}
-                    >
-                      {item.vnpay.toLocaleString("vi-VN")} ₫
-                    </td>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div>Loading...</div>
+          ) : !paymentData.length ? (
+            <div>No payment stats available.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="border p-2 text-left">Date</th>
+                    <th className="border p-2 text-left">COD</th>
+                    <th className="border p-2 text-left">Momo</th>
+                    <th className="border p-2 text-left">VNPay</th>
                   </tr>
-                ))}
-              </tbody>
+                </thead>
+                <tbody>
+                  {paymentData.map((item, index) => (
+                    <tr key={index} className="hover:bg-gray-50 transition-colors">
+                      <td className="border p-2">{item.date}</td>
+                      <td
+                        className={`border p-2 font-semibold ${item.cod > 0 ? "bg-blue-100 text-blue-800" : ""
+                          }`}
+                      >
+                        {item.cod.toLocaleString("vi-VN")} ₫
+                      </td>
+                      <td
+                        className={`border p-2 font-semibold ${item.momo > 0 ? "bg-purple-100 text-purple-800" : ""
+                          }`}
+                      >
+                        {item.momo.toLocaleString("vi-VN")} ₫
+                      </td>
+                      <td
+                        className={`border p-2 font-semibold ${item.vnpay > 0 ? "bg-green-100 text-green-800" : ""
+                          }`}
+                      >
+                        {item.vnpay.toLocaleString("vi-VN")} ₫
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
 
-            </table>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

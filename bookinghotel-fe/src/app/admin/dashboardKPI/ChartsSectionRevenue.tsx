@@ -144,7 +144,7 @@ export function ChartsSectionRevenue() {
       </div>
 
       {/* Chart */}
-      <Card className="border-0 shadow-none">
+      <Card className="bg-white border-2 border-dashed border-blue-300 rounded-xl">
         <CardHeader>
           <CardTitle className="text-gray-900">{kpiType.charAt(0).toUpperCase() + kpiType.slice(1)} Revenue</CardTitle>
         </CardHeader>

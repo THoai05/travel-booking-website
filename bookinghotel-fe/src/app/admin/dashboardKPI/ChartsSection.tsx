@@ -106,9 +106,8 @@ export function ChartsSection() {
         {types.map(type => (
           <button
             key={type}
-            className={`px-4 py-1 rounded ${
-              kpiType === type ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"
-            }`}
+            className={`px-4 py-1 rounded ${kpiType === type ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"
+              }`}
             onClick={() => setKpiType(type)}
           >
             {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -117,7 +116,7 @@ export function ChartsSection() {
       </div>
 
       {/* Chart */}
-      <Card className="border-0 shadow-none">
+      <Card className="bg-white border-2 border-dashed border-blue-300 rounded-xl">
         <CardHeader>
           <CardTitle className="text-gray-900">
             {kpiType.charAt(0).toUpperCase() + kpiType.slice(1)} Bookings
