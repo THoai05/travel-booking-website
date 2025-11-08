@@ -67,3 +67,15 @@ export const deleteReviewThunk = createAsyncThunk(
     }
   }
 );
+
+export const likeReviewThunk = createAsyncThunk(
+  "reviews/likeReview",
+  async (reviewId: number, { rejectWithValue }) => {
+    try {
+      const res = await api.post(`/reviews/${reviewId}/like`);
+      return { reviewId, liked: res.data.liked }; // backend trả về liked: true/false
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || "Like review failed");
+    }
+  }
+);

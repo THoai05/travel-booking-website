@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createReviewThunk, deleteReviewThunk, fetchReviewsByHotel } from "./reviewThunk";
+import { createReviewThunk, deleteReviewThunk, fetchReviewsByHotel, likeReviewThunk } from "./reviewThunk";
 
 const reviewSlice = createSlice({
   name: "reviews",
@@ -20,7 +20,7 @@ const reviewSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-        //Fetch review by hotel id
+      //Fetch review by hotel id
       .addCase(fetchReviewsByHotel.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -61,13 +61,35 @@ const reviewSlice = createSlice({
       })
       .addCase(deleteReviewThunk.fulfilled, (state, action) => {
         state.loading = false;
-        // Xoá review khỏi danh sách
         state.reviews = state.reviews.filter(
           (review: any) => review.id !== action.payload.id
         );
         state.total -= 1;
       })
       .addCase(deleteReviewThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      // --- Like review ---
+      .addCase(likeReviewThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(likeReviewThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        const { reviewId, liked } = action.payload;
+        const review = state.reviews.find((r: any) => r.id === reviewId);
+        if (review) {
+          review.likeCount = review.likeCount || 0;
+          if (liked) review.likeCount += 1;
+          else review.likeCount -= 1;
+
+          // Nếu muốn lưu trạng thái user đã like hay chưa, có thể thêm property `isLiked`
+          review.isLiked = liked;
+        }
+      })
+      .addCase(likeReviewThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
