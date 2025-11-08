@@ -242,7 +242,7 @@ export default function RoomMonitorPage() {
 
   return (
     <div className="p-6 relative">
-      <div className="pt-12 relative">
+      <div className="relative">
         <h1 className="text-2xl font-bold mb-4">🏨 Room Availability Monitor</h1>
       </div>
 

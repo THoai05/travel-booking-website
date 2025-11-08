@@ -268,7 +268,7 @@ export class RoomsService {
                 'bookinghotel-fe',
                 'src',
                 'app',
-                'client',
+                'admin',
                 'rooms',
                 'room-monitor'
             );
@@ -314,7 +314,7 @@ export class RoomsService {
             'bookinghotel-fe',
             'src',
             'app',
-            'client',
+            'admin',
             'rooms',
             'room-monitor',
             'room-monitor.txt'
@@ -341,7 +341,7 @@ export class RoomsService {
                 'bookinghotel-fe',
                 'src',
                 'app',
-                'client',
+                'admin',
                 'rooms',
                 'room-monitor',
                 'room-monitor.txt'

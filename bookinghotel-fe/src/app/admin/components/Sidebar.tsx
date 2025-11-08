@@ -60,6 +60,7 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
         { icon: Home, label: "Dashboard", path: '/admin' },
         { icon: ChartArea, label: "Dashboard API", path: '/admin/dashboardKPI' },
         { icon: Hotel, label: "Hotels", path: '/admin/hotel' },
+        { icon: ChartColumn, label: "Room Monitor", path: '/admin/rooms/room-monitor' },
         { icon: Calendar, label: "Bookings", path: '/admin/booking' },
         { icon: CreditCard, label: "Payments", path: '/admin/payment' },
         { icon: Tag, label: "Promotions", path: '/admin/promotion' },
