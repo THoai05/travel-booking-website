@@ -344,7 +344,7 @@ export default function RoomMonitorPage() {
           }}
           className="border p-2 rounded bg-gray-200 hover:bg-gray-300"
         >
-          {showAll === "all" ? "Xem lịch sử đặt phòng của tôi" : "Xem tất cả"}
+          {showAll === "all" ? "Xem tất cả" : "Xem tất cả"}
         </button>
 
         <button
