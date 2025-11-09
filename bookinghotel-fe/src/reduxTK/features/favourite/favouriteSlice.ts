@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { fetchFavourites, addFavouriteThunk, deleteFavouriteThunk } from "./favouriteThunk";
 
 const initialState = {
-  favourites: [] as any[], // chứa object favourite trả về backend
+  favourites: [] as any[],
   loading: false,
   error: null as string | null,
 };
@@ -14,23 +14,14 @@ const favouriteSlice = createSlice({
     resetFavourites(state) {
       state.favourites = [];
     },
-    addFavouriteLocal(state, action) {
-      state.favourites.unshift(action.payload);
-    },
-    removeFavouriteLocal(state, action) {
-      state.favourites = state.favourites.filter(f => f.id !== action.payload);
-    },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     builder
       // fetch
-      .addCase(fetchFavourites.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
+      .addCase(fetchFavourites.pending, state => { state.loading = true; state.error = null; })
       .addCase(fetchFavourites.fulfilled, (state, action) => {
         state.loading = false;
-        state.favourites = action.payload.favourites ?? action.payload;
+        state.favourites = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(fetchFavourites.rejected, (state, action) => {
         state.loading = false;
@@ -38,10 +29,7 @@ const favouriteSlice = createSlice({
       })
 
       // add
-      .addCase(addFavouriteThunk.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
+      .addCase(addFavouriteThunk.pending, state => { state.loading = true; state.error = null; })
       .addCase(addFavouriteThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.favourites.unshift(action.payload);
@@ -52,10 +40,7 @@ const favouriteSlice = createSlice({
       })
 
       // delete
-      .addCase(deleteFavouriteThunk.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
+      .addCase(deleteFavouriteThunk.pending, state => { state.loading = true; state.error = null; })
       .addCase(deleteFavouriteThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.favourites = state.favourites.filter(f => f.id !== action.payload.id);
@@ -63,9 +48,9 @@ const favouriteSlice = createSlice({
       .addCase(deleteFavouriteThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      })
+      });
   }
 });
 
-export const { resetFavourites, addFavouriteLocal, removeFavouriteLocal } = favouriteSlice.actions;
+export const { resetFavourites } = favouriteSlice.actions;
 export default favouriteSlice.reducer;
