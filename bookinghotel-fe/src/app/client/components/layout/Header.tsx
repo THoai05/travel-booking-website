@@ -234,10 +234,11 @@ const Header = () => {
               <div className="flex items-center gap-2 font-medium text-sm text-gray-700">
 
                 {/* Avatar */}
+                {/* Avatar with wings & falling feathers */}
                 <div className="relative flex items-center justify-center">
-                  {/* SVG Cánh bên trái */}
+                  {/* Cánh trái */}
                   <svg
-                    className="absolute -left-6 -z-10 w-16 h-16 animate-wing"
+                    className="absolute -left-6 w-16 h-16 animate-wing-left"
                     viewBox="0 0 64 64"
                   >
                     <path
@@ -246,16 +247,25 @@ const Header = () => {
                     />
                     <defs>
                       <linearGradient id="gradientLeft" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor="#facc15" />
-                        <stop offset="50%" stopColor="#fcd34d" />
-                        <stop offset="100%" stopColor="#fbbf24" />
+                        <stop offset="0%" stopColor={
+                          profile?.membershipLevel === "Gold" ? "#facc15" :
+                            profile?.membershipLevel === "Platinum" ? "#3b82f6" : "#9ca3af"
+                        } />
+                        <stop offset="50%" stopColor={
+                          profile?.membershipLevel === "Gold" ? "#fcd34d" :
+                            profile?.membershipLevel === "Platinum" ? "#8b5cf6" : "#d1d5db"
+                        } />
+                        <stop offset="100%" stopColor={
+                          profile?.membershipLevel === "Gold" ? "#fbbf24" :
+                            profile?.membershipLevel === "Platinum" ? "#ec4899" : "#9ca3af"
+                        } />
                       </linearGradient>
                     </defs>
                   </svg>
 
-                  {/* SVG Cánh bên phải */}
+                  {/* Cánh phải */}
                   <svg
-                    className="absolute -right-6 -z-10 w-16 h-16 animate-wing"
+                    className="absolute -right-6 w-16 h-16 animate-wing-right"
                     viewBox="0 0 64 64"
                   >
                     <path
@@ -264,22 +274,55 @@ const Header = () => {
                     />
                     <defs>
                       <linearGradient id="gradientRight" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor="#3b82f6" />
-                        <stop offset="50%" stopColor="#8b5cf6" />
-                        <stop offset="100%" stopColor="#ec4899" />
+                        <stop offset="0%" stopColor={
+                          profile?.membershipLevel === "Gold" ? "#facc15" :
+                            profile?.membershipLevel === "Platinum" ? "#3b82f6" : "#9ca3af"
+                        } />
+                        <stop offset="50%" stopColor={
+                          profile?.membershipLevel === "Gold" ? "#fcd34d" :
+                            profile?.membershipLevel === "Platinum" ? "#8b5cf6" : "#d1d5db"
+                        } />
+                        <stop offset="100%" stopColor={
+                          profile?.membershipLevel === "Gold" ? "#fbbf24" :
+                            profile?.membershipLevel === "Platinum" ? "#ec4899" : "#9ca3af"
+                        } />
                       </linearGradient>
                     </defs>
                   </svg>
 
-                  {/* Avatar chính */}
-                  <div className="rounded-full p-[2px] bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400">
+                  {/* Avatar chính với gradient border */}
+                  <div
+                    className={`relative rounded-full p-[2px] 
+      ${profile?.membershipLevel === "Gold"
+                        ? "bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400"
+                        : profile?.membershipLevel === "Platinum"
+                          ? "bg-gradient-to-r from-blue-500 via-purple-400 to-pink-500"
+                          : "bg-gradient-to-r from-gray-400 via-gray-200 to-gray-400"
+                      }`}
+                  >
                     <img
                       src={profile?.avatar || "https://avatars.githubusercontent.com/u/9919?s=128&v=4"}
                       alt="User Avatar"
                       className="rounded-full h-10 w-10 object-cover border-2 border-gray-900"
                     />
+
+                    {/* Lông rơi */}
+                    <div className="absolute inset-0 pointer-events-none">
+                      {[...Array(5)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="absolute w-1 h-2 bg-white opacity-70 rounded-full animate-feather"
+                          style={{
+                            left: `${Math.random() * 100}%`,
+                            animationDelay: `${Math.random() * 2}s`,
+                            animationDuration: `${1 + Math.random() * 1.5}s`,
+                          }}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
+
 
 
                 {/* Username + Membership */}
