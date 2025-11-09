@@ -6,6 +6,22 @@ import { toast } from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import DashboardPage from "./dashboard/page"; // import trực tiếp component
+import {
+  ChartColumn,  // ← thêm
+  ChartArea,     // ← hoặc thêm icon này
+  Monitor,
+  Activity,
+  ArrowUp,
+  ArrowDown,
+  Users,
+  UserCheck,
+  UserX,
+  Bed,
+  Home,
+  Coffee,
+  Search,
+  ArrowUpDown,
+} from "lucide-react";
 
 // ================== ENUM ROOM TYPE ==================
 export enum RoomTypeName {
@@ -18,6 +34,14 @@ export enum RoomTypeName {
   TRIPPLE_ROOM = "triple room",
 }
 
+// ================== ENUM BOOKING STATUS ==================
+export enum BookingStatus {
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  COMPLETED = 'completed',
+  EXPIRED = 'expired',
+}
 
 // ================== INTERFACE ==================
 interface RoomTypeItem {
@@ -47,7 +71,10 @@ export default function RoomMonitorPage() {
 
   const [rooms, setRooms] = useState<RoomTypeItem[]>([]);
   const [search, setSearch] = useState("");
+
   const [roomTypeFilter, setRoomTypeFilter] = useState<string | null>(null);
+  const [roomStatusFilter, setRoomStatusFilter] = useState<"occupied" | "empty" | null>(null);
+
   const [sortKey, setSortKey] = useState<"hotelName" | "roomTypeName" | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
@@ -160,19 +187,21 @@ export default function RoomMonitorPage() {
   // ====== Lọc và tìm kiếm ======
   const filteredRooms = rooms
     .filter(r =>
-      !roomTypeFilter ||
-      r.roomTypeName === roomTypeFilter ||
-      r.roomTypeId.toString() === roomTypeFilter
+      (!roomTypeFilter || r.roomTypeName === roomTypeFilter || r.roomTypeId.toString() === roomTypeFilter)
     )
     .filter(r => {
       const hotel = removeVietnameseAccents(r.hotelName.toLowerCase());
       const type = removeVietnameseAccents(r.roomTypeName.toLowerCase());
       const searchTerm = removeVietnameseAccents(search.toLowerCase());
-
-      // Tìm theo roomTypeId nếu nhập số
       const roomIdMatch = !isNaN(Number(search)) && r.roomTypeId === Number(search);
-
       return hotel.includes(searchTerm) || type.includes(searchTerm) || roomIdMatch;
+    })
+    .filter(r => {
+      if (!roomStatusFilter) return true;
+      const status = r.bookingStatus as BookingStatus;
+      if (roomStatusFilter === "occupied") return status === BookingStatus.PENDING || status === BookingStatus.CONFIRMED;
+      if (roomStatusFilter === "empty") return status === BookingStatus.CANCELLED || status === BookingStatus.COMPLETED || status === BookingStatus.EXPIRED;
+      return true;
     })
     .sort((a, b) => {
       if (!sortKey) return 0;
@@ -180,6 +209,9 @@ export default function RoomMonitorPage() {
         ? a[sortKey].localeCompare(b[sortKey])
         : b[sortKey].localeCompare(a[sortKey]);
     });
+
+
+
 
   const grouped: HotelGroup[] = Object.values(
     filteredRooms.reduce((acc: { [key: string]: HotelGroup }, room) => {
@@ -300,54 +332,62 @@ export default function RoomMonitorPage() {
 
       {/* Search & Filter */}
       <div className="flex flex-col md:flex-row gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Search by hotel, room type, or roomTypeId..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border p-2 rounded w-full md:w-1/3"
-        />
-        <select
-          value={sortKey || ""}
-          onChange={(e) => setSortKey((e.target.value as any) || null)}
-          className="border p-2 rounded w-full md:w-1/4"
-        >
-          <option value="">Sort By</option>
-          <option value="hotelName">Hotel Name</option>
-          <option value="roomTypeName">Room Type</option>
-        </select>
+        {/* Input Search với icon */}
+        <div className="relative w-full md:w-1/3">
+          <input
+            type="text"
+            placeholder="Search by hotel, room type, or roomTypeId..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border p-2 rounded w-full pl-8"
+          />
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        </div>
+
+        {/* Select Sort với icon */}
+        <div className="relative w-full md:w-1/4">
+          <select
+            value={sortKey || ""}
+            onChange={(e) => setSortKey((e.target.value as any) || null)}
+            className="border p-2 rounded w-full appearance-none pr-6"
+          >
+            <option value="">📋 Sort By </option>
+            <option value="hotelName">🏨 Hotel Name</option>
+            <option value="roomTypeName">🛏 Room Type</option>
+          </select>
+          <ArrowUpDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+        </div>
 
         {sortKey && (
           <button
             onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            className="border p-2 rounded bg-gray-200"
+            className="border p-2 rounded bg-gray-200 flex items-center gap-2"
           >
             Order: {sortOrder.toUpperCase()}
+            {sortOrder === "asc" ? (
+              <ArrowUp className="w-4 h-4" />
+            ) : (
+              <ArrowDown className="w-4 h-4" />
+            )}
           </button>
         )}
 
+
+      </div>
+
+      {/* Chế độ xem: all, thống kê, danh sách theo dõi*/}
+      <div className="flex flex-wrap gap-2 mb-4">
         <button
           onClick={() => {
-            if (showAll === "none") {
-              setShowAll("all");
-              setApiType("all");
-              setParam(undefined);
-            }
-            // else if (userId) {
-            //   setShowAll("none");
-            //   setApiType("user");
-            //   setParam(userId);
-            // }
-            else {
-              //toast("Vui lòng đăng nhập để xem danh sách của bạn!", { icon: "⚠️" });
-              setShowAll("all");
-              setApiType("all");
-              setParam(undefined);
-            }
+            setShowAll("all");
+            setApiType("all");
+            setParam(undefined);
           }}
-          className="border p-2 rounded bg-gray-200 hover:bg-gray-300"
+          className={`border p-2 rounded flex items-center gap-2 ${apiType === "all" ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"
+            }`}
         >
-          {showAll === "all" ? "Xem tất cả" : "Xem tất cả"}
+          <ChartColumn className="w-4 h-4" />
+          Xem tất cả
         </button>
 
         <button
@@ -358,22 +398,26 @@ export default function RoomMonitorPage() {
             }
             setApiType("monitor");
           }}
-          className="border p-2 rounded bg-green-200 hover:bg-green-300"
+          className={`border p-2 rounded flex items-center gap-2 ${apiType === "monitor" ? "bg-blue-500 text-white" : "bg-green-200 hover:bg-green-300"
+            }`}
         >
-          Xem danh sách theo dõi phòng của tôi
+          <Monitor className="w-4 h-4" />
+          Danh sách theo dõi
         </button>
+
 
         <div>
           <button
             onClick={() => setShowDashboard(true)}
-            className="border p-2 rounded bg-green-200 hover:bg-green-300"
+            className="border p-2 rounded bg-green-200 hover:bg-green-300 flex items-center gap-2"
           >
-            Xem thống kê của tôi
+            <Activity className="w-4 h-4" />
+            Thống kê
           </button>
 
           {showDashboard && (
             <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
-              <div className="bg-white w-full max-w-4xl max-h-[80vh] rounded-lg shadow-lg overflow-auto p-4 relative">
+              <div className="bg-white w-full max-w-7xl max-h-[90vh] rounded-lg shadow-lg overflow-auto p-4 relative">
                 {/* Header với nút đóng */}
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-bold">Dashboard Room Monitor</h2>
@@ -391,25 +435,56 @@ export default function RoomMonitorPage() {
             </div>
           )}
         </div>
-      </div>
 
+      </div>
       {/* Bộ lọc RoomType */}
       <div className="flex flex-wrap gap-2 mb-4">
         <button
           onClick={() => setRoomTypeFilter(null)}
-          className={`px-4 py-2 rounded ${roomTypeFilter === null ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"}`}
+          className={`px-4 py-2 rounded flex items-center gap-2 ${roomTypeFilter === null ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"}`}
         >
+          <Users className="w-4 h-4" />
           All
         </button>
+
         {Object.values(RoomTypeName).map((type) => (
           <button
             key={type}
             onClick={() => setRoomTypeFilter(roomTypeFilter === type ? null : type)}
-            className={`px-4 py-2 rounded ${roomTypeFilter === type ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"}`}
+            className={`px-4 py-2 rounded flex items-center gap-2 ${roomTypeFilter === type ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"}`}
           >
+            {/* ví dụ chọn icon Bed cho các phòng */}
+            <Bed className="w-4 h-4" />
             {type}
           </button>
         ))}
+      </div>
+
+      {/* Bộ lọc trạng thái phòng */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button
+          onClick={() => setRoomStatusFilter(null)}
+          className={`px-4 py-2 rounded flex items-center gap-2 ${roomStatusFilter === null ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"}`}
+        >
+          <Users className="w-4 h-4" />
+          Tất cả
+        </button>
+
+        <button
+          onClick={() => setRoomStatusFilter("occupied")}
+          className={`px-4 py-2 rounded flex items-center gap-2 ${roomStatusFilter === "occupied" ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"}`}
+        >
+          <UserCheck className="w-4 h-4" />
+          Có người ở
+        </button>
+
+        <button
+          onClick={() => setRoomStatusFilter("empty")}
+          className={`px-4 py-2 rounded flex items-center gap-2 ${roomStatusFilter === "empty" ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"}`}
+        >
+          <UserX className="w-4 h-4" />
+          Phòng trống
+        </button>
       </div>
 
       <h1 className="text-2xl font-bold text-[#0068ff] mb-2 text-left">

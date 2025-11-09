@@ -542,7 +542,7 @@ export class BookingsService {
     }
 
     //PI tổng hợp cho xuất Excel (gồm dữ liệu doanh thu, tổng lượt đặt, lượt hủy, và thống kê trạng thái booking) theo ba mốc:
-    //7 ngày gần nhất, 30 (hoặc 31) ngày trong tháng vừa rồi, và 12 tháng trong năm.
+    //7 ngày gần nhất, 30 (hoặc 31) ngày trong tháng hiện tại, và 12 tháng trong năm.
     async getExportData(type: 'week' | 'month' | 'year') {
         const now = new Date();
         let startDate: Date;
@@ -554,8 +554,8 @@ export class BookingsService {
             endDate = now;
         } else if (type === 'month') {
             // Toàn bộ tháng vừa rồi
-            startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         } else {
             // 12 tháng trong năm hiện tại
             startDate = new Date(now.getFullYear(), 0, 1);
