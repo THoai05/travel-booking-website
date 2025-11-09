@@ -1,28 +1,30 @@
-import { Controller, Get, Post, Delete, Param, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
 import { FavouritesService } from '../services/favourite.service';
+import { JwtAuthGuard } from 'src/managements/auth/guards/jwt-auth.guard';
 
 @Controller('favourites')
 export class FavouritesController {
   constructor(private readonly favouritesService: FavouritesService) { }
 
-  // 🟢 Lấy danh sách yêu thích của 1 user
+  // Lấy danh sách yêu thích của 1 user
   @Get()
   async getFavourites(@Query('userId') userId: number) {
     return this.favouritesService.findAllByUser(userId);
   }
 
-  // 🟢 API Thống kê tổng hợp
+  // API Thống kê tổng hợp
   @Get('analytics')
   async getAnalytics() {
     const analyticsData = await this.favouritesService.getAnalytics();
 
     return {
       message: 'Thống kê lượt yêu thích thành công',
-      data: analyticsData, // ✅ trả về đúng format JSON bạn muốn
+      data: analyticsData,
     };
   }
 
-  // 🟢 Thêm mới yêu thích
+  // Thêm mới yêu thích
+  @UseGuards(JwtAuthGuard)
   @Post()
   async addFavourite(
     @Body() body: { userId: number; hotelId?: number; roomId?: number },
@@ -30,7 +32,8 @@ export class FavouritesController {
     return this.favouritesService.create(body.userId, body.hotelId, body.roomId);
   }
 
-  // 🟢 Xóa yêu thích
+  // Xóa yêu thích
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deleteFavourite(@Param('id') id: number) {
     return this.favouritesService.remove(id);
