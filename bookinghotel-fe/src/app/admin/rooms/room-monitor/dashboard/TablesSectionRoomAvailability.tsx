@@ -113,40 +113,41 @@ export function TablesSectionRoomAvailability() {
   const exportExcel = () => {
     if (!roomStats.length) return;
 
-    const worksheet = XLSX.utils.aoa_to_sheet([]);
-    XLSX.utils.sheet_add_aoa(worksheet, [["Room Availability Report"]], { origin: "A1" });
-    XLSX.utils.sheet_add_aoa(worksheet, [[`Generated at: ${new Date().toLocaleString()}`]], { origin: "A2" });
+    // === Sheet 1: Room Availability ===
+    const ws = XLSX.utils.aoa_to_sheet([]);
 
-    XLSX.utils.sheet_add_aoa(
-      worksheet,
-      [["Room Type", "Total Occupied", "Total Available", "Hotel", "Occupied", "Available"]],
-      { origin: "A3" }
-    );
+    // --- Tiêu đề chính ---
+    XLSX.utils.sheet_add_aoa(ws, [["Room Availability Report"]], { origin: "A1" });
+    ws["A1"].s = {
+      font: { bold: true, sz: 14, color: { rgb: "1F4E78" } },
+      alignment: { horizontal: "center", vertical: "center" },
+    };
+    ws["!merges"] = ws["!merges"] || [];
+    ws["!merges"].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } });
 
-    // --- Style căn giữa + tiêu đề ---
-    ["A1", "A2"].forEach((c) => {
-      worksheet[c].s = {
-        font: { bold: true, sz: 14, color: { rgb: "1F4E78" } },
-        alignment: { horizontal: "center", vertical: "center" },
-      };
-    });
-    const headerCells = ["A3", "B3", "C3", "D3", "E3", "F3"];
-    headerCells.forEach((c) => {
-      worksheet[c].s = {
-        font: { bold: true, color: { rgb: "FFFFFF" }, name: "Calibri", sz: 12 },
+    // --- Thời gian ---
+    XLSX.utils.sheet_add_aoa(ws, [[`Generated at: ${new Date().toLocaleString()}`]], { origin: "A2" });
+    ws["A2"].s = {
+      font: { italic: true, sz: 11, color: { rgb: "1F4E78" } },
+      alignment: { horizontal: "center", vertical: "center" },
+    };
+    ws["!merges"].push({ s: { r: 1, c: 0 }, e: { r: 1, c: 5 } });
+
+    // --- Header ---
+    const header = ["Room Type", "Total Occupied", "Total Available", "Hotel", "Occupied", "Available"];
+    XLSX.utils.sheet_add_aoa(ws, [header], { origin: "A3" });
+    for (let c = 0; c < 6; c++) {
+      const cell = XLSX.utils.encode_cell({ r: 2, c });
+      ws[cell].s = {
+        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 12 },
         fill: { fgColor: { rgb: "4F81BD" } },
         alignment: { horizontal: "center", vertical: "center" },
-        border: {
-          top: { style: "thin" },
-          bottom: { style: "thin" },
-          left: { style: "thin" },
-          right: { style: "thin" },
-        },
+        border: { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } },
       };
-    });
+    }
 
-    // --- Ghi dữ liệu ---
-    let rowIndex = 4;
+    // --- Dữ liệu ---
+    let rowIndex = 4; // dữ liệu bắt đầu từ row 4
     let totalOccupied = 0;
     let totalAvailable = 0;
 
@@ -157,13 +158,13 @@ export function TablesSectionRoomAvailability() {
 
       r.hotels.forEach((h) => {
         const row = [r.roomTypeName, r.occupied, r.available, h.hotelName, h.occupied, h.available];
-        XLSX.utils.sheet_add_aoa(worksheet, [row], { origin: `A${rowIndex}` });
+        XLSX.utils.sheet_add_aoa(ws, [row], { origin: `A${rowIndex}` });
 
-        // tô màu dữ liệu
+        // Tô màu dữ liệu > 0
         for (let c = 3; c <= 5; c++) {
           const cellAddr = XLSX.utils.encode_cell({ r: rowIndex - 1, c });
           const val = row[c];
-          worksheet[cellAddr].s = {
+          ws[cellAddr].s = {
             alignment: { horizontal: "center", vertical: "center" },
             fill: { fgColor: { rgb: val > 0 ? "C6EFCE" : "F2F2F2" } },
           };
@@ -171,9 +172,9 @@ export function TablesSectionRoomAvailability() {
         rowIndex++;
       });
 
+      // Merge Room Type + Total Occupied + Total Available
       if (r.hotels.length > 1) {
-        worksheet["!merges"] = worksheet["!merges"] || [];
-        worksheet["!merges"].push(
+        ws["!merges"].push(
           { s: { r: startRow - 1, c: 0 }, e: { r: rowIndex - 2, c: 0 } },
           { s: { r: startRow - 1, c: 1 }, e: { r: rowIndex - 2, c: 1 } },
           { s: { r: startRow - 1, c: 2 }, e: { r: rowIndex - 2, c: 2 } }
@@ -182,27 +183,18 @@ export function TablesSectionRoomAvailability() {
     });
 
     // --- Dòng tổng ---
-    XLSX.utils.sheet_add_aoa(
-      worksheet,
-      [["GRAND TOTAL", totalOccupied, totalAvailable, "", "", ""]],
-      { origin: `A${rowIndex}` }
-    );
-    const totalRowCells = ["A", "B", "C"].map((c) => `${c}${rowIndex}`);
-    totalRowCells.forEach((c) => {
-      worksheet[c].s = {
+    XLSX.utils.sheet_add_aoa(ws, [["GRAND TOTAL", totalOccupied, totalAvailable, "", "", ""]], { origin: `A${rowIndex}` });
+    ["A", "B", "C"].forEach((c) => {
+      const cell = `${c}${rowIndex}`;
+      ws[cell].s = {
         font: { bold: true, sz: 12 },
         fill: { fgColor: { rgb: "FFD966" } },
         alignment: { horizontal: "center", vertical: "center" },
-        border: {
-          top: { style: "thin" },
-          bottom: { style: "thin" },
-          left: { style: "thin" },
-          right: { style: "thin" },
-        },
+        border: { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } },
       };
     });
 
-    worksheet["!cols"] = [
+    ws["!cols"] = [
       { wch: 18 },
       { wch: 15 },
       { wch: 15 },
@@ -211,15 +203,81 @@ export function TablesSectionRoomAvailability() {
       { wch: 10 },
     ];
 
+    // === Sheet 2: Mini Chart ===
+    const wsChart = XLSX.utils.aoa_to_sheet([]);
+
+    // --- Tiêu đề chính ---
+    XLSX.utils.sheet_add_aoa(wsChart, [["Room Availability Chart"]], { origin: "A1" });
+    wsChart["A1"].s = {
+      font: { bold: true, sz: 14, color: { rgb: "1F4E78" } },
+      alignment: { horizontal: "center", vertical: "center" },
+    };
+    // Merge từ A1 đến F1
+    wsChart["!merges"] = wsChart["!merges"] || [];
+    wsChart["!merges"].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } });
+
+    // --- Thời gian tạo báo cáo ---
+    XLSX.utils.sheet_add_aoa(wsChart, [[`Generated at: ${new Date().toLocaleString()}`]], { origin: "A2" });
+    wsChart["A2"].s = {
+      font: { italic: true, sz: 11, color: { rgb: "1F4E78" } },
+      alignment: { horizontal: "center", vertical: "center" },
+    };
+    // Merge từ A2 đến F2
+    wsChart["!merges"].push({ s: { r: 1, c: 0 }, e: { r: 1, c: 5 } });
+
+    // --- Header ---
+    const chartHeader = ["Room Type", "Occupied", "Available", "Occupied %", "Available %", "Visual Chart"];
+    XLSX.utils.sheet_add_aoa(wsChart, [chartHeader], { origin: "A3" });
+    for (let c = 0; c < 6; c++) {
+      const cell = XLSX.utils.encode_cell({ r: 2, c });
+      wsChart[cell].s = {
+        font: { bold: true, color: { rgb: "FFFFFF" } },
+        fill: { fgColor: { rgb: "4F81BD" } },
+        alignment: { horizontal: "center", vertical: "center" },
+        border: { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } },
+      };
+    }
+
+    // --- Dữ liệu ---
+    roomStats.forEach((r, i) => {
+      const total = r.occupied + r.available;
+      const occPercent = total ? (r.occupied / total) * 100 : 0;
+      const availPercent = total ? (r.available / total) * 100 : 0;
+      const row = [r.roomTypeName, r.occupied, r.available, occPercent, availPercent, ""];
+
+      XLSX.utils.sheet_add_aoa(wsChart, [row], { origin: `A${i + 4}` }); // dữ liệu bắt đầu từ row 4
+
+      // --- In-cell bar chart ---
+      const occBars = "█".repeat(Math.round((r.occupied / total) * 20));
+      const availBars = "░".repeat(Math.round((r.available / total) * 20));
+      const cellChart = `F${i + 4}`;
+      XLSX.utils.sheet_add_aoa(wsChart, [[`${occBars}${availBars}`]], { origin: cellChart });
+      wsChart[cellChart].s = { alignment: { horizontal: "left", vertical: "center" } };
+    });
+
+    // --- Cột rộng
+    wsChart["!cols"] = [
+      { wch: 18 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 14 },
+      { wch: 14 },
+      { wch: 35 },
+    ];
+
+
+    // === Workbook ===
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, worksheet, "Room Availability");
-    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
-    saveAs(blob, `RoomAvailability_${new Date().toISOString()}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, "Room Availability");
+    XLSX.utils.book_append_sheet(wb, wsChart, "Charts");
+
+    const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    saveAs(new Blob([buf], { type: "application/octet-stream" }), `RoomAvailability_${new Date().toISOString()}.xlsx`);
   };
 
-  const getCellColor = (val: number) =>
-    val > 0 ? "bg-green-100 text-green-700 font-medium" : "bg-gray-100 text-gray-500";
+
+
+  const getCellColor = (val: number) => val > 0 ? "bg-green-100 text-green-700 font-medium" : "bg-gray-100 text-gray-500";
 
   return (
     <div className="mb-8">
@@ -252,37 +310,24 @@ export function TablesSectionRoomAvailability() {
                   </tr>
                 </thead>
                 <tbody>
-                  {roomStats.map((r, idx) =>
-                    r.hotels.map((h, i) => (
-                      <tr key={`${idx}-${i}`} className="hover:bg-gray-50 transition-colors">
-                        {i === 0 && (
-                          <>
-                            <td rowSpan={r.hotels.length} className="border p-2 font-semibold align-middle">
-                              {r.roomTypeName}
-                            </td>
-                            <td rowSpan={r.hotels.length} className="border p-2 font-semibold align-middle">
-                              {r.occupied}
-                            </td>
-                            <td rowSpan={r.hotels.length} className="border p-2 font-semibold align-middle">
-                              {r.available}
-                            </td>
-                          </>
-                        )}
-                        <td className="border p-2">{h.hotelName}</td>
-                        <td className={`border p-2 ${getCellColor(h.occupied)}`}>{h.occupied}</td>
-                        <td className={`border p-2 ${getCellColor(h.available)}`}>{h.available}</td>
-                      </tr>
-                    ))
-                  )}
-                  {/* Dòng tổng */}
+                  {roomStats.map((r, idx) => r.hotels.map((h, i) => (
+                    <tr key={`${idx}-${i}`} className="hover:bg-gray-50 transition-colors">
+                      {i === 0 && (
+                        <>
+                          <td rowSpan={r.hotels.length} className="border p-2 font-semibold align-middle">{r.roomTypeName}</td>
+                          <td rowSpan={r.hotels.length} className="border p-2 font-semibold align-middle">{r.occupied}</td>
+                          <td rowSpan={r.hotels.length} className="border p-2 font-semibold align-middle">{r.available}</td>
+                        </>
+                      )}
+                      <td className="border p-2">{h.hotelName}</td>
+                      <td className={`border p-2 ${getCellColor(h.occupied)}`}>{h.occupied}</td>
+                      <td className={`border p-2 ${getCellColor(h.available)}`}>{h.available}</td>
+                    </tr>
+                  )))}
                   <tr className="bg-yellow-100 font-semibold">
                     <td className="border p-2 text-center" colSpan={1}>GRAND TOTAL</td>
-                    <td className="border p-2 text-center">
-                      {roomStats.reduce((t, r) => t + r.occupied, 0)}
-                    </td>
-                    <td className="border p-2 text-center">
-                      {roomStats.reduce((t, r) => t + r.available, 0)}
-                    </td>
+                    <td className="border p-2 text-center">{roomStats.reduce((t, r) => t + r.occupied, 0)}</td>
+                    <td className="border p-2 text-center">{roomStats.reduce((t, r) => t + r.available, 0)}</td>
                     <td className="border p-2" colSpan={3}></td>
                   </tr>
                 </tbody>
