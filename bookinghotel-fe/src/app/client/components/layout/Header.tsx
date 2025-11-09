@@ -24,21 +24,6 @@ import {
   HiOutlineBookmark,
 } from "react-icons/hi";
 
-interface UserProfile {
-  id: number;
-  username: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  role: string;
-  avatar?: string;
-  dob?: string | null;
-  gender?: string;
-  loyaltyPoints?: number;
-  membershipLevel?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
 interface ChatMessage {
   id: number;
   sender: User | null;
@@ -57,7 +42,7 @@ interface User {
 const Header = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
 
   const [showLogin, setShowLogin] = useState(false);
@@ -131,6 +116,20 @@ const Header = () => {
     if (user?.role === "admin") {
       router.replace("/admin");
     }
+
+    const fetchProfileAndUser = async () => {
+      try {
+        const response = await api.get("auth/profile");
+        let storedId = null;
+        if (response.status !== 401) {
+          const profileData = response.data;
+          storedId = profileData.id;
+          setProfile(profileData);
+        }
+      } catch (err: any) {
+      }
+    };
+    fetchProfileAndUser(); // lần đầu load
 
   }, [user]);
 
@@ -233,15 +232,93 @@ const Header = () => {
             {/* Giờ chỉ hiển thị icon và tên, nút Đăng xuất đã chuyển vào dropdown */}
             {!loading && user && (
               <div className="flex items-center gap-2 font-medium text-sm text-gray-700">
-                <HiUserCircle className="w-6 h-6" />
-                <span className="hidden sm:inline">
-                  {user.username || "bạn"}
-                </span>
+
+                {/* Avatar */}
+                <div className="relative flex items-center justify-center">
+                  {/* SVG Cánh bên trái */}
+                  <svg
+                    className="absolute -left-6 -z-10 w-16 h-16 animate-wing"
+                    viewBox="0 0 64 64"
+                  >
+                    <path
+                      d="M32 32 C10 10, 0 64, 32 32"
+                      fill="url(#gradientLeft)"
+                    />
+                    <defs>
+                      <linearGradient id="gradientLeft" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#facc15" />
+                        <stop offset="50%" stopColor="#fcd34d" />
+                        <stop offset="100%" stopColor="#fbbf24" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+
+                  {/* SVG Cánh bên phải */}
+                  <svg
+                    className="absolute -right-6 -z-10 w-16 h-16 animate-wing"
+                    viewBox="0 0 64 64"
+                  >
+                    <path
+                      d="M32 32 C54 10, 64 64, 32 32"
+                      fill="url(#gradientRight)"
+                    />
+                    <defs>
+                      <linearGradient id="gradientRight" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#3b82f6" />
+                        <stop offset="50%" stopColor="#8b5cf6" />
+                        <stop offset="100%" stopColor="#ec4899" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+
+                  {/* Avatar chính */}
+                  <div className="rounded-full p-[2px] bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400">
+                    <img
+                      src={profile?.avatar || "https://avatars.githubusercontent.com/u/9919?s=128&v=4"}
+                      alt="User Avatar"
+                      className="rounded-full h-10 w-10 object-cover border-2 border-gray-900"
+                    />
+                  </div>
+                </div>
+
+
+                {/* Username + Membership */}
+                {profile && (
+                  <div className="flex flex-col justify-center items-start">
+                    {/* Username */}
+                    <span className="text-sm font-medium text-gray-800 truncate max-w-[120px]">
+                      {profile.username || "bạn"}
+                    </span>
+
+                    {/* Membership */}
+                    <div className="flex items-center gap-1 text-xs font-semibold">
+                      <span className="truncate max-w-[120px]">
+                        {profile.membershipLevel ?? "Silver"} ({profile.loyaltyPoints ?? 0})
+                      </span>
+                      <span
+                        className={
+                          profile.membershipLevel === "Silver"
+                            ? "text-gray-400"
+                            : profile.membershipLevel === "Gold"
+                              ? "text-yellow-400"
+                              : profile.membershipLevel === "Platinum"
+                                ? "text-blue-600"
+                                : "text-gray-400"
+                        }
+                      >
+                        {profile.membershipLevel === "Silver"
+                          ? "🥈"
+                          : profile.membershipLevel === "Gold"
+                            ? "🥇"
+                            : profile.membershipLevel === "Platinum"
+                              ? "🏆"
+                              : "🥈"}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
-
-            {/* Nếu có profile */}
-
 
             {/* --- CHỈNH SỬA: DROPDOWN MENU (YÊU CẦU 2) --- */}
 
@@ -263,13 +340,14 @@ const Header = () => {
                 {/* Nút trigger */}
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="menu-icon cursor-pointer"
+                  className="menu-icon cursor-pointer w-10 h-10 flex items-center justify-center"
                 >
                   <Image
                     src="/menu.png"
                     alt="menu icon"
-                    width={32}
-                    height={32}
+                    width={35} // kích thước cố định cho ảnh
+                    height={35}
+                    className="object-contain"
                   />
                 </button>
 
