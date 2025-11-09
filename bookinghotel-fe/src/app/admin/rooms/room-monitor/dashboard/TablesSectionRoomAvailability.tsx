@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import api from "@/axios/axios";
 import { saveAs } from "file-saver";
-import XLSX from 'sheetjs-style';
+import * as XLSX from "sheetjs-style";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export enum RoomTypeName {
@@ -82,7 +82,9 @@ export function TablesSectionRoomAvailability() {
         if (isOccupied) statsMap[key].occupied += 1;
         else statsMap[key].available += 1;
 
-        let hotel = statsMap[key].hotels.find((h) => h.hotelName === item.hotelName);
+        let hotel = statsMap[key].hotels.find(
+          (h) => h.hotelName === item.hotelName
+        );
         if (!hotel) {
           hotel = { hotelName: item.hotelName, occupied: 0, available: 0 };
           statsMap[key].hotels.push(hotel);
@@ -91,7 +93,15 @@ export function TablesSectionRoomAvailability() {
         else hotel.available += 1;
       });
 
-      setRoomStats(Object.values(statsMap));
+      // sắp xếp
+      const sorted = Object.values(statsMap)
+        .sort((a, b) => a.roomTypeName.localeCompare(b.roomTypeName))
+        .map((r) => ({
+          ...r,
+          hotels: r.hotels.sort((a, b) => a.hotelName.localeCompare(b.hotelName)),
+        }));
+
+      setRoomStats(sorted);
     } catch (error) {
       console.error("Error fetching room stats:", error);
       setRoomStats([]);
@@ -103,61 +113,113 @@ export function TablesSectionRoomAvailability() {
   const exportExcel = () => {
     if (!roomStats.length) return;
 
-    // Prepare data for XLSX
-    const dataRows: any[][] = roomStats.flatMap(r => 
-      r.hotels.map(h => [
-        r.roomTypeName,
-        r.occupied + h.occupied - h.occupied, // total per room type is handled globally
-        r.available + h.available - h.available,
-        h.hotelName,
-        h.occupied,
-        h.available
-      ])
+    const worksheet = XLSX.utils.aoa_to_sheet([]);
+    XLSX.utils.sheet_add_aoa(worksheet, [["Room Availability Report"]], { origin: "A1" });
+    XLSX.utils.sheet_add_aoa(worksheet, [[`Generated at: ${new Date().toLocaleString()}`]], { origin: "A2" });
+
+    XLSX.utils.sheet_add_aoa(
+      worksheet,
+      [["Room Type", "Total Occupied", "Total Available", "Hotel", "Occupied", "Available"]],
+      { origin: "A3" }
     );
 
-    const worksheet = XLSX.utils.aoa_to_sheet([]);
-    XLSX.utils.sheet_add_aoa(worksheet, [
-      ["Room Availability Report"],
-      [`Generated at: ${new Date().toLocaleString()}`]
-    ], { origin: 0 });
-
-    ["A1","A2"].forEach(key => {
-      worksheet[key].s = {
-        font: { name: "Calibri", sz: 14, bold: true, color: { rgb: "1F4E78" } },
-        alignment: { horizontal: "center", vertical: "center" }
+    // --- Style căn giữa + tiêu đề ---
+    ["A1", "A2"].forEach((c) => {
+      worksheet[c].s = {
+        font: { bold: true, sz: 14, color: { rgb: "1F4E78" } },
+        alignment: { horizontal: "center", vertical: "center" },
       };
     });
-
-    const headerRow = ["Room Type", "Total Occupied", "Total Available", "Hotel", "Occupied", "Available"];
-    XLSX.utils.sheet_add_aoa(worksheet, [headerRow], { origin: 3 });
-
-    headerRow.forEach((_, idx) => {
-      const cell = worksheet[XLSX.utils.encode_cell({ r: 3, c: idx })];
-      cell.s = {
+    const headerCells = ["A3", "B3", "C3", "D3", "E3", "F3"];
+    headerCells.forEach((c) => {
+      worksheet[c].s = {
         font: { bold: true, color: { rgb: "FFFFFF" }, name: "Calibri", sz: 12 },
         fill: { fgColor: { rgb: "4F81BD" } },
         alignment: { horizontal: "center", vertical: "center" },
         border: {
-          top: { style: "thin", color: { rgb: "000000" } },
-          bottom: { style: "thin", color: { rgb: "000000" } },
-          left: { style: "thin", color: { rgb: "000000" } },
-          right: { style: "thin", color: { rgb: "000000" } },
+          top: { style: "thin" },
+          bottom: { style: "thin" },
+          left: { style: "thin" },
+          right: { style: "thin" },
         },
       };
     });
 
-    XLSX.utils.sheet_add_aoa(worksheet, dataRows, { origin: 4 });
+    // --- Ghi dữ liệu ---
+    let rowIndex = 4;
+    let totalOccupied = 0;
+    let totalAvailable = 0;
 
-    worksheet['!cols'] = [
-      { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 25 }, { wch: 10 }, { wch: 10 }
+    roomStats.forEach((r) => {
+      const startRow = rowIndex;
+      totalOccupied += r.occupied;
+      totalAvailable += r.available;
+
+      r.hotels.forEach((h) => {
+        const row = [r.roomTypeName, r.occupied, r.available, h.hotelName, h.occupied, h.available];
+        XLSX.utils.sheet_add_aoa(worksheet, [row], { origin: `A${rowIndex}` });
+
+        // tô màu dữ liệu
+        for (let c = 3; c <= 5; c++) {
+          const cellAddr = XLSX.utils.encode_cell({ r: rowIndex - 1, c });
+          const val = row[c];
+          worksheet[cellAddr].s = {
+            alignment: { horizontal: "center", vertical: "center" },
+            fill: { fgColor: { rgb: val > 0 ? "C6EFCE" : "F2F2F2" } },
+          };
+        }
+        rowIndex++;
+      });
+
+      if (r.hotels.length > 1) {
+        worksheet["!merges"] = worksheet["!merges"] || [];
+        worksheet["!merges"].push(
+          { s: { r: startRow - 1, c: 0 }, e: { r: rowIndex - 2, c: 0 } },
+          { s: { r: startRow - 1, c: 1 }, e: { r: rowIndex - 2, c: 1 } },
+          { s: { r: startRow - 1, c: 2 }, e: { r: rowIndex - 2, c: 2 } }
+        );
+      }
+    });
+
+    // --- Dòng tổng ---
+    XLSX.utils.sheet_add_aoa(
+      worksheet,
+      [["GRAND TOTAL", totalOccupied, totalAvailable, "", "", ""]],
+      { origin: `A${rowIndex}` }
+    );
+    const totalRowCells = ["A", "B", "C"].map((c) => `${c}${rowIndex}`);
+    totalRowCells.forEach((c) => {
+      worksheet[c].s = {
+        font: { bold: true, sz: 12 },
+        fill: { fgColor: { rgb: "FFD966" } },
+        alignment: { horizontal: "center", vertical: "center" },
+        border: {
+          top: { style: "thin" },
+          bottom: { style: "thin" },
+          left: { style: "thin" },
+          right: { style: "thin" },
+        },
+      };
+    });
+
+    worksheet["!cols"] = [
+      { wch: 18 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 25 },
+      { wch: 10 },
+      { wch: 10 },
     ];
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Room Availability");
-    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    const dataBlob = new Blob([excelBuffer], { type: "application/octet-stream" });
-    saveAs(dataBlob, `RoomAvailability_${new Date().toISOString()}.xlsx`);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, worksheet, "Room Availability");
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(blob, `RoomAvailability_${new Date().toISOString()}.xlsx`);
   };
+
+  const getCellColor = (val: number) =>
+    val > 0 ? "bg-green-100 text-green-700 font-medium" : "bg-gray-100 text-gray-500";
 
   return (
     <div className="mb-8">
@@ -178,7 +240,7 @@ export function TablesSectionRoomAvailability() {
             <div>No room data available.</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full border border-gray-200">
+              <table className="min-w-full border border-gray-200 text-center">
                 <thead className="bg-gray-100">
                   <tr>
                     <th className="border p-2">Room Type</th>
@@ -190,18 +252,39 @@ export function TablesSectionRoomAvailability() {
                   </tr>
                 </thead>
                 <tbody>
-                  {roomStats.map((r, idx) => 
+                  {roomStats.map((r, idx) =>
                     r.hotels.map((h, i) => (
                       <tr key={`${idx}-${i}`} className="hover:bg-gray-50 transition-colors">
-                        <td className="border p-2">{r.roomTypeName}</td>
-                        <td className="border p-2 font-semibold">{r.occupied}</td>
-                        <td className="border p-2 font-semibold">{r.available}</td>
+                        {i === 0 && (
+                          <>
+                            <td rowSpan={r.hotels.length} className="border p-2 font-semibold align-middle">
+                              {r.roomTypeName}
+                            </td>
+                            <td rowSpan={r.hotels.length} className="border p-2 font-semibold align-middle">
+                              {r.occupied}
+                            </td>
+                            <td rowSpan={r.hotels.length} className="border p-2 font-semibold align-middle">
+                              {r.available}
+                            </td>
+                          </>
+                        )}
                         <td className="border p-2">{h.hotelName}</td>
-                        <td className="border p-2">{h.occupied}</td>
-                        <td className="border p-2">{h.available}</td>
+                        <td className={`border p-2 ${getCellColor(h.occupied)}`}>{h.occupied}</td>
+                        <td className={`border p-2 ${getCellColor(h.available)}`}>{h.available}</td>
                       </tr>
                     ))
                   )}
+                  {/* Dòng tổng */}
+                  <tr className="bg-yellow-100 font-semibold">
+                    <td className="border p-2 text-center" colSpan={1}>GRAND TOTAL</td>
+                    <td className="border p-2 text-center">
+                      {roomStats.reduce((t, r) => t + r.occupied, 0)}
+                    </td>
+                    <td className="border p-2 text-center">
+                      {roomStats.reduce((t, r) => t + r.available, 0)}
+                    </td>
+                    <td className="border p-2" colSpan={3}></td>
+                  </tr>
                 </tbody>
               </table>
             </div>

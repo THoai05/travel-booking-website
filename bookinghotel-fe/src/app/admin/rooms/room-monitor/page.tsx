@@ -373,7 +373,7 @@ export default function RoomMonitorPage() {
 
           {showDashboard && (
             <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
-              <div className="bg-white w-full max-w-4xl max-h-[80vh] rounded-lg shadow-lg overflow-auto p-4 relative">
+              <div className="bg-white w-full max-w-7xl max-h-[90vh] rounded-lg shadow-lg overflow-auto p-4 relative">
                 {/* Header với nút đóng */}
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-bold">Dashboard Room Monitor</h2>

@@ -62,10 +62,15 @@ export function CombinedBookingChart() {
   const [chartData, setChartData] = useState<RoomTypeStats[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Pie hover states
   const [hoveredPie, setHoveredPie] = useState<string | null>(null);
   const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [tooltipVisible, setTooltipVisible] = useState(false);
   const [hoveredSliceIndex, setHoveredSliceIndex] = useState<number | null>(null);
+
+  // Bar hover states
+  const [hoveredBar, setHoveredBar] = useState<RoomTypeStats | null>(null);
+  const [barTooltipVisible, setBarTooltipVisible] = useState(false);
 
   useEffect(() => {
     fetchRoomStats();
@@ -146,37 +151,21 @@ export function CombinedBookingChart() {
           <strong>{data.roomTypeName}</strong>
           <div>Occupied: {data.occupied}</div>
           <div>Available: {data.available}</div>
-          <hr className="my-1 border-gray-300" />
-          <div className="text-sm">
-            <strong>Details by Hotel:</strong>
-            {data.hotels.map((h, idx) => (
-              <div key={idx}>
-                {h.hotelName}: Occupied {h.occupied}, Available {h.available}
-              </div>
-            ))}
-          </div>
         </div>
       );
     }
     return null;
   };
 
-  const lightenColor = (color: string, percent: number) => {
-    const num = parseInt(color.replace("#", ""), 16);
-    const r = Math.min(255, ((num >> 16) & 0xff) + 255 * (percent / 100));
-    const g = Math.min(255, ((num >> 8) & 0xff) + 255 * (percent / 100));
-    const b = Math.min(255, (num & 0xff) + 255 * (percent / 100));
-    return `rgb(${r},${g},${b})`;
-  };
-
+  // === Tooltip nổi của Pie ===
   const renderFloatingPieTooltip = () => {
     if (!hoveredPie) return null;
-  
+
     const type = hoveredPie;
     const filteredRoomTypes = chartData.filter((r) =>
       type === "Occupied" ? r.occupied > 0 : r.available > 0
     );
-  
+
     return (
       <div
         className="bg-white p-3 rounded shadow border border-gray-200 max-h-64 overflow-auto text-sm relative"
@@ -193,7 +182,6 @@ export function CombinedBookingChart() {
           setHoveredPie(null);
         }}
       >
-        {/* Nút ✕ để đóng tooltip */}
         <button
           onClick={() => {
             setHoveredPie(null);
@@ -203,7 +191,7 @@ export function CombinedBookingChart() {
         >
           ✕
         </button>
-  
+
         <strong>{type} Details:</strong>
         {filteredRoomTypes.map((r, idx) => (
           <div key={idx} className="mt-1">
@@ -222,7 +210,49 @@ export function CombinedBookingChart() {
       </div>
     );
   };
-  
+
+  // === Tooltip nổi của BarChart ===
+  const renderFloatingBarTooltip = () => {
+    if (!hoveredBar) return null;
+    return (
+      <div
+        className="bg-white p-3 rounded shadow border border-gray-200 max-h-64 overflow-auto text-sm relative"
+        style={{
+          position: "fixed",
+          top: mousePos.y + 10,
+          left: mousePos.x + 10,
+          zIndex: 9999,
+          width: 300,
+        }}
+        onMouseEnter={() => setBarTooltipVisible(true)}
+        onMouseLeave={() => {
+          setBarTooltipVisible(false);
+          setHoveredBar(null);
+        }}
+      >
+        <button
+          onClick={() => {
+            setHoveredBar(null);
+            setBarTooltipVisible(false);
+          }}
+          className="absolute top-1 right-1 text-gray-500 hover:text-gray-700 text-sm font-bold"
+        >
+          ✕
+        </button>
+
+        <strong>{hoveredBar.roomTypeName}</strong>
+        <div>Occupied: {hoveredBar.occupied}</div>
+        <div>Available: {hoveredBar.available}</div>
+        <hr className="my-1 border-gray-300" />
+        <strong>Details by Hotel:</strong>
+        {hoveredBar.hotels.map((h, i) => (
+          <div key={i}>
+            {h.hotelName}: {h.occupied} occupied, {h.available} available
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="mb-8 relative">
@@ -239,7 +269,7 @@ export function CombinedBookingChart() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Bar Chart */}
-              <div className="bg-white rounded p-4 shadow">
+              <div className="bg-white rounded p-4 shadow relative">
                 <h3 className="text-gray-900 mb-2 font-medium">
                   Occupied vs Available by Room Type
                 </h3>
@@ -247,6 +277,9 @@ export function CombinedBookingChart() {
                   <BarChart
                     data={chartData}
                     margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                    onMouseLeave={() => {
+                      if (!barTooltipVisible) setHoveredBar(null);
+                    }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis
@@ -256,10 +289,29 @@ export function CombinedBookingChart() {
                     <YAxis tick={{ fill: "#9ca3af", fontSize: 12 }} />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend />
-                    <Bar dataKey="occupied" stackId="a" fill="#22C55E" />
-                    <Bar dataKey="available" stackId="a" fill="#3B82F6" />
+                    <Bar
+                      dataKey="occupied"
+                      fill="#22C55E"
+                      onMouseMove={(data: any, idx: number, e: any) => {
+                        setHoveredBar(data);
+                        setMousePos({ x: e.clientX, y: e.clientY });
+                        setBarTooltipVisible(true);
+                      }}
+                    />
+                    <Bar
+                      dataKey="available"
+                      fill="#3B82F6"
+                      onMouseMove={(data: any, idx: number, e: any) => {
+                        setHoveredBar(data);
+                        setMousePos({ x: e.clientX, y: e.clientY });
+                        setBarTooltipVisible(true);
+                      }}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
+
+                {/* Tooltip nổi của Bar */}
+                {renderFloatingBarTooltip()}
               </div>
 
               {/* Pie Chart */}
@@ -280,7 +332,7 @@ export function CombinedBookingChart() {
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      outerRadius={hoveredSliceIndex !== null ? 120 : 100} // pop-out
+                      outerRadius={hoveredSliceIndex !== null ? 120 : 100}
                       label={(entry) => `${entry.name}: ${entry.value}`}
                       onMouseEnter={(data, index, e) => {
                         setHoveredPie(data.name);
@@ -304,9 +356,7 @@ export function CombinedBookingChart() {
                           fill={entry.color}
                           stroke="#000"
                           strokeWidth={hoveredSliceIndex === index ? 2 : 0}
-                          style={{
-                            transition: "all 0.3s",
-                          }}
+                          style={{ transition: "all 0.3s" }}
                         />
                       ))}
                     </Pie>
@@ -314,7 +364,6 @@ export function CombinedBookingChart() {
                   </RePieChart>
                 </ResponsiveContainer>
 
-                {/* Tooltip thả nổi */}
                 {renderFloatingPieTooltip()}
               </div>
             </div>
