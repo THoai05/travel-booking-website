@@ -1,36 +1,87 @@
+"use client";
+
 import { PropertyDetail } from '../types';
 import { Star, MapPin, Share2, Heart } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { useAppDispatch, useAppSelector } from '@/reduxTK/hook';
+import { useAuth } from '@/context/AuthContext';
+import { useEffect, useMemo, useState } from 'react';
+import { addFavouriteThunk, deleteFavouriteThunk, fetchFavourites } from '@/reduxTK/features/favourite/favouriteThunk';
 
 interface PropertyHeaderProps {
   property: PropertyDetail;
 }
 
 export default function PropertyHeader({ property }: PropertyHeaderProps) {
-  console.log(property)
+  const dispatch = useAppDispatch();
+  const { user: currentUser } = useAuth();
+  const favourites = useAppSelector(state => state.favourites.favourites);
+  const [loadingFav, setLoadingFav] = useState(false);
+
+  useEffect(() => {
+    if (currentUser) {
+      // console.log("Fetching favourites for user", currentUser.id);
+      dispatch(fetchFavourites(currentUser.id));
+    }
+  }, [currentUser, dispatch]);
+
+  // useEffect(() => {
+  //   console.log("Favourites after fetch:", favourites);
+  // }, [favourites]);
+
+  // Tìm favourite của user cho khách sạn này
+  const favForThisHotel = useMemo(() => {
+    if (!property) return null;
+    return favourites.find(f => f.hotel?.id === property.id);
+  }, [favourites, property]);
+
+  const isFav = Boolean(favForThisHotel);
+
+  const handleToggleFav = async () => {
+    if (!currentUser) {
+      alert("Vui lòng đăng nhập để lưu yêu thích");
+      return;
+    }
+
+    if (loadingFav) return;
+    setLoadingFav(true);
+
+    try {
+      if (favForThisHotel) {
+        await dispatch(deleteFavouriteThunk(favForThisHotel.id));
+      } else {
+        await dispatch(addFavouriteThunk({ userId: currentUser.id, hotelId: property.id }));
+      }
+      await dispatch(fetchFavourites(currentUser.id));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingFav(false);
+    }
+  };
+
   return (
     <div className="py-6 border-b border-gray-100">
-      {/* Row 1: Name + Actions */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-800 leading-tight">
-              {property?.name||"Bluevera"}
+              {property?.name || "Bluevera"}
             </h1>
             <Badge className="bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-sm">
-              {"Khách sạn " +Math.floor(property?.summaryReview?.avgRating) +" sao" || "Bluevera"}
+              {"Khách sạn " + Math.floor(property?.summaryReview?.avgRating) + " sao"}
             </Badge>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-gray-600 text-sm">
             <div className="flex items-center gap-1">
               <MapPin className="w-4 h-4 text-sky-500" />
-              <span>{property?.city.title||"city title"}</span>
+              <span>{property?.city.title || "city title"}</span>
             </div>
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-              <span className="font-medium text-gray-800">{Number(property?.summaryReview.avgRating||0).toFixed(1)||0}</span>
-              <span className="text-gray-500">({property?.summaryReview.reviewCount||0} đánh giá)</span>
+              <span className="font-medium text-gray-800">{Number(property?.summaryReview.avgRating || 0).toFixed(1)}</span>
+              <span className="text-gray-500">({property?.summaryReview.reviewCount || 0} đánh giá)</span>
             </div>
           </div>
         </div>
@@ -43,23 +94,28 @@ export default function PropertyHeader({ property }: PropertyHeaderProps) {
           >
             <Share2 className="w-5 h-5" />
           </Button>
+
           <Button
             variant="outline"
             size="icon"
-            className="rounded-full hover:bg-rose-50 hover:text-rose-600 border-rose-100"
+            onClick={handleToggleFav}
+            disabled={loadingFav}
+            className={`rounded-full border-rose-100 ${isFav
+              ? "bg-rose-50 text-rose-600"
+              : "hover:bg-rose-50 hover:text-rose-600 text-gray-500"
+              }`}
           >
             <Heart className="w-5 h-5" />
           </Button>
         </div>
       </div>
 
-      {/* Row 2: Highlighted Rating Summary */}
       <div className="flex items-center justify-between flex-wrap gap-3 text-sm text-gray-600">
         <div className="flex items-center gap-2">
           <span className="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 font-medium">
-            ⭐ {Number(property?.summaryReview.avgRating||0).toFixed(1)} / 5.0
+            ⭐ {Number(property?.summaryReview.avgRating || 0).toFixed(1)} / 5.0
           </span>
-          <span className="text-gray-500">Dựa trên {property?.summaryReview.reviewCount||0} đánh giá</span>
+          <span className="text-gray-500">Dựa trên {property?.summaryReview.reviewCount || 0} đánh giá</span>
         </div>
         <div className="text-sky-700 font-semibold cursor-pointer hover:underline">
           Xem bản đồ

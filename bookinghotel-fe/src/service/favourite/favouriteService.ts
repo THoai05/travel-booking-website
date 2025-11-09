@@ -21,7 +21,7 @@ export const addFavourite = async (data: { userId: number; hotelId?: number; roo
 
 // Xóa favourite
 export const deleteFavourite = async (id: number) => {
-    const res = await api.delete(`/favourites/${id}`); // ✅ Dùng backtick + đúng endpoint (favourites)
+    const res = await api.delete(`/favourites/${id}`);
     return res.data;
 };
 
