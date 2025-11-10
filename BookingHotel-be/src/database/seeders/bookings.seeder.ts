@@ -30,6 +30,7 @@ export default class BookingSeeder implements Seeder {
 
     for (const user of users) {
       for (let i = 0; i < 5; i++) {
+        // Random 1 rate plan có roomType
         const randomRatePlan =
           ratePlans[Math.floor(Math.random() * ratePlans.length)];
         const roomType = randomRatePlan.roomType;
@@ -44,7 +45,7 @@ export default class BookingSeeder implements Seeder {
           (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24),
         );
 
-        const pricePerNight = Number(randomRatePlan.sale_price ?? 1000000); // fallback 1tr nếu chưa có giá
+        const pricePerNight = Number(randomRatePlan.sale_price ?? 1000000);
         const totalPrice = pricePerNight * nights;
 
         const statuses = [
@@ -58,6 +59,7 @@ export default class BookingSeeder implements Seeder {
         const booking = bookingRepository.create({
           user,
           roomType,
+          rateplan: randomRatePlan, // ✅ gán đúng rateplan
           checkInDate: checkIn,
           checkOutDate: checkOut,
           guestsCount: Math.floor(Math.random() * roomType.max_guests) + 1,

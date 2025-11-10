@@ -133,9 +133,9 @@ export default function ReviewCard({ review }: ReviewCardProps) {
 
               <p className="text-gray-700 mb-4 leading-relaxed" dangerouslySetInnerHTML={{ __html: review?.comment || "" }} />
 
-              {review?.images?.length > 0 && (
+              {review && Array.isArray(review.images) && review.images.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-4">
-                  {review.images.map((img, idx) => (
+                  {review?.images?.map((img, idx) => (
                     <div key={idx} className="relative cursor-pointer group"
                     onClick={() => setSelectedImage(`http://localhost:3636${img}`)}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}

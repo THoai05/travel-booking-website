@@ -12,6 +12,7 @@ import { User } from 'src/managements/users/entities/users.entity';
 import { Room } from 'src/managements/rooms/entities/rooms.entity';
 import { Payment } from 'src/managements/payments/entities/payments.entity';
 import { RoomType } from 'src/managements/rooms/entities/roomType.entity';
+import { RatePlan } from 'src/managements/rooms/entities/ratePlans.entity';
 
 export enum BookingStatus {
   PENDING = 'pending',
@@ -39,6 +40,11 @@ export class Booking {
   @ManyToOne(() => RoomType, (roomType) => roomType.bookings, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'roomType_id' })
   roomType: RoomType;
+
+  
+  @ManyToOne(() => RatePlan, (rateplan) => rateplan.bookings, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'rateplan_id'})
+  rateplan: RatePlan;
 
 
   @OneToOne(() => Payment, (payment) => payment.booking, { onDelete: 'CASCADE' })
@@ -73,8 +79,6 @@ export class Booking {
   @Column({ name: 'contact_phone', type: 'varchar', length: 20,nullable:true })
   contactPhone: string;
 
-  // THÔNG TIN KHÁCH (Người sẽ check-in)
-  // User tự nhập hoặc tick "Tôi là khách"
   @Column({ name: 'guest_full_name', type: 'nvarchar',nullable:true }) 
   guestFullName: string;
 

@@ -115,7 +115,8 @@ const router = useRouter()
     guestsCount,
     totalPrice,
     userId,
-    roomTypeId
+    roomTypeId,
+    ratePlanId
   )=> {
     try {
       const response = await api.post('bookings', {
@@ -124,7 +125,8 @@ const router = useRouter()
       guestsCount,
       totalPrice,
       userId,
-      roomTypeId
+      roomTypeId,
+      ratePlanId
     })
     if (response.data.message === "success") {
       const bookingData = response.data.data
@@ -137,7 +139,7 @@ const router = useRouter()
       router.push('/payment/review')
     }
     } catch (error) {
-      console.error(error)
+      console.log(error)
     }
   }
 
@@ -291,6 +293,7 @@ const router = useRouter()
                         totalGuests,
                         Number(option?.salePrice)*nights,
                         user?.id,
+                        room?.id,
                         option?.id
                       )} className="w-full md:w-24 bg-sky-500 hover:bg-sky-700 text-white mt-2">
                         Chọn phòng
