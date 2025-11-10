@@ -11,6 +11,7 @@ import { isValidBooking } from 'src/common/utils/booking-status.utils';
 import { Between, In } from 'typeorm';
 import { BookingStatus } from '../entities/bookings.entity';
 import { PaymentStatus, PaymentMethod } from 'src/managements/payments/entities/payments.entity';
+import { RatePlan } from 'src/managements/rooms/entities/ratePlans.entity';
 
 @Injectable()
 export class BookingsService {
@@ -21,6 +22,8 @@ export class BookingsService {
         private readonly userRepo: Repository<User>,
         @InjectRepository(RoomType)
         private readonly roomTypeRepo: Repository<RoomType>,
+        @InjectRepository(RatePlan)
+        private readonly ratePlanRepo:Repository<RatePlan>
     ) { }
 
     async createBooking(body: CreateBookingRequest): Promise<BookingResponseManagement> {
@@ -30,8 +33,11 @@ export class BookingsService {
             guestsCount,
             totalPrice,
             userId,
-            roomTypeId
+            roomTypeId,
+            ratePlanId
         } = body
+
+        console.log(body)
 
         const user = await this.userRepo.findOne({
             where: {
@@ -49,13 +55,22 @@ export class BookingsService {
         if (!roomType) {
             throw new NotFoundException("Khong tim thay loai phong nay")
         }
+        const ratePlan = await this.ratePlanRepo.findOne({
+            where: {
+                id:ratePlanId
+            }
+        })
+        if (!ratePlan) {
+            throw new NotFoundException("Khong tim thay kieu phong nay")
+        }
         const bookingData = await this.bookingRepo.create({
             user,
             roomType,
             checkInDate: checkinDate,
             checkOutDate: checkoutDate,
             guestsCount,
-            totalPrice
+            totalPrice,
+            rateplan:ratePlan
         })
         const bookingSaved = await this.bookingRepo.save(bookingData)
         return {
