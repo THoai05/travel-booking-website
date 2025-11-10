@@ -279,13 +279,13 @@ export class BookingsService {
 
     async getKPIAll(type: 'week' | 'month' | 'year') {
         const now = new Date();
-
-        // --- Xác định khoảng thời gian hiện tại ---
+    
+        // --- Khoảng thời gian hiện tại ---
         let startDate: Date;
         let endDate: Date;
-
+    
         if (type === 'week') {
-            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6); // 7 ngày
+            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 9); // 10 ngày
             endDate = now;
         } else if (type === 'month') {
             startDate = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -294,84 +294,91 @@ export class BookingsService {
             startDate = new Date(now.getFullYear(), 0, 1);
             endDate = new Date(now.getFullYear(), 11, 31);
         }
-
-        // --- Khoảng thời gian trước (previous period) ---
+    
+        // --- Khoảng thời gian trước ---
         let prevStart: Date;
         let prevEnd: Date;
-
-        if (type === 'week') {
+    
+        if (type === 'week' || type === 'month') {
             prevStart = new Date(startDate);
-            prevStart.setDate(prevStart.getDate() - 7);
             prevEnd = new Date(endDate);
-            prevEnd.setDate(prevEnd.getDate() - 7);
-        } else if (type === 'month') {
-            prevStart = new Date(startDate.getFullYear(), startDate.getMonth() - 1, 1);
-            prevEnd = new Date(startDate.getFullYear(), startDate.getMonth(), 0);
+            if (type === 'week') {
+                prevStart.setDate(prevStart.getDate() - 10);
+                prevEnd.setDate(prevEnd.getDate() - 10);
+            } else {
+                prevStart.setMonth(prevStart.getMonth() - 1, 1);
+                prevEnd = new Date(prevStart.getFullYear(), prevStart.getMonth() + 1, 0);
+            }
         } else { // year
             prevStart = new Date(startDate.getFullYear() - 1, 0, 1);
             prevEnd = new Date(endDate.getFullYear() - 1, 11, 31);
         }
-
+    
         const formatVNDate = (date: Date) => {
             const d = new Date(date);
-            d.setHours(d.getHours() + 7); // UTC+7
+            d.setHours(d.getHours() + 7);
             return d.toISOString().split('T')[0];
         };
-
-        // --- Lấy bookings hiện tại và previous period ---
-        const bookings = await this.bookingRepo.find({
-            where: { createdAt: Between(startDate, endDate) },
-            relations: ['payment'],
-        });
-
-        const prevBookings = await this.bookingRepo.find({
-            where: { createdAt: Between(prevStart, prevEnd) },
-            relations: ['payment'],
-        });
-
+    
+        // --- Lấy dữ liệu ---
+        const bookings = await this.bookingRepo.find({ where: { createdAt: Between(startDate, endDate) }, relations: ['payment'] });
+        const prevBookings = await this.bookingRepo.find({ where: { createdAt: Between(prevStart, prevEnd) }, relations: ['payment'] });
+    
         // --- Tính tổng ---
         const totalBookings = bookings.length;
         const totalCancelled = bookings.filter(b => b.status === BookingStatus.CANCELLED).length;
-        const totalRevenue = bookings
-            .filter(b => b.payment?.paymentStatus === PaymentStatus.SUCCESS)
+        const totalRevenue = bookings.filter(b => b.payment?.paymentStatus === PaymentStatus.SUCCESS)
             .reduce((sum, b) => sum + Number(b.totalPrice), 0);
-
+    
         const prevTotalBookings = prevBookings.length;
         const prevCancelled = prevBookings.filter(b => b.status === BookingStatus.CANCELLED).length;
-        const prevRevenue = prevBookings
-            .filter(b => b.payment?.paymentStatus === PaymentStatus.SUCCESS)
+        const prevRevenue = prevBookings.filter(b => b.payment?.paymentStatus === PaymentStatus.SUCCESS)
             .reduce((sum, b) => sum + Number(b.totalPrice), 0);
-
-        // --- Tính change rate ---
-        const bookingsChangeRate = prevTotalBookings ? ((totalBookings - prevTotalBookings) / prevTotalBookings) * 100 : 0;
-        const cancelledChangeRate = prevCancelled ? ((totalCancelled - prevCancelled) / prevCancelled) * 100 : 0;
-        const revenueChangeRate = prevRevenue ? ((totalRevenue - prevRevenue) / prevRevenue) * 100 : 0;
-
-        // --- Khởi tạo chartData 10 ngày gần đây ---
+    
+        // --- Tính changeRate 100% so với tổng ---
+        const bookingsChangeRate = totalBookings + prevTotalBookings ? (totalBookings / (totalBookings + prevTotalBookings)) * 100 : 0;
+        const cancelledChangeRate = totalCancelled + prevCancelled ? (totalCancelled / (totalCancelled + prevCancelled)) * 100 : 0;
+        const revenueChangeRate = totalRevenue + prevRevenue ? (totalRevenue / (totalRevenue + prevRevenue)) * 100 : 0;
+    
+        // --- Khởi tạo chart ---
         const chartDates: string[] = [];
         const bookingsChartMap: Record<string, number> = {};
         const cancelledChartMap: Record<string, number> = {};
         const revenueChartMap: Record<string, number> = {};
-
-        for (let i = 9; i >= 0; i--) {
-            const d = new Date(now);
-            d.setDate(d.getDate() - i);
-            const key = formatVNDate(d);
-            chartDates.push(key);
-            bookingsChartMap[key] = 0;
-            cancelledChartMap[key] = 0;
-            revenueChartMap[key] = 0;
-        }
-
-        bookings.forEach(b => {
-            const key = formatVNDate(b.createdAt);
-            if (key in bookingsChartMap) bookingsChartMap[key]++;
-            if (b.status === BookingStatus.CANCELLED && key in cancelledChartMap) cancelledChartMap[key]++;
-            if (key in revenueChartMap && b.payment?.paymentStatus === PaymentStatus.SUCCESS) {
-                revenueChartMap[key] += Number(b.totalPrice);
+    
+        if (type === 'year') {
+            for (let i = 0; i < 10; i++) {
+                const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const key = `${month.getFullYear()}-${(month.getMonth() + 1).toString().padStart(2, '0')}`;
+                chartDates.push(key);
+                bookingsChartMap[key] = 0;
+                cancelledChartMap[key] = 0;
+                revenueChartMap[key] = 0;
             }
-        });
-
+            bookings.forEach(b => {
+                const key = `${b.createdAt.getFullYear()}-${(b.createdAt.getMonth() + 1).toString().padStart(2, '0')}`;
+                if (key in bookingsChartMap) bookingsChartMap[key]++;
+                if (key in cancelledChartMap && b.status === BookingStatus.CANCELLED) cancelledChartMap[key]++;
+                if (key in revenueChartMap && b.payment?.paymentStatus === PaymentStatus.SUCCESS) revenueChartMap[key] += Number(b.totalPrice);
+            });
+        } else {
+            for (let i = 9; i >= 0; i--) {
+                const d = new Date(now);
+                d.setDate(d.getDate() - i);
+                const key = formatVNDate(d);
+                chartDates.push(key);
+                bookingsChartMap[key] = 0;
+                cancelledChartMap[key] = 0;
+                revenueChartMap[key] = 0;
+            }
+            bookings.forEach(b => {
+                const key = formatVNDate(b.createdAt);
+                if (key in bookingsChartMap) bookingsChartMap[key]++;
+                if (b.status === BookingStatus.CANCELLED && key in cancelledChartMap) cancelledChartMap[key]++;
+                if (key in revenueChartMap && b.payment?.paymentStatus === PaymentStatus.SUCCESS) revenueChartMap[key] += Number(b.totalPrice);
+            });
+        }
+    
         return {
             bookings: {
                 total: totalBookings,
@@ -390,6 +397,7 @@ export class BookingsService {
             },
         };
     }
+    
 
     async getKPIDoanhThu(type: 'week' | 'month' | 'year') {
         const now = new Date();
