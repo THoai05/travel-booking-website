@@ -11,6 +11,8 @@ interface PaymentDataItem {
   cod: number;
   momo: number;
   vnpay: number;
+  zalopay: number; // thêm mới
+  stripe: number;  // thêm mới
 }
 
 export function TablesSectionPaymentStats() {
@@ -38,6 +40,8 @@ export function TablesSectionPaymentStats() {
         cod: data.paymentData.cod?.[index] ?? 0,
         momo: data.paymentData.momo?.[index] ?? 0,
         vnpay: data.paymentData.vnpay?.[index] ?? 0,
+        zalopay: data.paymentData.zalopay?.[index] ?? 0, // mới
+        stripe: data.paymentData.stripe?.[index] ?? 0,   // mới
       }));
 
       setPaymentData(formattedData);
@@ -52,25 +56,23 @@ export function TablesSectionPaymentStats() {
   const exportPaymentStatsExcel = () => {
     if (!paymentData.length) return;
 
-    // 1. Chuyển dữ liệu thành array of arrays
     const dataRows = paymentData.map(item => [
       item.date,
       item.cod,
       item.momo,
       item.vnpay,
+      item.zalopay,
+      item.stripe,
     ]);
 
-    // 2. Tạo worksheet rỗng
     const worksheet = XLSX.utils.aoa_to_sheet([]);
 
-    // 3. Thêm 3 dòng tiêu đề đẹp
     XLSX.utils.sheet_add_aoa(worksheet, [
       ["Payment Stats Report"],
       [`Type: ${type.charAt(0).toUpperCase() + type.slice(1)}`],
       [`Generated at: ${new Date().toLocaleString()}`],
     ], { origin: 0 });
 
-    // Style tiêu đề
     ["A1", "A2", "A3"].forEach(key => {
       worksheet[key].s = {
         font: { name: "Calibri", sz: 14, bold: true, color: { rgb: "1F4E78" } },
@@ -78,11 +80,9 @@ export function TablesSectionPaymentStats() {
       };
     });
 
-    // 4. Thêm header bảng ở dòng 6
-    const headerRow = ["Date", "COD", "Momo", "VNPay"];
+    const headerRow = ["Date", "COD", "Momo", "VNPay", "ZaloPay", "Stripe"];
     XLSX.utils.sheet_add_aoa(worksheet, [headerRow], { origin: 5 });
 
-    // Style header
     const headerColor = "4F81BD";
     headerRow.forEach((_, idx) => {
       const cell = worksheet[XLSX.utils.encode_cell({ r: 5, c: idx })];
@@ -99,18 +99,15 @@ export function TablesSectionPaymentStats() {
       };
     });
 
-    // 5. Thêm dữ liệu từ dòng 7
     XLSX.utils.sheet_add_aoa(worksheet, dataRows, { origin: 6 });
 
-    // 6. Style dữ liệu + border + màu COD/Momo/VNPay
     const lastRow = 6 + dataRows.length;
     for (let r = 6; r < lastRow; r++) {
-      for (let c = 0; c < 4; c++) {
+      for (let c = 0; c < 6; c++) { // cập nhật 6 cột
         const cellAddress = XLSX.utils.encode_cell({ r, c });
         const cell = worksheet[cellAddress];
         if (!cell) continue;
 
-        // default alignment + border
         cell.s = cell.s || {};
         cell.s.alignment = { horizontal: c === 0 ? "center" : "right", vertical: "center" };
         cell.s.border = {
@@ -121,13 +118,14 @@ export function TablesSectionPaymentStats() {
         };
         cell.s.font = { name: "Calibri", sz: 11 };
 
-        // Màu COD/Momo/VNPay nếu > 0
         if (typeof cell.v === "number" && cell.v > 0) {
           let color = "FFFFFF";
           switch (c) {
             case 1: color = "FFF2CC"; break; // COD - vàng nhạt
             case 2: color = "D9EAD3"; break; // Momo - xanh nhạt
             case 3: color = "CFE2F3"; break; // VNPay - xanh da trời nhạt
+            case 4: color = "F4CCCC"; break; // ZaloPay - hồng nhạt
+            case 5: color = "EAD1DC"; break; // Stripe - tím nhạt
           }
           cell.s.fill = { fgColor: { rgb: color } };
           cell.s.font.bold = true;
@@ -135,24 +133,19 @@ export function TablesSectionPaymentStats() {
       }
     }
 
-    // 7. Column widths
     worksheet['!cols'] = [
-      { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }
+      { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }
     ];
 
-    // 8. Freeze header + auto filter
-    worksheet['!freeze'] = { xSplit: 0, ySplit: 6 }; // freeze 6 dòng đầu
-    worksheet['!autofilter'] = { ref: `A6:D${lastRow}` };
+    worksheet['!freeze'] = { xSplit: 0, ySplit: 6 };
+    worksheet['!autofilter'] = { ref: `A6:F${lastRow}` };
 
-    // 9. Xuất file
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Payment Stats");
     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     const dataBlob = new Blob([excelBuffer], { type: "application/octet-stream" });
     saveAs(dataBlob, `PaymentStats_${type}.xlsx`);
   };
-
-
 
   return (
     <div className="mb-8">
@@ -196,34 +189,32 @@ export function TablesSectionPaymentStats() {
                     <th className="border p-2 text-left">COD</th>
                     <th className="border p-2 text-left">Momo</th>
                     <th className="border p-2 text-left">VNPay</th>
+                    <th className="border p-2 text-left">ZaloPay</th>
+                    <th className="border p-2 text-left">Stripe</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paymentData.map((item, index) => (
                     <tr key={index} className="hover:bg-gray-50 transition-colors">
                       <td className="border p-2">{item.date}</td>
-                      <td
-                        className={`border p-2 font-semibold ${item.cod > 0 ? "bg-blue-100 text-blue-800" : ""
-                          }`}
-                      >
+                      <td className={`border p-2 font-semibold ${item.cod > 0 ? "bg-blue-100 text-blue-800" : ""}`}>
                         {item.cod.toLocaleString("vi-VN")} ₫
                       </td>
-                      <td
-                        className={`border p-2 font-semibold ${item.momo > 0 ? "bg-purple-100 text-purple-800" : ""
-                          }`}
-                      >
+                      <td className={`border p-2 font-semibold ${item.momo > 0 ? "bg-purple-100 text-purple-800" : ""}`}>
                         {item.momo.toLocaleString("vi-VN")} ₫
                       </td>
-                      <td
-                        className={`border p-2 font-semibold ${item.vnpay > 0 ? "bg-green-100 text-green-800" : ""
-                          }`}
-                      >
+                      <td className={`border p-2 font-semibold ${item.vnpay > 0 ? "bg-green-100 text-green-800" : ""}`}>
                         {item.vnpay.toLocaleString("vi-VN")} ₫
+                      </td>
+                      <td className={`border p-2 font-semibold ${item.zalopay > 0 ? "bg-pink-100 text-pink-800" : ""}`}>
+                        {item.zalopay.toLocaleString("vi-VN")} ₫
+                      </td>
+                      <td className={`border p-2 font-semibold ${item.stripe > 0 ? "bg-indigo-100 text-indigo-800" : ""}`}>
+                        {item.stripe.toLocaleString("vi-VN")} ₫
                       </td>
                     </tr>
                   ))}
                 </tbody>
-
               </table>
             </div>
           )}
