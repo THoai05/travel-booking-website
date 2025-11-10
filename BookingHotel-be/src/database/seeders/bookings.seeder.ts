@@ -13,10 +13,7 @@ export default class BookingSeeder implements Seeder {
     const userRepository = dataSource.getRepository(User);
     const ratePlanRepository = dataSource.getRepository(RatePlan);
 
-    // Lấy toàn bộ user (trừ admin id=1)
     const users = await userRepository.find({ where: { id: Not(1) } });
-
-    // Lấy toàn bộ rate plan có roomType
     const ratePlans = await ratePlanRepository.find({
       relations: ['roomType'],
     });
@@ -30,14 +27,16 @@ export default class BookingSeeder implements Seeder {
 
     for (const user of users) {
       for (let i = 0; i < 5; i++) {
-        // Random 1 rate plan có roomType
         const randomRatePlan =
           ratePlans[Math.floor(Math.random() * ratePlans.length)];
         const roomType = randomRatePlan.roomType;
 
-        // random ngày check-in & check-out
-        const checkIn = new Date();
-        checkIn.setDate(checkIn.getDate() + Math.floor(Math.random() * 30));
+        // ✅ Random ngày trong 12 tháng qua
+        const createdAt = this.randomDateInLastYear();
+
+        // ✅ Cho check-in và check-out gần createdAt (vd: vài ngày sau)
+        const checkIn = new Date(createdAt);
+        checkIn.setDate(checkIn.getDate() + Math.floor(Math.random() * 10));
         const checkOut = new Date(checkIn);
         checkOut.setDate(checkOut.getDate() + Math.floor(Math.random() * 5) + 1);
 
@@ -59,7 +58,7 @@ export default class BookingSeeder implements Seeder {
         const booking = bookingRepository.create({
           user,
           roomType,
-          rateplan: randomRatePlan, // ✅ gán đúng rateplan
+          rateplan: randomRatePlan,
           checkInDate: checkIn,
           checkOutDate: checkOut,
           guestsCount: Math.floor(Math.random() * roomType.max_guests) + 1,
@@ -75,6 +74,7 @@ export default class BookingSeeder implements Seeder {
             status === BookingStatus.CANCELLED
               ? 'Khách hủy vì đổi kế hoạch'
               : undefined,
+          createdAt, // ✅ gán ngày tạo ngẫu nhiên
         });
 
         bookings.push(booking);
@@ -83,5 +83,18 @@ export default class BookingSeeder implements Seeder {
 
     await bookingRepository.save(bookings);
     console.log(`🌱 Seeded ${bookings.length} bookings successfully`);
+  }
+
+  /**
+   * Random 1 ngày trong 12 tháng qua
+   */
+  private randomDateInLastYear(): Date {
+    const now = new Date();
+    const pastYear = new Date();
+    pastYear.setFullYear(now.getFullYear() - 1);
+    const randomTime =
+      pastYear.getTime() +
+      Math.random() * (now.getTime() - pastYear.getTime());
+    return new Date(randomTime);
   }
 }
