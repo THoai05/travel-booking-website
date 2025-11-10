@@ -43,24 +43,37 @@ export default class BookingSeeder implements Seeder {
     const year = 2025;
     const bookingsCreatedAt: Date[] = [];
 
-    // 🗓️ Tháng 1–10: mỗi tháng 3 dữ liệu
+    // ========================
+    // 🗓️ THÁNG 1–10
+    // ========================
+    // Mỗi tháng ít nhất 1 booking
     for (let month = 1; month <= 10; month++) {
       const dim = daysInMonth(year, month);
-      for (let i = 0; i < 3; i++) {
-        const day = randomInt(1, dim);
-        const hour = randomInt(0, 23);
-        const minute = randomInt(0, 59);
-        const second = randomInt(0, 59);
-        bookingsCreatedAt.push(new Date(year, month - 1, day, hour, minute, second));
-      }
+      const day = randomInt(1, dim);
+      const hour = randomInt(0, 23);
+      const minute = randomInt(0, 59);
+      const second = randomInt(0, 59);
+      bookingsCreatedAt.push(new Date(year, month - 1, day, hour, minute, second));
     }
 
-    // 🗓️ Tháng 11: tổng 70 dữ liệu
-    const remaining = totalBookings - bookingsCreatedAt.length; // 70
+    // Thêm 25 booking random rơi vào 10 tháng này
+    for (let i = 0; i < 25; i++) {
+      const month = randomInt(1, 10);
+      const dim = daysInMonth(year, month);
+      const day = randomInt(1, dim);
+      const hour = randomInt(0, 23);
+      const minute = randomInt(0, 59);
+      const second = randomInt(0, 59);
+      bookingsCreatedAt.push(new Date(year, month - 1, day, hour, minute, second));
+    }
+
+    // ========================
+    // 🗓️ THÁNG 11
+    // ========================
     const month11 = 11;
     const dim11 = daysInMonth(year, month11); // 30 ngày
 
-    // Mỗi ngày ít nhất 1 booking
+    // Mỗi ngày ít nhất 1 booking (30)
     for (let day = 1; day <= dim11; day++) {
       const hour = randomInt(0, 23);
       const minute = randomInt(0, 59);
@@ -68,9 +81,8 @@ export default class BookingSeeder implements Seeder {
       bookingsCreatedAt.push(new Date(year, month11 - 1, day, hour, minute, second));
     }
 
-    // Còn lại 40 booking -> random rơi vào bất kỳ ngày nào trong tháng 11
-    const extra = remaining - dim11; // 70 - 30 = 40
-    for (let i = 0; i < extra; i++) {
+    // Random thêm 35 booking rơi vào các ngày trong tháng 11
+    for (let i = 0; i < 35; i++) {
       const day = randomInt(1, dim11);
       const hour = randomInt(0, 23);
       const minute = randomInt(0, 59);
@@ -78,7 +90,9 @@ export default class BookingSeeder implements Seeder {
       bookingsCreatedAt.push(new Date(year, month11 - 1, day, hour, minute, second));
     }
 
-    // Trộn ngẫu nhiên danh sách createdAt
+    // ========================
+    // 🔀 Trộn ngẫu nhiên toàn bộ danh sách
+    // ========================
     shuffle(bookingsCreatedAt);
 
     const statuses = [
