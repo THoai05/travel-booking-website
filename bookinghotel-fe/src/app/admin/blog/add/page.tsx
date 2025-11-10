@@ -25,7 +25,7 @@ const AddPost = () => {
   const [title, setTitle] = useState("");
   const [type, setType] = useState("text");
   const [author, setAuthor] = useState<string>("");
-  const [image, setImage] = useState<File | null>(null);
+  const [images, setImages] = useState<File[]>([]);
   const [cities, setCities] = useState<{ id: number; title: string }[]>([]);
   const [city, setCity] = useState<string>("Đà Nẵng");
 
@@ -84,10 +84,10 @@ const AddPost = () => {
     let imageUrl = "/uploads/posts/post-1.png";
 
     try {
-      // Upload ảnh nếu có
-      if (image) {
+      let uploadedUrls: string[] = []; // nhận tất cả URL trả về
+      if (images.length > 0) {
         const formData = new FormData();
-        formData.append("files", image); // backend nhận key là 'files'
+        images.forEach((file) => formData.append("files", file));
 
         const uploadRes = await fetch("http://localhost:3636/posts/upload-images", {
           method: "POST",
@@ -95,14 +95,12 @@ const AddPost = () => {
         });
 
         if (!uploadRes.ok) throw new Error("Lỗi khi upload ảnh");
-
         const uploadData = await uploadRes.json();
-        if (uploadData.urls && uploadData.urls.length > 0) {
-          imageUrl = uploadData.urls[0]; // lấy url trả về
+
+        if (uploadData.urls && Array.isArray(uploadData.urls)) {
+          uploadedUrls = uploadData.urls;
         }
       }
-
-      // Gửi dữ liệu bài viết
       const payload = {
         title,
         content,
@@ -110,7 +108,7 @@ const AddPost = () => {
         city_title: selectedCity.title,
         slug,
         is_public: true,
-        image: imageUrl,
+        images: uploadedUrls.length > 0 ? uploadedUrls : [],
       };
 
       const result = await dispatch(createBlog(payload)).unwrap();
@@ -123,7 +121,7 @@ const AddPost = () => {
       setAuthor(users.length ? String(users[0].id) : "");
       setCity(cities.length ? cities[0].title : "");
       setType("text");
-      setImage(null);
+      setImages([]);
 
     } catch (err: any) {
       console.error("❌ Lỗi khi tạo bài viết:", err);
@@ -217,7 +215,7 @@ const AddPost = () => {
             />
           </div>
 
-          {/* Upload image */}
+          {/* Upload multiple images */}
           <div
             className="flex flex-col items-center justify-center border-2 border-dashed
           border-gray-300 rounded-lg py-10 hover:bg-gray-50 cursor-pointer transition"
@@ -228,22 +226,30 @@ const AddPost = () => {
               type="file"
               accept="image/*"
               hidden
+              multiple
               onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  setImage(e.target.files[0]);
+                if (e.target.files) {
+                  const selectedFiles = Array.from(e.target.files);
+                  setImages(selectedFiles);
                 }
               }}
             />
-            {image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={URL.createObjectURL(image)}
-                alt="Preview"
-                className="w-48 h-48 object-cover rounded-lg"
-              />
+
+            {images.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {images.map((file, idx) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={idx}
+                    src={URL.createObjectURL(file)}
+                    alt={`Preview ${idx}`}
+                    className="w-32 h-32 object-cover rounded-lg"
+                  />
+                ))}
+              </div>
             ) : (
               <p className="text-gray-500 text-sm">
-                📤 Drag & Drop or <span className="text-blue-600">Click to upload</span>
+                Drag & Drop or <span className="text-blue-600">Click to upload multiple images</span>
               </p>
             )}
           </div>
