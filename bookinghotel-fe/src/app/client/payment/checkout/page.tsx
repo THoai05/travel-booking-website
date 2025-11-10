@@ -81,7 +81,7 @@ const TravelokaPaymentPage: React.FC = () => {
        return {
          bookingId: pendingBooking.bookingId.toString(),
    
-         name: "Pariat River Front Hotel Da Nang", // <-- Bro nói text cứng (Tên riêng, giữ nguyên)
+         name: pendingBooking.hotelName, // <-- Bro nói text cứng (Tên riêng, giữ nguyên)
    
          checkIn: formatDate(pendingBooking.checkinDate),
    
@@ -89,7 +89,7 @@ const TravelokaPaymentPage: React.FC = () => {
    
          nights: nights,
    
-         roomType: `(1x) ${pendingBooking.roomName}`,
+         roomType:  pendingBooking.roomName,
    
          guests: pendingBooking.guestsCount, // Lấy từ booking
    
@@ -122,14 +122,7 @@ const TravelokaPaymentPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-2">
-            <div className="text-sky-600 font-bold text-2xl">Bluevera</div>
-            <div className="w-6 h-6 bg-sky-500 rounded-full"></div>
-          </div>
-        </div>
-      </header>
+      
 
       {/* Timer Banner */}
     

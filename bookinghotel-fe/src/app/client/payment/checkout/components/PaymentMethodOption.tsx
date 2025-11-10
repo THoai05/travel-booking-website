@@ -38,15 +38,13 @@ const PaymentMethodOption: React.FC<{
           )}
         </div>
       </div>
-      {method.icons && method.icons.length > 0 && (
-        <div className="flex gap-2">
-          {method.icons.map((icon, idx) => (
-            <div key={idx} className="w-10 h-6 bg-gray-100 rounded flex items-center justify-center text-xs font-semibold text-gray-600">
-              {icon}
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="w-10 h-6 rounded flex items-center justify-center overflow-hidden bg-white">
+        <img
+          src={`/coupon/${method.id}.png`}
+          alt={`${method.name} logo`}
+          className="w-full h-full object-contain"
+        />
+      </div>
     </div>
   </div>
 );

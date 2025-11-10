@@ -50,7 +50,8 @@ export class BookingsService {
         const roomType = await this.roomTypeRepo.findOne({
             where: {
                 id: roomTypeId
-            }
+            },
+            relations:['hotel']
         })
         if (!roomType) {
             throw new NotFoundException("Khong tim thay loai phong nay")
@@ -76,6 +77,7 @@ export class BookingsService {
         return {
             bookingId: bookingSaved.id,
             userId: bookingSaved.user.id,
+            hotelName: bookingSaved.roomType.hotel.name,
             roomTypeId: bookingSaved.roomType.id,
             roomTypeName: bookingSaved.roomType.name,
             checkinDate: bookingSaved.checkInDate,
