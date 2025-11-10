@@ -25,16 +25,31 @@ export default class PaymentSeeder implements Seeder {
 
     const payments: Payment[] = [];
 
-    const methods = [PaymentMethod.COD, PaymentMethod.MOMO, PaymentMethod.VNPAY];
-    const statuses = [PaymentStatus.SUCCESS, PaymentStatus.PENDING, PaymentStatus.FAILED];
-    const refundStatuses = [RefundStatus.NONE, RefundStatus.REFUNDED, RefundStatus.REJECTED];
+    // ✅ Thêm 2 phương thức mới ZALOPAY và STRIPE
+    const methods = [
+      PaymentMethod.COD,
+      PaymentMethod.MOMO,
+      PaymentMethod.VNPAY,
+      PaymentMethod.ZALOPAY,
+      PaymentMethod.STRIPE,
+    ];
+    const statuses = [
+      PaymentStatus.SUCCESS,
+      PaymentStatus.PENDING,
+      PaymentStatus.FAILED,
+    ];
+    const refundStatuses = [
+      RefundStatus.NONE,
+      RefundStatus.REFUNDED,
+      RefundStatus.REJECTED,
+    ];
 
     for (const booking of bookings) {
       const method = methods[Math.floor(Math.random() * methods.length)];
       const status = statuses[Math.floor(Math.random() * statuses.length)];
       const refund = refundStatuses[Math.floor(Math.random() * refundStatuses.length)];
 
-      // Nếu booking có createdAt thì dùng nó (yêu cầu của bạn)
+      // Nếu booking có createdAt thì dùng nó
       const createdAt = booking.createdAt ?? new Date();
 
       // paidAt chỉ có nếu payment thành công, lệch 0–5 ngày sau createdAt
