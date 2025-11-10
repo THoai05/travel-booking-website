@@ -11,6 +11,8 @@ interface KPIItem {
   totalBookings: number;
   cancelledBookings: number;
   revenue: number;
+  unpaid?: number; // số booking chưa thanh toán
+  unpaidRevenue?: number; // tổng tiền chưa thanh toán
   status: Record<string, number>;
 }
 
@@ -40,6 +42,8 @@ export function TablesSectionKPI() {
         totalBookings: data.totalBookings?.[index] ?? 0,
         cancelledBookings: data.cancelledBookings?.[index] ?? 0,
         revenue: data.revenue?.[index] ?? 0,
+        unpaid: data.unpaidBookings?.[index] ?? 0,
+        unpaidRevenue: data.unpaidRevenue?.[index] ?? 0, // thêm tổng tiền chưa thanh toán
         status: {
           pending: data.statusCount?.pending?.[index] ?? 0,
           confirmed: data.statusCount?.confirmed?.[index] ?? 0,
@@ -67,6 +71,8 @@ export function TablesSectionKPI() {
       item.totalBookings,
       item.cancelledBookings,
       item.revenue,
+      item.unpaid,
+      item.unpaidRevenue, // thêm cột tổng tiền chưa thanh toán
       item.status.pending,
       item.status.confirmed,
       item.status.cancelled,
@@ -84,7 +90,6 @@ export function TablesSectionKPI() {
       [`Generated at: ${new Date().toLocaleString()}`]
     ], { origin: 0 });
 
-    // Style tiêu đề
     ["A1", "A2", "A3"].forEach(key => {
       worksheet[key].s = {
         font: { name: "Calibri", sz: 14, bold: true, color: { rgb: "1F4E78" } },
@@ -93,13 +98,13 @@ export function TablesSectionKPI() {
     });
 
     // 4. Thêm header bảng ở dòng 6
-    const headerRow = ["Date", "Total Bookings", "Cancelled Bookings", "Revenue", "Pending", "Confirmed", "Cancelled", "Completed", "Expired"];
+    const headerRow = ["Date", "Total Bookings", "Cancelled Bookings", "Revenue", "Unpaid", "Unpaid Revenue", "Pending", "Confirmed", "Cancelled", "Completed", "Expired"];
     XLSX.utils.sheet_add_aoa(worksheet, [headerRow], { origin: 5 });
 
     // Style header
     const headerColor = "4F81BD";
     headerRow.forEach((_, idx) => {
-      const cell = worksheet[XLSX.utils.encode_cell({ c: idx, r: 5 })]; // row=6 (0-based)
+      const cell = worksheet[XLSX.utils.encode_cell({ c: idx, r: 5 })];
       cell.s = {
         font: { bold: true, color: { rgb: "FFFFFF" }, name: "Calibri", sz: 12 },
         fill: { fgColor: { rgb: headerColor } },
@@ -117,16 +122,15 @@ export function TablesSectionKPI() {
     XLSX.utils.sheet_add_aoa(worksheet, dataRows, { origin: 6 });
 
     // 6. Style dữ liệu + border
-    const statusColors: Record<string, string> = { E: "FFF2CC", F: "D9EAD3", G: "F4CCCC", H: "CFE2F3", I: "E0E0E0" };
+    const statusColors: Record<string, string> = { F: "D9EAD3", G: "F4CCCC", H: "CFE2F3", I: "E0E0E0", E: "FFF2CC" };
     const lastRow = 6 + dataRows.length;
 
     for (let r = 6; r < lastRow; r++) {
-      for (let c = 0; c < 9; c++) {
+      for (let c = 0; c < 11; c++) {
         const cellAddress = XLSX.utils.encode_cell({ r, c });
         const cell = worksheet[cellAddress];
         if (!cell) continue;
 
-        // default alignment + border
         cell.s = cell.s || {};
         cell.s.alignment = { horizontal: c === 0 ? "center" : "right", vertical: "center" };
         cell.s.border = {
@@ -137,9 +141,19 @@ export function TablesSectionKPI() {
         };
         cell.s.font = { name: "Calibri", sz: 11 };
 
-        // Revenue
-        if (c === 3 && typeof cell.v === "number" && cell.v > 0) {
+        // Format cột tiền (Revenue: c=3, Unpaid Revenue: c=5)
+        if ((c === 3 || c === 5) && typeof cell.v === "number") {
+          cell.t = "n"; // kiểu số
+          cell.z = "#,##0 ₫"; // format VND với dấu phẩy và ký hiệu ₫
+          // highlight màu nền
           cell.s.fill = { fgColor: { rgb: "E6FFE6" } };
+          if (c === 5) cell.s.fill = { fgColor: { rgb: "FFE6E6" } }; // UnpaidRevenue màu đỏ nhạt
+          cell.s.font.bold = true;
+        }
+
+        // Unpaid bookings count
+        if (c === 4 && typeof cell.v === "number" && cell.v > 0) {
+          cell.s.fill = { fgColor: { rgb: "FFE6E6" } };
           cell.s.font.bold = true;
         }
 
@@ -155,13 +169,13 @@ export function TablesSectionKPI() {
 
     // 7. Column widths
     worksheet['!cols'] = [
-      { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 15 },
+      { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 15 }, { wch: 12 }, { wch: 18 },
       { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 },
     ];
 
     // 8. Freeze header + auto filter
-    worksheet['!freeze'] = { xSplit: 0, ySplit: 6 }; // freeze 6 dòng đầu
-    worksheet['!autofilter'] = { ref: `A6:I${lastRow}` };
+    worksheet['!freeze'] = { xSplit: 0, ySplit: 6 };
+    worksheet['!autofilter'] = { ref: `A6:K${lastRow}` };
 
     // 9. Xuất file
     const workbook = XLSX.utils.book_new();
@@ -213,6 +227,8 @@ export function TablesSectionKPI() {
                     <th className="border p-2 text-left">Total Bookings</th>
                     <th className="border p-2 text-left">Cancelled</th>
                     <th className="border p-2 text-left">Revenue</th>
+                    <th className="border p-2 text-left">Unpaid</th>
+                    <th className="border p-2 text-left">Unpaid Revenue</th>
                     <th className="border p-2 text-left">Status</th>
                   </tr>
                 </thead>
@@ -224,6 +240,12 @@ export function TablesSectionKPI() {
                       <td className="border p-2">{item.cancelledBookings}</td>
                       <td className="border p-2 font-semibold text-green-700">
                         {item.revenue.toLocaleString("vi-VN")} ₫
+                      </td>
+                      <td className="border p-2 font-semibold text-red-700">
+                        {item.unpaid}
+                      </td>
+                      <td className="border p-2 font-semibold text-red-700">
+                        {item.unpaidRevenue?.toLocaleString("vi-VN")} ₫
                       </td>
                       <td className="border p-2 flex gap-1 flex-wrap">
                         {Object.entries(item.status).map(

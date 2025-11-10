@@ -4,7 +4,7 @@ import { DashboardHeader } from "./DashboardHeader";
 import { StatsCards } from "./StatsCards";
 import { CarouselHotels } from "./CarouselHotels";
 import { ChartsSection } from "./ChartsSection";
-import { ChartsSectionRevenue } from "./ChartsSectionRevenue";
+import { RevenueCharts } from "./ChartsSectionRevenue";
 import { TablesSectionKPI } from "./TablesSectionKPI";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -35,7 +35,7 @@ export default function TravelDashboard() {
                     <StatsCards />
                     <CarouselHotels />
                     <ChartsSection />
-                    <ChartsSectionRevenue />
+                    <RevenueCharts />
                     <CarouselPaymentStats />
                     <CombinedBookingChart />
                     <CombinedPaymentStats />
