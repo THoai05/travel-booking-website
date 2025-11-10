@@ -25,6 +25,9 @@ export class PostsService {
 
     @InjectRepository(City)
     private readonly cityRepo: Repository<City>,
+
+    @InjectRepository(PostImage)
+    private readonly postImageRepo: Repository<PostImage>
   ) { }
 
   async create(createPostDto: CreatePostDto) {
@@ -177,28 +180,34 @@ export class PostsService {
     });
   }
 
-
   async update(id: number, updatePostDto: UpdatePostDto) {
     const post = await this.postRepo.findOne({
       where: { id },
-      relations: ['author'],
+      relations: ['author', 'images'],
     });
 
-    if (!post) {
-      throw new NotFoundException('Không tìm thấy bài viết');
-    }
-    // Kiểm tra slug trùng nếu có thay đổi slug
-    if (updatePostDto.slug) {
-      const existingSlug = await this.postRepo.findOne({
-        where: { slug: updatePostDto.slug },
-      });
+    if (!post) throw new NotFoundException('Không tìm thấy bài viết');
 
+    if (updatePostDto.slug) {
+      const existingSlug = await this.postRepo.findOne({ where: { slug: updatePostDto.slug } });
       if (existingSlug && existingSlug.id !== id) {
         throw new BadRequestException('Slug đã tồn tại');
       }
     }
 
     Object.assign(post, updatePostDto);
+
+    if (updatePostDto.images) {
+      // Xóa ảnh cũ của bài viết
+      await this.postImageRepo.delete({ post: { id } });
+
+      const newImages = updatePostDto.images.map((url) =>
+        this.postImageRepo.create({ url, post })
+      );
+
+      post.images = newImages;
+    }
+
     await this.postRepo.save(post);
 
     return {
@@ -206,6 +215,7 @@ export class PostsService {
       post: new PostResponseDto(post),
     };
   }
+
 
   async removeMany(ids: number[]) {
     // Xóa nhiều theo id
