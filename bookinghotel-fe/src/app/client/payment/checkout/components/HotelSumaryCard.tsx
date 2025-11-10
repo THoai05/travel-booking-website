@@ -24,7 +24,16 @@ interface HotelSummaryProps {
 
 const HotelSummaryCard: React.FC<{ hotel: HotelSummaryProps | null; }> = ({ hotel }) => {
 
-  console.log("O trang checkout", hotel)
+   const roomTypeName = new Map([
+    ['deluxe double', "Phòng đôi sang trọng",],
+    ['deluxe family', "Phòng gia đình sang trọng",],
+    ['grand family', "Phòng đại gia đình",],
+    ['deluxe triple', "Phòng ba sang trọng",],
+    ['standard', "Phòng tiêu chuẩn",],
+    ['double room', "Phòng đôi tiêu chuẩn ",],
+    ['triple room', "Phòng ba tiêu chuẩn",],
+    
+  ])
   
   // 1. Giữ nguyên bộ xương loading khi hotel là null
   if (!hotel) {
@@ -39,6 +48,7 @@ const HotelSummaryCard: React.FC<{ hotel: HotelSummaryProps | null; }> = ({ hote
       </div>
     );
   }
+  console.log(hotel)
 
   // 2. Dịch các text cứng sang tiếng Việt
   return (
@@ -72,8 +82,12 @@ const HotelSummaryCard: React.FC<{ hotel: HotelSummaryProps | null; }> = ({ hote
         </div>
       </div>
 
-      <div className="border-t pt-4 space-y-3">
-        <p className="font-semibold text-sm">{hotel.roomType}</p>
+      <div className=" border-t pt-4 space-y-3">
+        <div className='flex items-center gap-2'>
+        <Info size={16} />
+        <p className="font-semibold text-sm">{roomTypeName.get(hotel.roomType)}</p>
+          </div>
+        
         
         <div className="flex items-center gap-2 text-sm text-gray-700">
           <Users size={16} />
