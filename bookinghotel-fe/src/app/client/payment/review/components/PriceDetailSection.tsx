@@ -92,7 +92,7 @@ const PriceDetailsSection: React.FC<PriceDetailsProps> = ({ price , onclick }) =
             </span>
             {/* --- 5. SỬ DỤNG PROP 'price' --- */}
             <span className="text-xl font-bold text-red-500">
-              {formatCurrency(Number(price)*nights)}
+              {formatCurrency(Number(price))}
             </span>
           </div>
         </div>

@@ -119,6 +119,7 @@ const router = useRouter()
     ratePlanId
   )=> {
     try {
+      console.log(nights)
       const response = await api.post('bookings', {
       checkinDate,
       checkoutDate,
