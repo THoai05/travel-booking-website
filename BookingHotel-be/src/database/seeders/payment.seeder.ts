@@ -8,6 +8,10 @@ import {
 } from '../../managements/payments/entities/payments.entity';
 import { Booking } from '../../managements/bookings/entities/bookings.entity';
 
+function randomInt(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 export default class PaymentSeeder implements Seeder {
   public async run(dataSource: DataSource): Promise<void> {
     const paymentRepository = dataSource.getRepository(Payment);
@@ -26,17 +30,22 @@ export default class PaymentSeeder implements Seeder {
     const refundStatuses = [RefundStatus.NONE, RefundStatus.REFUNDED, RefundStatus.REJECTED];
 
     for (const booking of bookings) {
-      const method = this.randomItem(methods);
-      const status = this.randomItem(statuses);
-      const refund = this.randomItem(refundStatuses);
+      const method = methods[Math.floor(Math.random() * methods.length)];
+      const status = statuses[Math.floor(Math.random() * statuses.length)];
+      const refund = refundStatuses[Math.floor(Math.random() * refundStatuses.length)];
 
-      // ✅ Nếu booking có createdAt thì dựa vào đó làm thời gian thanh toán
-      const createdAt = booking.createdAt ?? this.randomDateInLastYear();
+      // Nếu booking có createdAt thì dùng nó (yêu cầu của bạn)
+      const createdAt = booking.createdAt ?? new Date();
 
-      // ✅ paidAt chỉ có nếu payment thành công, lệch 0–5 ngày sau createdAt
+      // paidAt chỉ có nếu payment thành công, lệch 0–5 ngày sau createdAt
       const paidAt =
         status === PaymentStatus.SUCCESS
-          ? this.randomDateNear(createdAt, 0, 5)
+          ? (() => {
+              const date = new Date(createdAt);
+              date.setDate(date.getDate() + randomInt(0, 5));
+              date.setHours(randomInt(0, 23), randomInt(0, 59), randomInt(0, 59));
+              return date;
+            })()
           : null;
 
       const payment = paymentRepository.create({
@@ -50,7 +59,7 @@ export default class PaymentSeeder implements Seeder {
         )}`,
         refundStatus: refund,
         paidAt,
-        createdAt, // ✅ rải đều 12 tháng
+        createdAt, // gán createdAt = booking.createdAt
       });
 
       payments.push(payment);
@@ -58,32 +67,5 @@ export default class PaymentSeeder implements Seeder {
 
     await paymentRepository.save(payments);
     console.log(`🌱 Seeded ${payments.length} payments successfully`);
-  }
-
-  private randomItem<T>(arr: T[]): T {
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  /**
-   * Random 1 ngày trong 12 tháng qua
-   */
-  private randomDateInLastYear(): Date {
-    const now = new Date();
-    const pastYear = new Date();
-    pastYear.setFullYear(now.getFullYear() - 1);
-    const randomTime =
-      pastYear.getTime() +
-      Math.random() * (now.getTime() - pastYear.getTime());
-    return new Date(randomTime);
-  }
-
-  /**
-   * Random 1 ngày gần ngày gốc (offset ± min–max ngày)
-   */
-  private randomDateNear(baseDate: Date, minOffset: number, maxOffset: number): Date {
-    const offsetDays = Math.floor(Math.random() * (maxOffset - minOffset + 1)) + minOffset;
-    const result = new Date(baseDate);
-    result.setDate(result.getDate() + offsetDays);
-    return result;
   }
 }
