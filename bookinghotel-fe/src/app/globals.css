@@ -1,8 +1,12 @@
+
 @import "tailwindcss";
+@import "swiper/css";
+@import "swiper/css/navigation";
 @plugin "tailwindcss-animate";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @plugin '../hero.ts';
 @source '../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+
 
 @custom-variant dark (&:is(.dark *));
 

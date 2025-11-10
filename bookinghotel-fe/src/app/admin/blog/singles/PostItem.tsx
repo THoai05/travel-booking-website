@@ -3,6 +3,11 @@ import { useState } from "react";
 import Image from "next/image";
 import { FaEye, FaEllipsisV, FaUser, FaRegCalendar } from "react-icons/fa";
 import EditPostForm from "../../components/EditPostForm";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 interface PostItemProps {
   post: any;
@@ -69,7 +74,7 @@ export default function PostItem({
             className="mt-1 w-4 h-4"
           />
           <Image
-            src={getPostImageUrl(post.image)}
+            src={getPostImageUrl(post.images?.[0] || "")}
             width={64}
             height={64}
             alt={post.title}
@@ -164,18 +169,31 @@ export default function PostItem({
       {/* --- Modal View --- */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-lg w-full max-h-[90vh] overflow-auto relative">
-            <h2 className="text-xl font-bold">{post.title}</h2>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={getPostImageUrl(post.image)}
-              alt={post.title}
-              className="my-4 w-full h-48 object-cover rounded"
-            />
+          <div className="bg-white p-6 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-auto relative">
+            <h2 className="text-xl font-bold mb-4">{post.title}</h2>
+
+            {/* Swiper carousel cho ảnh */}
+            <Swiper
+              spaceBetween={10}
+              slidesPerView={1}
+            >
+              {post.images?.map((img, idx) => (
+                <SwiperSlide key={idx} className="flex justify-center items-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={getPostImageUrl(img)}
+                    alt={`${post.title}-${idx}`}
+                    className="w-full h-80 sm:h-96 object-cover rounded-lg"
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+
             <div
-              className="prose max-w-full"
+              className="prose max-w-full mt-4"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
+
             <p className="mt-2 text-sm text-gray-600">
               Author: {post.author.fullName} ({post.author.username})
             </p>
@@ -195,6 +213,7 @@ export default function PostItem({
           </div>
         </div>
       )}
+
 
       {/* --- Modal Edit --- */}
       {showEditModal && (
