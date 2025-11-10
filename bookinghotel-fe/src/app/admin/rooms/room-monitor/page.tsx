@@ -651,15 +651,130 @@ export default function RoomMonitorPage() {
         <div className="fixed bottom-4 left-10 p-4 bg-white border rounded-2xl shadow-lg w-72 z-50">
           {/* Ảnh + tên */}
           <div className="flex items-center gap-3 mb-3">
-            <img
-              src={
-                hoveredUserDetail.avatar
-                  ? `${hoveredUserDetail.avatar}`
-                  : "/avatars/default.png" // fallback ảnh mặc định
-              }
-              alt="User Avatar"
-              className="w-12 h-12 rounded-full object-cover border"
-            />
+            <div className="relative w-12 h-12 flex items-center justify-center">
+              {/* Cánh trái */}
+              <svg
+                className="absolute -left-6 w-16 h-16 animate-wing-left"
+                viewBox="0 0 64 64"
+              >
+                <defs>
+                  <linearGradient id={`gradientLeft-${hoveredUserDetail.id}`} x1="0" y1="0" x2="1" y2="1">
+                    <stop
+                      offset="0%"
+                      stopColor={
+                        hoveredUserDetail?.membershipLevel === "Gold"
+                          ? "#facc15"
+                          : hoveredUserDetail?.membershipLevel === "Platinum"
+                            ? "#3b82f6"
+                            : "#9ca3af"
+                      }
+                    />
+                    <stop
+                      offset="50%"
+                      stopColor={
+                        hoveredUserDetail?.membershipLevel === "Gold"
+                          ? "#fcd34d"
+                          : hoveredUserDetail?.membershipLevel === "Platinum"
+                            ? "#8b5cf6"
+                            : "#d1d5db"
+                      }
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor={
+                        hoveredUserDetail?.membershipLevel === "Gold"
+                          ? "#fbbf24"
+                          : hoveredUserDetail?.membershipLevel === "Platinum"
+                            ? "#ec4899"
+                            : "#9ca3af"
+                      }
+                    />
+                  </linearGradient>
+                </defs>
+                <path d="M32 32 C10 10, 0 64, 32 32" fill={`url(#gradientLeft-${hoveredUserDetail.id})`} />
+              </svg>
+
+              {/* Cánh phải */}
+              <svg
+                className="absolute -right-6 w-16 h-16 animate-wing-right"
+                viewBox="0 0 64 64"
+              >
+                <defs>
+                  <linearGradient id={`gradientRight-${hoveredUserDetail.id}`} x1="0" y1="0" x2="1" y2="1">
+                    <stop
+                      offset="0%"
+                      stopColor={
+                        hoveredUserDetail?.membershipLevel === "Gold"
+                          ? "#facc15"
+                          : hoveredUserDetail?.membershipLevel === "Platinum"
+                            ? "#3b82f6"
+                            : "#9ca3af"
+                      }
+                    />
+                    <stop
+                      offset="50%"
+                      stopColor={
+                        hoveredUserDetail?.membershipLevel === "Gold"
+                          ? "#fcd34d"
+                          : hoveredUserDetail?.membershipLevel === "Platinum"
+                            ? "#8b5cf6"
+                            : "#d1d5db"
+                      }
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor={
+                        hoveredUserDetail?.membershipLevel === "Gold"
+                          ? "#fbbf24"
+                          : hoveredUserDetail?.membershipLevel === "Platinum"
+                            ? "#ec4899"
+                            : "#9ca3af"
+                      }
+                    />
+                  </linearGradient>
+                </defs>
+                <path d="M32 32 C54 10, 64 64, 32 32" fill={`url(#gradientRight-${hoveredUserDetail.id})`} />
+              </svg>
+
+              {/* Avatar với gradient border */}
+              <div
+                className={`relative flex items-center justify-center
+    ${hoveredUserDetail?.membershipLevel === "Platinum"
+                    ? "w-8 h-13 rounded-[80%/40%] p-[2px]" // bầu dục mỏng hơn
+                    : "w-12 h-13 rounded-full p-[3px]"     // tròn
+                  }
+    ${hoveredUserDetail?.membershipLevel === "Gold"
+                    ? "bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400"
+                    : hoveredUserDetail?.membershipLevel === "Platinum"
+                      ? "bg-gradient-to-r from-blue-500 via-purple-400 to-pink-500"
+                      : "bg-gradient-to-r from-gray-400 via-gray-200 to-gray-400"
+                  }
+  `}
+              >
+
+                <img
+                  src={hoveredUserDetail?.avatar || "https://avatars.githubusercontent.com/u/9919?s=128&v=4"}
+                  alt="User Avatar"
+                  className={`w-full h-full object-cover ${hoveredUserDetail?.membershipLevel === "Platinum" ? "rounded-[50%/40%]" : "rounded-full"
+                    }`}
+                />
+
+                {/* Lông rơi */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {[...Array(5)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-1 h-2 bg-white opacity-70 rounded-full animate-feather"
+                      style={{
+                        left: `${Math.random() * 100}%`,
+                        animationDelay: `${Math.random() * 2}s`,
+                        animationDuration: `${1 + Math.random() * 1.5}s`,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
             <div>
               <h3 className="font-bold text-gray-800 flex items-center gap-1">
                 🧑 <span>User ID: {hoveredUserDetail.id}</span>
