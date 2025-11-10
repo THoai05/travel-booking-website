@@ -103,7 +103,7 @@ export function TablesSectionPaymentStats() {
 
     const lastRow = 6 + dataRows.length;
     for (let r = 6; r < lastRow; r++) {
-      for (let c = 0; c < 6; c++) { // cập nhật 6 cột
+      for (let c = 0; c < 6; c++) {
         const cellAddress = XLSX.utils.encode_cell({ r, c });
         const cell = worksheet[cellAddress];
         if (!cell) continue;
@@ -118,7 +118,10 @@ export function TablesSectionPaymentStats() {
         };
         cell.s.font = { name: "Calibri", sz: 11 };
 
-        if (typeof cell.v === "number" && cell.v > 0) {
+        // Format tiền các phương thức thanh toán (cột 1-5)
+        if (c > 0 && typeof cell.v === "number") {
+          cell.t = "n"; // kiểu số
+          cell.z = "#,##0 ₫"; // format VND
           let color = "FFFFFF";
           switch (c) {
             case 1: color = "FFF2CC"; break; // COD - vàng nhạt
