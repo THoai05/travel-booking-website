@@ -5,14 +5,11 @@ import {
   MapPin, Phone, Mail, CheckCircle2, ChevronDown 
 } from 'lucide-react';
 
-// --- (SỬA) ---
-// 1. Interface này đã được cập nhật để khớp chính xác
-// với object `hotelDetailsProps` bạn tạo ra trong useMemo.
 interface HotelSummaryProps {
-  bookingId: string; // useMemo đã dùng toString()
+  bookingId: string;
   name: string;
-  checkIn: string;   // Ngày đã format
-  checkOut: string;  // Ngày đã format
+  checkIn: string;
+  checkOut: string;
   nights: number;
   roomType: string;
   guests: number;
@@ -25,19 +22,12 @@ interface HotelSummaryProps {
   wifi: boolean;
 }
 
-// --- (SỬA) ---
-// 2. Kiểu prop đã đổi thành HotelSummaryProps | null
-// vì useMemo có thể trả về null
 const HotelSummaryCard: React.FC<{ hotel: HotelSummaryProps | null; }> = ({ hotel }) => {
 
-  console.log("O trang checkout",hotel)
+  console.log("O trang checkout", hotel)
   
-  // --- (SỬA) ---
-  // 3. Thêm
-  // Bắt buộc phải có đoạn kiểm tra null này,
-  // vì useMemo sẽ trả về null nếu pendingBooking chưa có
+  // 1. Giữ nguyên bộ xương loading khi hotel là null
   if (!hotel) {
-    // Bạn có thể hiển thị một bộ xương (skeleton) loading ở đây
     return (
       <div className="bg-sky-50 rounded-lg p-5 animate-pulse">
         <div className="h-4 bg-gray-300 rounded w-1/3 mb-4"></div>
@@ -50,7 +40,7 @@ const HotelSummaryCard: React.FC<{ hotel: HotelSummaryProps | null; }> = ({ hote
     );
   }
 
-  // Nếu hotel không null, hiển thị thẻ tóm tắt
+  // 2. Dịch các text cứng sang tiếng Việt
   return (
     <div className="bg-sky-50 rounded-lg p-5">
       <div className="flex items-start gap-3 mb-4">
@@ -58,8 +48,8 @@ const HotelSummaryCard: React.FC<{ hotel: HotelSummaryProps | null; }> = ({ hote
           <MapPin size={20} />
         </div>
         <div>
-          <h3 className="font-semibold text-gray-800 text-sm">Hotel Summary</h3>
-          <p className="text-xs text-gray-600">Booking ID: {hotel.bookingId}</p>
+          <h3 className="font-semibold text-gray-800 text-sm">Tóm tắt khách sạn</h3>
+          <p className="text-xs text-gray-600">Mã đặt phòng: {hotel.bookingId}</p>
         </div>
       </div>
 
@@ -67,18 +57,18 @@ const HotelSummaryCard: React.FC<{ hotel: HotelSummaryProps | null; }> = ({ hote
 
       <div className="grid grid-cols-3 gap-4 mb-4 text-center">
         <div>
-          <p className="text-xs text-gray-600">Check-in</p>
+          <p className="text-xs text-gray-600">Nhận phòng</p>
           <p className="font-semibold text-sm">{hotel.checkIn}</p>
-          <p className="text-xs text-gray-500">From 14:00</p>
+          <p className="text-xs text-gray-500">Từ 14:00</p>
         </div>
         <div>
-          <p className="text-xs text-gray-600">{hotel.nights} {hotel.nights > 1 ? 'nights' : 'night'}</p>
+          <p className="text-xs text-gray-600">{hotel.nights} đêm</p>
           <div className="my-1">→</div>
         </div>
         <div>
-          <p className="text-xs text-gray-600">Check-out</p>
+          <p className="text-xs text-gray-600">Trả phòng</p>
           <p className="font-semibold text-sm">{hotel.checkOut}</p>
-          <p className="text-xs text-gray-500">Before 12:00</p>
+          <p className="text-xs text-gray-500">Trước 12:00</p>
         </div>
       </div>
 
@@ -87,7 +77,7 @@ const HotelSummaryCard: React.FC<{ hotel: HotelSummaryProps | null; }> = ({ hote
         
         <div className="flex items-center gap-2 text-sm text-gray-700">
           <Users size={16} />
-          <span>{hotel.guests} Guests</span>
+          <span>{hotel.guests} khách</span>
         </div>
         
         <div className="flex items-center gap-2 text-sm text-gray-700">
@@ -97,42 +87,34 @@ const HotelSummaryCard: React.FC<{ hotel: HotelSummaryProps | null; }> = ({ hote
         
         <div className="flex items-center gap-2 text-sm text-gray-700">
           <Coffee size={16} />
-          {/* Component này đã xử lý đúng `breakfast` từ prop */}
-          <span>{hotel.breakfast ? 'Breakfast included' : 'Breakfast not included'}</span>
+          <span>{hotel.breakfast ? 'Bao gồm bữa sáng' : 'Không bao gồm bữa sáng'}</span>
         </div>
         
         <div className="flex items-center gap-2 text-sm text-gray-700">
           <Wifi size={16} />
-          {/* --- (SỬA) --- */}
-          {/* 4. Chuyển từ text cứng "Free WiFi" sang dùng prop */}
-          <span>{hotel.wifi ? 'Free WiFi' : 'WiFi not available'}</span>
+          <span>{hotel.wifi ? 'WiFi miễn phí' : 'Không có WiFi'}</span>
         </div>
       </div>
 
       <div className="mt-4 pt-4 border-t">
-        <p className="text-sm font-semibold mb-2">Guest(s)</p>
-        {/* --- (SỬA) --- */}
-        {/* 5. Lấy từ prop `hotel`, không dùng biến `guest` */}
+        <p className="text-sm font-semibold mb-2">Khách</p>
         <p className="text-sm text-gray-700">{hotel.guestsFullName}</p>
         
-        {/* Các dòng text cứng này là OK vì nó là chính sách */}
         <div className="flex gap-2 mt-2">
           <span className="text-xs flex items-center gap-1">
             <CheckCircle2 size={14} className="text-gray-500" />
-            Non-refundable
+            Không hoàn tiền
           </span>
           <span className="text-xs flex items-center gap-1">
             <CheckCircle2 size={14} className="text-gray-500" />
-            Non-reschedulable
+            Không thể đổi lịch
           </span>
         </div>
       </div>
 
       <div className="mt-4 pt-4 border-t">
-        <p className="text-sm font-semibold mb-2">Contact Details</p>
+        <p className="text-sm font-semibold mb-2">Chi tiết liên hệ</p>
         
-        {/* --- (SỬA) --- */}
-        {/* 6. Lấy từ prop `hotel`, không dùng biến `guest` */}
         <p className="text-sm text-gray-700 flex items-center gap-2">
           <Users size={14} />
           {hotel.contactFullName}
