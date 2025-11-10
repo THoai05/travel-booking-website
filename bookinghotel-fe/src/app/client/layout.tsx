@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { HeroUIProvider } from "@heroui/system";
 import { usePathname, useRouter } from "next/navigation";
 import ChatBox from "./components/common/ChatBox";
+import ZaloSim from "./components/common/ZaloSim";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -66,7 +67,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             <main>{children}</main>
             <Footer />
             <ScrollToTopButton />
-            <ChatBox userId={currentUserId} />
+            <ZaloSim userId={currentUserId} />
+            <ChatBox />
           </>
         )}
       </QueryClientProvider>

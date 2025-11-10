@@ -21,6 +21,7 @@ export class BookingsService {
         private readonly userRepo: Repository<User>,
         @InjectRepository(RoomType)
         private readonly roomTypeRepo: Repository<RoomType>,
+
     ) { }
 
     async createBooking(body: CreateBookingRequest): Promise<BookingResponseManagement> {
