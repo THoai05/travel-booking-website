@@ -19,6 +19,8 @@ interface PaymentStatsData {
         cod: number[];
         momo: number[];
         vnpay: number[];
+        zalopay: number[]; // mới
+        stripe: number[];  // mới
     };
 }
 
@@ -28,12 +30,12 @@ function formatVND(value: number) {
 
 function PaymentCard({ method }: { method: PaymentMethod }) {
     return (
-        <div className="bg-white rounded-[5px] border border-gray-200 p-4 flex flex-col items-center justify-center w-56
-    shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-2px_rgba(0,0,0,0.05)]
-    hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]
+        <div className="bg-white rounded-[5px] border border-gray-200 p-3 flex flex-col items-center justify-center w-40
+    shadow-[0_8px_12px_-2px_rgba(0,0,0,0.1),0_3px_4px_-1px_rgba(0,0,0,0.05)]
+    hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.25)]
     transition-all duration-500">
-            <div className="relative w-20 h-20 mb-4 overflow-hidden rounded-full shadow-md hover:shadow-2xl
-          transition-all duration-700 ease-out hover:scale-110 hover:rotate-1 hover:brightness-110">
+            <div className="relative w-16 h-16 mb-3 overflow-hidden rounded-full shadow-md hover:shadow-xl
+          transition-all duration-700 ease-out hover:scale-105 hover:rotate-1 hover:brightness-110">
                 <Image
                     src={`/images/${method.img}`}
                     alt={method.name}
@@ -42,8 +44,8 @@ function PaymentCard({ method }: { method: PaymentMethod }) {
                 />
             </div>
 
-            <h3 className="text-gray-900 font-semibold text-lg mb-2">{method.name}</h3>
-            <p className="text-xl font-bold" style={{ color: method.color }}>
+            <h3 className="text-gray-900 font-semibold text-sm mb-1">{method.name}</h3>
+            <p className="text-lg font-bold" style={{ color: method.color }}>
                 {formatVND(method.total)}
             </p>
         </div>
@@ -51,11 +53,12 @@ function PaymentCard({ method }: { method: PaymentMethod }) {
 }
 
 
+
 export function CarouselPaymentStats() {
     const [paymentStats, setPaymentStats] = useState<PaymentStatsData | null>(null);
     const [currentType, setCurrentType] = useState<"week" | "month" | "year">("week");
     const types: ("week" | "month" | "year")[] = ["week", "month", "year"];
-    const AUTO_INTERVAL = 6000; // 5 giây
+    const AUTO_INTERVAL = 6000; // 6 giây
 
     useEffect(() => {
         fetchData(currentType);
@@ -84,11 +87,15 @@ export function CarouselPaymentStats() {
     const totalCOD = paymentStats.paymentData.cod.reduce((a, b) => a + b, 0);
     const totalMomo = paymentStats.paymentData.momo.reduce((a, b) => a + b, 0);
     const totalVNPay = paymentStats.paymentData.vnpay.reduce((a, b) => a + b, 0);
+    const totalZalo = paymentStats.paymentData.zalopay?.reduce((a, b) => a + b, 0) ?? 0;
+    const totalStripe = paymentStats.paymentData.stripe?.reduce((a, b) => a + b, 0) ?? 0;
 
     const methods: PaymentMethod[] = [
         { name: "COD", img: "cod.png", color: "#FBBF24", total: totalCOD },
         { name: "Momo", img: "momo.png", color: "#22C55E", total: totalMomo },
         { name: "VNPay", img: "vnpay.png", color: "#3B82F6", total: totalVNPay },
+        { name: "ZaloPay", img: "zalo.png", color: "#F4CCCC", total: totalZalo }, // mới
+        { name: "Stripe", img: "stripe.png", color: "#A78BFA", total: totalStripe }, // mới
     ];
 
     return (
@@ -115,7 +122,6 @@ export function CarouselPaymentStats() {
                     </AnimatePresence>
                 </div>
 
-                {/* Dots hiển thị tuần/tháng/năm */}
                 <div className="flex justify-center gap-2 mt-4">
                     {types.map((t) => (
                         <span

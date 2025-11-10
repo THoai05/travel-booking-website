@@ -23,7 +23,7 @@ export class BookingsService {
         @InjectRepository(RoomType)
         private readonly roomTypeRepo: Repository<RoomType>,
         @InjectRepository(RatePlan)
-        private readonly ratePlanRepo:Repository<RatePlan>
+        private readonly ratePlanRepo: Repository<RatePlan>
     ) { }
 
     async createBooking(body: CreateBookingRequest): Promise<BookingResponseManagement> {
@@ -57,7 +57,7 @@ export class BookingsService {
         }
         const ratePlan = await this.ratePlanRepo.findOne({
             where: {
-                id:ratePlanId
+                id: ratePlanId
             }
         })
         if (!ratePlan) {
@@ -70,7 +70,7 @@ export class BookingsService {
             checkOutDate: checkoutDate,
             guestsCount,
             totalPrice,
-            rateplan:ratePlan
+            rateplan: ratePlan
         })
         const bookingSaved = await this.bookingRepo.save(bookingData)
         return {
@@ -748,11 +748,13 @@ export class BookingsService {
             relations: ['payment'],
         });
 
-        // Khởi tạo map theo payment method
+        // Khởi tạo map theo payment method, thêm ZALOPAY và STRIPE
         const paymentData: Record<string, number[]> = {
             cod: [],
             momo: [],
             vnpay: [],
+            zalopay: [],
+            stripe: [],
         };
 
         const labels: string[] = [];
@@ -762,38 +764,37 @@ export class BookingsService {
             for (let m = 0; m < 12; m++) {
                 const monthKey = `${now.getFullYear()}-${(m + 1).toString().padStart(2, '0')}`;
                 labels.push(monthKey);
-                paymentData.cod.push(0);
-                paymentData.momo.push(0);
-                paymentData.vnpay.push(0);
+                Object.keys(paymentData).forEach(key => paymentData[key].push(0));
             }
+
             bookings.forEach(b => {
                 if (b.payment?.paymentStatus !== PaymentStatus.SUCCESS) return;
                 const key = `${b.createdAt.getFullYear()}-${(b.createdAt.getMonth() + 1).toString().padStart(2, '0')}`;
                 const idx = labels.indexOf(key);
                 if (idx === -1) return;
-                const method = b.payment.paymentMethod.toLowerCase() as keyof typeof paymentData;
-                paymentData[method][idx] += Number(b.totalPrice);
+                const method = b.payment.paymentMethod.toLowerCase();
+                if (method in paymentData) paymentData[method][idx] += Number(b.totalPrice);
             });
         } else {
             let current = new Date(startDate);
             while (current <= endDate) {
                 const dayKey = formatDateVN(current);
                 labels.push(dayKey);
-                paymentData.cod.push(0);
-                paymentData.momo.push(0);
-                paymentData.vnpay.push(0);
+                Object.keys(paymentData).forEach(key => paymentData[key].push(0));
                 current.setDate(current.getDate() + 1);
             }
+
             bookings.forEach(b => {
                 if (b.payment?.paymentStatus !== PaymentStatus.SUCCESS) return;
                 const key = formatDateVN(b.createdAt);
                 const idx = labels.indexOf(key);
                 if (idx === -1) return;
-                const method = b.payment.paymentMethod.toLowerCase() as keyof typeof paymentData;
-                paymentData[method][idx] += Number(b.totalPrice);
+                const method = b.payment.paymentMethod.toLowerCase();
+                if (method in paymentData) paymentData[method][idx] += Number(b.totalPrice);
             });
         }
 
         return { type, labels, paymentData };
     }
+
 }

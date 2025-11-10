@@ -29,6 +29,8 @@ interface PaymentStats {
     cod: number;
     momo: number;
     vnpay: number;
+    zalopay: number; // thêm mới
+    stripe: number;  // thêm mới
 }
 
 export function CombinedPaymentStats() {
@@ -37,9 +39,11 @@ export function CombinedPaymentStats() {
     const [type, setType] = useState<"week" | "month" | "year">("week");
 
     const paymentColors: Record<string, string> = {
-        cod: "#FBBF24",   // vàng nhạt
-        momo: "#22C55E",  // xanh lá
-        vnpay: "#3B82F6", // xanh dương
+        cod: "#FBBF24",     // vàng nhạt
+        momo: "#22C55E",    // xanh lá
+        vnpay: "#3B82F6",   // xanh dương
+        zalopay: "#F472B6", // hồng
+        stripe: "#8B5CF6",  // tím
     };
 
     useEffect(() => {
@@ -63,6 +67,8 @@ export function CombinedPaymentStats() {
                 cod: data.cod?.[index] ?? 0,
                 momo: data.momo?.[index] ?? 0,
                 vnpay: data.vnpay?.[index] ?? 0,
+                zalopay: data.zalopay?.[index] ?? 0, // mới
+                stripe: data.stripe?.[index] ?? 0,   // mới
             }));
 
             setChartData(formattedData);
@@ -79,6 +85,8 @@ export function CombinedPaymentStats() {
         { name: "COD", value: chartData.reduce((sum, item) => sum + item.cod, 0), color: paymentColors.cod },
         { name: "Momo", value: chartData.reduce((sum, item) => sum + item.momo, 0), color: paymentColors.momo },
         { name: "VNPay", value: chartData.reduce((sum, item) => sum + item.vnpay, 0), color: paymentColors.vnpay },
+        { name: "ZaloPay", value: chartData.reduce((sum, item) => sum + item.zalopay, 0), color: paymentColors.zalopay },
+        { name: "Stripe", value: chartData.reduce((sum, item) => sum + item.stripe, 0), color: paymentColors.stripe },
     ];
 
     return (
@@ -142,6 +150,8 @@ export function CombinedPaymentStats() {
                                         <Area type="monotone" dataKey="cod" stackId="1" stroke={paymentColors.cod} fill={paymentColors.cod} />
                                         <Area type="monotone" dataKey="momo" stackId="1" stroke={paymentColors.momo} fill={paymentColors.momo} />
                                         <Area type="monotone" dataKey="vnpay" stackId="1" stroke={paymentColors.vnpay} fill={paymentColors.vnpay} />
+                                        <Area type="monotone" dataKey="zalopay" stackId="1" stroke={paymentColors.zalopay} fill={paymentColors.zalopay} />
+                                        <Area type="monotone" dataKey="stripe" stackId="1" stroke={paymentColors.stripe} fill={paymentColors.stripe} />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             </div>
