@@ -167,8 +167,7 @@ export default function UserPage() {
                 >
                   <td className="p-3">{user.id}</td>
                   <td className="p-3">
-
-                    <div className="relative flex items-center justify-center">
+                    <div className="relative w-12 h-12 flex items-center justify-center">
                       {/* Cánh trái */}
                       <svg
                         className="absolute -left-6 w-16 h-16 animate-wing-left"
@@ -179,22 +178,31 @@ export default function UserPage() {
                             <stop
                               offset="0%"
                               stopColor={
-                                user?.membershipLevel === "Gold" ? "#facc15" :
-                                  user?.membershipLevel === "Platinum" ? "#3b82f6" : "#9ca3af"
+                                user?.membershipLevel === "Gold"
+                                  ? "#facc15"
+                                  : user?.membershipLevel === "Platinum"
+                                    ? "#3b82f6"
+                                    : "#9ca3af"
                               }
                             />
                             <stop
                               offset="50%"
                               stopColor={
-                                user?.membershipLevel === "Gold" ? "#fcd34d" :
-                                  user?.membershipLevel === "Platinum" ? "#8b5cf6" : "#d1d5db"
+                                user?.membershipLevel === "Gold"
+                                  ? "#fcd34d"
+                                  : user?.membershipLevel === "Platinum"
+                                    ? "#8b5cf6"
+                                    : "#d1d5db"
                               }
                             />
                             <stop
                               offset="100%"
                               stopColor={
-                                user?.membershipLevel === "Gold" ? "#fbbf24" :
-                                  user?.membershipLevel === "Platinum" ? "#ec4899" : "#9ca3af"
+                                user?.membershipLevel === "Gold"
+                                  ? "#fbbf24"
+                                  : user?.membershipLevel === "Platinum"
+                                    ? "#ec4899"
+                                    : "#9ca3af"
                               }
                             />
                           </linearGradient>
@@ -212,22 +220,31 @@ export default function UserPage() {
                             <stop
                               offset="0%"
                               stopColor={
-                                user?.membershipLevel === "Gold" ? "#facc15" :
-                                  user?.membershipLevel === "Platinum" ? "#3b82f6" : "#9ca3af"
+                                user?.membershipLevel === "Gold"
+                                  ? "#facc15"
+                                  : user?.membershipLevel === "Platinum"
+                                    ? "#3b82f6"
+                                    : "#9ca3af"
                               }
                             />
                             <stop
                               offset="50%"
                               stopColor={
-                                user?.membershipLevel === "Gold" ? "#fcd34d" :
-                                  user?.membershipLevel === "Platinum" ? "#8b5cf6" : "#d1d5db"
+                                user?.membershipLevel === "Gold"
+                                  ? "#fcd34d"
+                                  : user?.membershipLevel === "Platinum"
+                                    ? "#8b5cf6"
+                                    : "#d1d5db"
                               }
                             />
                             <stop
                               offset="100%"
                               stopColor={
-                                user?.membershipLevel === "Gold" ? "#fbbf24" :
-                                  user?.membershipLevel === "Platinum" ? "#ec4899" : "#9ca3af"
+                                user?.membershipLevel === "Gold"
+                                  ? "#fbbf24"
+                                  : user?.membershipLevel === "Platinum"
+                                    ? "#ec4899"
+                                    : "#9ca3af"
                               }
                             />
                           </linearGradient>
@@ -235,19 +252,26 @@ export default function UserPage() {
                         <path d="M32 32 C54 10, 64 64, 32 32" fill={`url(#gradientRight-${user.id})`} />
                       </svg>
 
-                      {/* Avatar chính với gradient border */}
+                      {/* Avatar với gradient border */}
                       <div
-                        className={`relative rounded-full p-[2px] ${user?.membershipLevel === "Gold"
-                          ? "bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400"
-                          : user?.membershipLevel === "Platinum"
-                            ? "bg-gradient-to-r from-blue-500 via-purple-400 to-pink-500"
-                            : "bg-gradient-to-r from-gray-400 via-gray-200 to-gray-400"
-                          }`}
+                        className={`relative flex items-center justify-center
+    ${user?.membershipLevel === "Platinum"
+                            ? "w-8 h-13 rounded-[80%/40%] p-[2px]" // bầu dục mỏng hơn
+                            : "w-12 h-13 rounded-full p-[3px]"      // tròn
+                          }
+    ${user?.membershipLevel === "Gold"
+                            ? "bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400"
+                            : user?.membershipLevel === "Platinum"
+                              ? "bg-gradient-to-r from-blue-500 via-purple-400 to-pink-500"
+                              : "bg-gradient-to-r from-gray-400 via-gray-200 to-gray-400"
+                          }
+  `}
                       >
                         <img
                           src={user?.avatar || "https://avatars.githubusercontent.com/u/9919?s=128&v=4"}
                           alt="User Avatar"
-                          className="rounded-full h-10 w-10 object-cover border-2 border-gray-900"
+                          className={`w-full h-full object-cover ${user?.membershipLevel === "Platinum" ? "rounded-[50%/40%]" : "rounded-full"
+                            }`}
                         />
 
                         {/* Lông rơi */}
@@ -267,9 +291,8 @@ export default function UserPage() {
                       </div>
                     </div>
 
-
-
                   </td>
+
                   <td className="p-3">{user.username}</td>
                   <td className="p-3">{user.fullName}</td>
                   <td className="p-3">{user.email}</td>
