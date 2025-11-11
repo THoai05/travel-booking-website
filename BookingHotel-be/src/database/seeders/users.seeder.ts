@@ -38,7 +38,29 @@ export default class UserSeeder implements Seeder {
       membershipLevel: MembershipLevel.PLATINUM,
     });
 
-    // 👉 20 users ngẫu nhiên (giữ nguyên logic cũ)
+    // 👉 20 users ngẫu nhiên với createdAt & updatedAt nằm trong 10 ngày gần đây
+    const today = new Date();
+
+    // Đảm bảo 10 ngày qua mỗi ngày có ít nhất 1 user
+    const createdDates: Date[] = [];
+    for (let d = 0; d < 10; d++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - d);
+      createdDates.push(date);
+    }
+
+    // 10 user đầu tiên mỗi ngày một user
+    const firstTenUsersDates = [...createdDates];
+
+    // 10 user còn lại random trong 10 ngày gần đây
+    const remainingTenUsersDates = Array.from({ length: 10 }, () => {
+      const randomIndex = Math.floor(Math.random() * createdDates.length);
+      return createdDates[randomIndex];
+    });
+
+    // Tổng hợp 20 ngày tạo cho 20 user
+    const allDates = [...firstTenUsersDates, ...remainingTenUsersDates];
+
     for (let i = 1; i <= 20; i++) {
       const gender = genders[Math.floor(Math.random() * genders.length)];
       const membership = memberships[Math.floor(Math.random() * memberships.length)];
@@ -46,6 +68,10 @@ export default class UserSeeder implements Seeder {
       const fullName = `Customer ${i}`;
       const email = `user${i}@example.com`;
       const phone = `09${Math.floor(10000000 + Math.random() * 89999999)}`;
+
+      const createdAt = new Date(allDates[i - 1]);
+      const updatedAt = new Date(createdAt);
+      updatedAt.setDate(createdAt.getDate() + Math.floor(Math.random() * 3)); // updated >= created, lệch tối đa 2 ngày
 
       users.push({
         username,
@@ -57,28 +83,27 @@ export default class UserSeeder implements Seeder {
         gender,
         loyaltyPoints: Math.floor(Math.random() * 1000),
         membershipLevel: membership,
+        createdAt,
+        updatedAt,
       });
     }
 
-    // 👉 10 user mới có created_at và updated_at random trong 10 ngày gần đây
-    const today = new Date();
+    // 👉 Thêm 10 user mới (giữ nguyên như cũ, không cần ngày random)
     const recentUsers: Partial<User>[] = [];
-
-    // Bước 1: đảm bảo 10 ngày qua, mỗi ngày có ít nhất 1 user
-    for (let d = 0; d < 10; d++) {
-      const createdAt = new Date(today);
-      createdAt.setDate(today.getDate() - d);
-
-      const updatedAt = new Date(createdAt);
-      updatedAt.setDate(createdAt.getDate() + Math.floor(Math.random() * 3)); // 0–2 ngày sau
-
-      const i = d + 21;
+    for (let i = 21; i <= 30; i++) {
       const gender = genders[Math.floor(Math.random() * genders.length)];
       const membership = memberships[Math.floor(Math.random() * memberships.length)];
       const username = `user${i}`;
       const fullName = `Customer ${i}`;
       const email = `user${i}@example.com`;
       const phone = `09${Math.floor(10000000 + Math.random() * 89999999)}`;
+
+      const createdAt = new Date(today);
+      const randomDaysAgo = Math.floor(Math.random() * 10);
+      createdAt.setDate(today.getDate() - randomDaysAgo);
+
+      const updatedAt = new Date(createdAt);
+      updatedAt.setDate(createdAt.getDate() + Math.floor(Math.random() * 3));
 
       recentUsers.push({
         username,
@@ -95,40 +120,9 @@ export default class UserSeeder implements Seeder {
       });
     }
 
-    // (Tuỳ chọn) Nếu sau này muốn thêm nhiều hơn 10 user random, có thể thêm đoạn dưới:
-    // const extraCount = 0; // số lượng user random thêm
-    // for (let i = 31; i < 31 + extraCount; i++) {
-    //   const randomDaysAgo = Math.floor(Math.random() * 10);
-    //   const createdAt = new Date(today);
-    //   createdAt.setDate(today.getDate() - randomDaysAgo);
-    //   const updatedAt = new Date(createdAt);
-    //   updatedAt.setDate(createdAt.getDate() + Math.floor(Math.random() * 3));
-
-    //   const gender = genders[Math.floor(Math.random() * genders.length)];
-    //   const membership = memberships[Math.floor(Math.random() * memberships.length)];
-    //   const username = `user${i}`;
-    //   const fullName = `Customer ${i}`;
-    //   const email = `user${i}@example.com`;
-    //   const phone = `09${Math.floor(10000000 + Math.random() * 89999999)}`;
-
-    //   recentUsers.push({
-    //     username,
-    //     password: customerPassword,
-    //     fullName,
-    //     email,
-    //     phone,
-    //     role: UserRole.CUSTOMER,
-    //     gender,
-    //     loyaltyPoints: Math.floor(Math.random() * 1000),
-    //     membershipLevel: membership,
-    //     createdAt,
-    //     updatedAt,
-    //   });
-    // }
-
     users.push(...recentUsers);
 
     await userRepository.save(users);
-    console.log(`🌱 Seeded ${users.length} users (1 admin + 20 default + 10 recent dated users) successfully`);
+    console.log(`🌱 Seeded ${users.length} users (1 admin + 20 random with dates + 10 extra recent) successfully`);
   }
 }
