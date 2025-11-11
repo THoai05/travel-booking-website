@@ -3,6 +3,10 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { getUsers, deleteUser } from "@/service/users/userService";
+import DashboardPage from "./dashboard/page"; // import trực tiếp component
+import {
+  Activity,
+} from "lucide-react";
 
 interface User {
   id: number;
@@ -33,6 +37,8 @@ export default function UserPage() {
   const usersPerPage = 5;
 
   const [sortColumn, setSortColumn] = useState<keyof User>("id");
+
+  const [showDashboard, setShowDashboard] = useState(false);
 
 
   // 🕒 Lấy danh sách và so sánh với cũ
@@ -178,6 +184,36 @@ export default function UserPage() {
             <option value="admin">Admin</option>
             <option value="customer">Customer</option>
           </select>
+
+          <div>
+            <button
+              onClick={() => setShowDashboard(true)}
+              className="border p-2 rounded bg-green-200 hover:bg-green-300 flex items-center gap-2"
+            >
+              <Activity className="w-4 h-4" />
+              Thống kê
+            </button>
+
+            {showDashboard && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+                <div className="bg-white w-full max-w-7xl max-h-[90vh] rounded-lg shadow-lg overflow-auto p-4 relative">
+                  {/* Header với nút đóng */}
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-bold">Dashboard Room Monitor</h2>
+                    <button
+                      onClick={() => setShowDashboard(false)}
+                      className="text-gray-500 hover:text-gray-800 text-xl font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  {/* Nội dung dashboard */}
+                  <DashboardPage />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Desktop Table */}
@@ -185,15 +221,15 @@ export default function UserPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b bg-gray-100">
-                <th className="p-3 cursor-pointer hover:text-blue-500 select-none" onClick={() => handleSort("id")}>ID {sortColumn === "id" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
-                <th className="p-3">Avatar</th>
-                <th className="p-3 cursor-pointer hover:text-blue-500 select-none" onClick={() => handleSort("username")}>Username {sortColumn === "username" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
-                <th className="p-3 cursor-pointer hover:text-blue-500 select-none" onClick={() => handleSort("fullName")}>Full Name {sortColumn === "fullName" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
-                <th className="p-3 cursor-pointer hover:text-blue-500 select-none" onClick={() => handleSort("email")}>Email {sortColumn === "email" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
-                <th className="p-3 cursor-pointer hover:text-blue-500 select-none" onClick={() => handleSort("phone")}>Phone {sortColumn === "phone" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
-                <th className="p-3 cursor-pointer hover:text-blue-500 select-none" onClick={() => handleSort("role")}>Role {sortColumn === "role" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
-                <th className="p-3 cursor-pointer hover:text-blue-500 select-none" onClick={() => handleSort("dob")}>Dob {sortColumn === "dob" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
-                <th className="p-3">Action</th>
+                <th className="p-3 cursor-pointer text-center hover:text-blue-500 select-none" onClick={() => handleSort("id")}>ID {sortColumn === "id" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3  text-center">Avatar</th>
+                <th className="p-3 cursor-pointer text-center hover:text-blue-500 select-none" onClick={() => handleSort("username")}>Username {sortColumn === "username" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 cursor-pointer  text-center hover:text-blue-500 select-none" onClick={() => handleSort("fullName")}>Full Name {sortColumn === "fullName" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 cursor-pointer  text-center hover:text-blue-500 select-none" onClick={() => handleSort("email")}>Email {sortColumn === "email" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 cursor-pointer text-center hover:text-blue-500 select-none" onClick={() => handleSort("phone")}>Phone {sortColumn === "phone" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 cursor-pointer  text-center hover:text-blue-500 select-none" onClick={() => handleSort("role")}>Role {sortColumn === "role" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 cursor-pointer  text-center hover:text-blue-500 select-none" onClick={() => handleSort("dob")}>Dob {sortColumn === "dob" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 text-center">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -204,8 +240,8 @@ export default function UserPage() {
                   whileHover={{ scale: 1.02 }}
                   onClick={() => openModal(user)}
                 >
-                  <td className="p-3">{user.id}</td>
-                  <td className="p-3">
+                  <td className="p-3 text-center">{user.id}</td>
+                  <td className="p-3 text-center">
                     <div className="relative w-12 h-12 flex items-center justify-center">
                       {/* Cánh trái */}
                       <svg className="absolute -left-6 w-16 h-16 animate-wing-left" viewBox="0 0 64 64">
@@ -240,15 +276,15 @@ export default function UserPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="p-3">{user.username}</td>
-                  <td className="p-3">{user.fullName}</td>
-                  <td className="p-3">{user.email}</td>
-                  <td className="p-3">{user.phone}</td>
-                  <td className="p-3 font-medium">
+                  <td className="p-3  text-center">{user.username}</td>
+                  <td className="p-3 text-center">{user.fullName}</td>
+                  <td className="p-3 text-center">{user.email}</td>
+                  <td className="p-3 text-center">{user.phone}</td>
+                  <td className="p-3 font-medium text-center">
                     {user.role === "admin" ? <span className="text-red-500">Admin</span> : <span className="text-blue-500">Customer</span>}
                   </td>
-                  <td className="p-3">{formatDateUTC(user.dob)}</td>
-                  <td className="p-3 flex gap-2">
+                  <td className="p-3 text-center">{formatDateUTC(user.dob)}</td>
+                  <td className="p-3 flex gap-2 text-center">
                     <button className="px-2 py-1 bg-yellow-0 text-black rounded hover:bg-yellow-100 transition" onClick={(e) => { e.stopPropagation(); localStorage.setItem("editUserId", user.id.toString()); router.replace("/admin/user/edit"); }}>✏️ Sửa</button>
                     <button className="px-2 py-1 bg-red-0 text-black rounded hover:bg-red-100 transition" onClick={(e) => { e.stopPropagation(); handleDelete(user.id); }}>🗑️ Xóa</button>
                   </td>
