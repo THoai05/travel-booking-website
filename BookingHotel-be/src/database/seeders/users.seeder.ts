@@ -62,8 +62,17 @@ export default class UserSeeder implements Seeder {
 
     // 👉 10 user mới có created_at và updated_at random trong 10 ngày gần đây
     const today = new Date();
+    const recentUsers: Partial<User>[] = [];
 
-    for (let i = 21; i <= 30; i++) {
+    // Bước 1: đảm bảo 10 ngày qua, mỗi ngày có ít nhất 1 user
+    for (let d = 0; d < 10; d++) {
+      const createdAt = new Date(today);
+      createdAt.setDate(today.getDate() - d);
+
+      const updatedAt = new Date(createdAt);
+      updatedAt.setDate(createdAt.getDate() + Math.floor(Math.random() * 3)); // 0–2 ngày sau
+
+      const i = d + 21;
       const gender = genders[Math.floor(Math.random() * genders.length)];
       const membership = memberships[Math.floor(Math.random() * memberships.length)];
       const username = `user${i}`;
@@ -71,17 +80,7 @@ export default class UserSeeder implements Seeder {
       const email = `user${i}@example.com`;
       const phone = `09${Math.floor(10000000 + Math.random() * 89999999)}`;
 
-      // Random ngày createdAt trong 10 ngày gần đây (từ hôm nay lùi về tối đa 9 ngày)
-      const createdAt = new Date(today);
-      const randomDaysAgo = Math.floor(Math.random() * 10); // 0 - 9 ngày
-      createdAt.setDate(today.getDate() - randomDaysAgo);
-
-      // updated_at luôn >= created_at
-      const updatedAt = new Date(createdAt);
-      const randomUpdateOffset = Math.floor(Math.random() * 3); // 0 - 2 ngày sau
-      updatedAt.setDate(createdAt.getDate() + randomUpdateOffset);
-
-      users.push({
+      recentUsers.push({
         username,
         password: customerPassword,
         fullName,
@@ -96,7 +95,40 @@ export default class UserSeeder implements Seeder {
       });
     }
 
+    // (Tuỳ chọn) Nếu sau này muốn thêm nhiều hơn 10 user random, có thể thêm đoạn dưới:
+    // const extraCount = 0; // số lượng user random thêm
+    // for (let i = 31; i < 31 + extraCount; i++) {
+    //   const randomDaysAgo = Math.floor(Math.random() * 10);
+    //   const createdAt = new Date(today);
+    //   createdAt.setDate(today.getDate() - randomDaysAgo);
+    //   const updatedAt = new Date(createdAt);
+    //   updatedAt.setDate(createdAt.getDate() + Math.floor(Math.random() * 3));
+
+    //   const gender = genders[Math.floor(Math.random() * genders.length)];
+    //   const membership = memberships[Math.floor(Math.random() * memberships.length)];
+    //   const username = `user${i}`;
+    //   const fullName = `Customer ${i}`;
+    //   const email = `user${i}@example.com`;
+    //   const phone = `09${Math.floor(10000000 + Math.random() * 89999999)}`;
+
+    //   recentUsers.push({
+    //     username,
+    //     password: customerPassword,
+    //     fullName,
+    //     email,
+    //     phone,
+    //     role: UserRole.CUSTOMER,
+    //     gender,
+    //     loyaltyPoints: Math.floor(Math.random() * 1000),
+    //     membershipLevel: membership,
+    //     createdAt,
+    //     updatedAt,
+    //   });
+    // }
+
+    users.push(...recentUsers);
+
     await userRepository.save(users);
-    console.log(`🌱 Seeded ${users.length} users (1 admin + 20 default + 10 recent random date users) successfully`);
+    console.log(`🌱 Seeded ${users.length} users (1 admin + 20 default + 10 recent dated users) successfully`);
   }
 }
