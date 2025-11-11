@@ -14,6 +14,9 @@ interface User {
   membershipLevel: string;
   avatar?: string;
   loyaltyPoints: number;
+  createdAt?: string;
+  updatedAt?: string;
+  dob?: string;
 }
 
 export default function UserPage() {
@@ -28,6 +31,9 @@ export default function UserPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const usersPerPage = 5;
+
+  const [sortColumn, setSortColumn] = useState<keyof User>("id");
+
 
   // 🕒 Lấy danh sách và so sánh với cũ
   useEffect(() => {
@@ -69,7 +75,25 @@ export default function UserPage() {
           u.fullName.toLowerCase().includes(search.toLowerCase()) ||
           u.email.toLowerCase().includes(search.toLowerCase()))
     )
-    .sort((a, b) => (sortOrder === "asc" ? a.id - b.id : b.id - a.id));
+    .sort((a, b) => {
+      const aValue = a[sortColumn];
+      const bValue = b[sortColumn];
+
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+
+      // So sánh string hay number
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return sortOrder === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      } else {
+        return sortOrder === "asc"
+          ? (aValue as any) - (bValue as any)
+          : (bValue as any) - (aValue as any);
+      }
+    });
+
 
   // 📄 Pagination
   const indexOfLastUser = currentPage * usersPerPage;
@@ -77,8 +101,17 @@ export default function UserPage() {
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
-  const handleSort = () =>
-    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+  const handleSort = (column: keyof User) => {
+    if (sortColumn === column) {
+      // Nếu click lại cột đang sắp xếp thì đảo thứ tự
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      // Nếu click cột mới thì đặt cột đó và sắp xếp tăng dần
+      setSortColumn(column);
+      setSortOrder("asc");
+    }
+  };
+
 
   const openModal = (user: User) => setSelectedUser(user);
   const closeModal = () => setSelectedUser(null);
@@ -99,6 +132,16 @@ export default function UserPage() {
       nums.push(totalPages);
     }
     return nums;
+  };
+
+  const formatDateUTC = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    return d.toLocaleString("vi-VN", {
+      timeZone: "UTC",
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+    });
   };
 
 
@@ -142,18 +185,14 @@ export default function UserPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b bg-gray-100">
-                <th
-                  className="p-3 cursor-pointer hover:text-blue-500 select-none"
-                  onClick={handleSort}
-                >
-                  ID {sortOrder === "asc" ? "▲" : "▼"}
-                </th>
+                <th className="p-3 cursor-pointer hover:text-blue-500 select-none" onClick={() => handleSort("id")}>ID {sortColumn === "id" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
                 <th className="p-3">Avatar</th>
-                <th className="p-3">Username</th>
-                <th className="p-3">Full Name</th>
-                <th className="p-3">Email</th>
-                <th className="p-3">Phone</th>
-                <th className="p-3">Role</th>
+                <th className="p-3 cursor-pointer hover:text-blue-500 select-none" onClick={() => handleSort("username")}>Username {sortColumn === "username" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 cursor-pointer hover:text-blue-500 select-none" onClick={() => handleSort("fullName")}>Full Name {sortColumn === "fullName" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 cursor-pointer hover:text-blue-500 select-none" onClick={() => handleSort("email")}>Email {sortColumn === "email" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 cursor-pointer hover:text-blue-500 select-none" onClick={() => handleSort("phone")}>Phone {sortColumn === "phone" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 cursor-pointer hover:text-blue-500 select-none" onClick={() => handleSort("role")}>Role {sortColumn === "role" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 cursor-pointer hover:text-blue-500 select-none" onClick={() => handleSort("dob")}>Dob {sortColumn === "dob" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
                 <th className="p-3">Action</th>
               </tr>
             </thead>
@@ -169,166 +208,55 @@ export default function UserPage() {
                   <td className="p-3">
                     <div className="relative w-12 h-12 flex items-center justify-center">
                       {/* Cánh trái */}
-                      <svg
-                        className="absolute -left-6 w-16 h-16 animate-wing-left"
-                        viewBox="0 0 64 64"
-                      >
+                      <svg className="absolute -left-6 w-16 h-16 animate-wing-left" viewBox="0 0 64 64">
                         <defs>
                           <linearGradient id={`gradientLeft-${user.id}`} x1="0" y1="0" x2="1" y2="1">
-                            <stop
-                              offset="0%"
-                              stopColor={
-                                user?.membershipLevel === "Gold"
-                                  ? "#facc15"
-                                  : user?.membershipLevel === "Platinum"
-                                    ? "#3b82f6"
-                                    : "#9ca3af"
-                              }
-                            />
-                            <stop
-                              offset="50%"
-                              stopColor={
-                                user?.membershipLevel === "Gold"
-                                  ? "#fcd34d"
-                                  : user?.membershipLevel === "Platinum"
-                                    ? "#8b5cf6"
-                                    : "#d1d5db"
-                              }
-                            />
-                            <stop
-                              offset="100%"
-                              stopColor={
-                                user?.membershipLevel === "Gold"
-                                  ? "#fbbf24"
-                                  : user?.membershipLevel === "Platinum"
-                                    ? "#ec4899"
-                                    : "#9ca3af"
-                              }
-                            />
+                            <stop offset="0%" stopColor={user?.membershipLevel === "Gold" ? "#facc15" : user?.membershipLevel === "Platinum" ? "#3b82f6" : "#9ca3af"} />
+                            <stop offset="50%" stopColor={user?.membershipLevel === "Gold" ? "#fcd34d" : user?.membershipLevel === "Platinum" ? "#8b5cf6" : "#d1d5db"} />
+                            <stop offset="100%" stopColor={user?.membershipLevel === "Gold" ? "#fbbf24" : user?.membershipLevel === "Platinum" ? "#ec4899" : "#9ca3af"} />
                           </linearGradient>
                         </defs>
                         <path d="M32 32 C10 10, 0 64, 32 32" fill={`url(#gradientLeft-${user.id})`} />
                       </svg>
-
                       {/* Cánh phải */}
-                      <svg
-                        className="absolute -right-6 w-16 h-16 animate-wing-right"
-                        viewBox="0 0 64 64"
-                      >
+                      <svg className="absolute -right-6 w-16 h-16 animate-wing-right" viewBox="0 0 64 64">
                         <defs>
                           <linearGradient id={`gradientRight-${user.id}`} x1="0" y1="0" x2="1" y2="1">
-                            <stop
-                              offset="0%"
-                              stopColor={
-                                user?.membershipLevel === "Gold"
-                                  ? "#facc15"
-                                  : user?.membershipLevel === "Platinum"
-                                    ? "#3b82f6"
-                                    : "#9ca3af"
-                              }
-                            />
-                            <stop
-                              offset="50%"
-                              stopColor={
-                                user?.membershipLevel === "Gold"
-                                  ? "#fcd34d"
-                                  : user?.membershipLevel === "Platinum"
-                                    ? "#8b5cf6"
-                                    : "#d1d5db"
-                              }
-                            />
-                            <stop
-                              offset="100%"
-                              stopColor={
-                                user?.membershipLevel === "Gold"
-                                  ? "#fbbf24"
-                                  : user?.membershipLevel === "Platinum"
-                                    ? "#ec4899"
-                                    : "#9ca3af"
-                              }
-                            />
+                            <stop offset="0%" stopColor={user?.membershipLevel === "Gold" ? "#facc15" : user?.membershipLevel === "Platinum" ? "#3b82f6" : "#9ca3af"} />
+                            <stop offset="50%" stopColor={user?.membershipLevel === "Gold" ? "#fcd34d" : user?.membershipLevel === "Platinum" ? "#8b5cf6" : "#d1d5db"} />
+                            <stop offset="100%" stopColor={user?.membershipLevel === "Gold" ? "#fbbf24" : user?.membershipLevel === "Platinum" ? "#ec4899" : "#9ca3af"} />
                           </linearGradient>
                         </defs>
                         <path d="M32 32 C54 10, 64 64, 32 32" fill={`url(#gradientRight-${user.id})`} />
                       </svg>
-
                       {/* Avatar với gradient border */}
-                      <div
-                        className={`relative flex items-center justify-center
-    ${user?.membershipLevel === "Platinum"
-                            ? "w-8 h-13 rounded-[80%/40%] p-[2px]" // bầu dục mỏng hơn
-                            : "w-12 h-13 rounded-full p-[3px]"      // tròn
-                          }
-    ${user?.membershipLevel === "Gold"
-                            ? "bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400"
-                            : user?.membershipLevel === "Platinum"
-                              ? "bg-gradient-to-r from-blue-500 via-purple-400 to-pink-500"
-                              : "bg-gradient-to-r from-gray-400 via-gray-200 to-gray-400"
-                          }
-  `}
-                      >
-                        <img
-                          src={user?.avatar || "https://avatars.githubusercontent.com/u/9919?s=128&v=4"}
-                          alt="User Avatar"
-                          className={`w-full h-full object-cover ${user?.membershipLevel === "Platinum" ? "rounded-[50%/40%]" : "rounded-full"
-                            }`}
-                        />
-
-                        {/* Lông rơi */}
+                      <div className={`relative flex items-center justify-center ${user?.membershipLevel === "Platinum" ? "w-8 h-13 rounded-[80%/40%] p-[2px]" : "w-12 h-13 rounded-full p-[3px]"} ${user?.membershipLevel === "Gold" ? "bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400" : user?.membershipLevel === "Platinum" ? "bg-gradient-to-r from-blue-500 via-purple-400 to-pink-500" : "bg-gradient-to-r from-gray-400 via-gray-200 to-gray-400"}`}>
+                        <img src={user?.avatar || "https://avatars.githubusercontent.com/u/9919?s=128&v=4"} alt="User Avatar" className={`w-full h-full object-cover ${user?.membershipLevel === "Platinum" ? "rounded-[50%/40%]" : "rounded-full"}`} />
                         <div className="absolute inset-0 pointer-events-none">
                           {[...Array(5)].map((_, i) => (
-                            <div
-                              key={i}
-                              className="absolute w-1 h-2 bg-white opacity-70 rounded-full animate-feather"
-                              style={{
-                                left: `${Math.random() * 100}%`,
-                                animationDelay: `${Math.random() * 2}s`,
-                                animationDuration: `${1 + Math.random() * 1.5}s`,
-                              }}
-                            />
+                            <div key={i} className="absolute w-1 h-2 bg-white opacity-70 rounded-full animate-feather" style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 2}s`, animationDuration: `${1 + Math.random() * 1.5}s` }} />
                           ))}
                         </div>
                       </div>
                     </div>
-
                   </td>
-
                   <td className="p-3">{user.username}</td>
                   <td className="p-3">{user.fullName}</td>
                   <td className="p-3">{user.email}</td>
                   <td className="p-3">{user.phone}</td>
                   <td className="p-3 font-medium">
-                    {user.role === "admin" ? (
-                      <span className="text-red-500">Admin</span>
-                    ) : (
-                      <span className="text-blue-500">Customer</span>
-                    )}
+                    {user.role === "admin" ? <span className="text-red-500">Admin</span> : <span className="text-blue-500">Customer</span>}
                   </td>
+                  <td className="p-3">{formatDateUTC(user.dob)}</td>
                   <td className="p-3 flex gap-2">
-                    <button
-                      className="px-2 py-1 bg-yellow-0 text-black rounded hover:bg-yellow-100 transition"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        localStorage.setItem("editUserId", user.id.toString());
-                        router.replace("/admin/user/edit");
-                      }}
-                    >
-                      ✏️ Sửa
-                    </button>
-                    <button
-                      className="px-2 py-1 bg-red-0 text-black rounded hover:bg-red-100 transition"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(user.id);
-                      }}
-                    >
-                      🗑️ Xóa
-                    </button>
+                    <button className="px-2 py-1 bg-yellow-0 text-black rounded hover:bg-yellow-100 transition" onClick={(e) => { e.stopPropagation(); localStorage.setItem("editUserId", user.id.toString()); router.replace("/admin/user/edit"); }}>✏️ Sửa</button>
+                    <button className="px-2 py-1 bg-red-0 text-black rounded hover:bg-red-100 transition" onClick={(e) => { e.stopPropagation(); handleDelete(user.id); }}>🗑️ Xóa</button>
                   </td>
                 </motion.tr>
               ))}
             </tbody>
           </table>
+
         </div>
 
         {/* Mobile Cards */}
@@ -446,6 +374,8 @@ export default function UserPage() {
               <p className="text-center text-gray-600 mb-1">📋 @{selectedUser.username}</p>
               <p className="text-center text-gray-600">📧 {selectedUser.email}</p>
               <p className="text-center text-gray-600 mb-2">📞 {selectedUser.phone}</p>
+              <p className="text-center text-gray-600 mb-2">🗓️ {formatDateUTC(selectedUser.createdAt)}</p>
+              <p className="text-center text-gray-600 mb-2">🗓️ {formatDateUTC(selectedUser.updatedAt)}</p>
               <p
                 className={`text-center font-medium ${selectedUser.role === "admin" ? "text-red-500" : "text-blue-500"
                   }`}
