@@ -85,7 +85,7 @@ export default function ChatBox() {
     };
 
     return (
-        <div className="fixed bottom-6 right-8 z-50">
+        <div className="fixed bottom-24 right-5 z-50">
             {!open ? (
                 <motion.button
                     whileHover={{ scale: 1.1 }}

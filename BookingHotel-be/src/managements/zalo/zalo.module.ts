@@ -1,15 +1,14 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ZaloChat } from './entities/zalo.entity';
-import { ZaloService } from './zalo.service';
-import { ZaloController } from './zalo.controller';
+import { ZaloChatService } from './zalo.service';
+import { ZaloChatController } from './zalo.controller';
+import { ZaloChatGateway } from './zalo.gateway';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([ZaloChat]),
-    ],
-    controllers: [ZaloController],
-    providers: [ZaloService],
-    exports: [ZaloService],
+    imports: [TypeOrmModule.forFeature([ZaloChat])],
+    controllers: [ZaloChatController],
+    providers: [ZaloChatService, ZaloChatGateway],
+    exports: [ZaloChatService],
 })
-export class ZaloModule { }
+export class ZaloChatModule { }

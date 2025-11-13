@@ -1,54 +1,40 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { User } from 'src/managements/users/entities/users.entity';
-import { Booking } from '../../bookings/entities/bookings.entity';
-import { Notification } from '../../notifications/entities/notification.entity';
-
-export enum ZaloChatType {
-    TEXT = 'text',
-    IMAGE = 'image',
-    FILE = 'file',
-    NOTIFICATION = 'notification',
-}
-
-export enum ZaloChatStatus {
-    SENT = 'sent',
-    DELIVERED = 'delivered',
-    READ = 'read',
-}
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('zalo_chats')
 export class ZaloChat {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => User, user => user.id, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'sender_id' })
-    sender: User;
+    @Column()
+    sender_id: number;
 
-    @ManyToOne(() => User, user => user.id, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'receiver_id' })
-    receiver: User;
+    @Column()
+    receiver_id: number;
 
-    @Column('text')
+    @Column({ type: 'text', nullable: true })
     message: string;
 
-    @Column({ type: 'enum', enum: ZaloChatType, default: ZaloChatType.TEXT })
-    type: ZaloChatType;
+    @Column({ default: 'text' })
+    type: string; // text | image | file
 
-    @Column({ type: 'enum', enum: ZaloChatStatus, default: ZaloChatStatus.SENT })
-    status: ZaloChatStatus;
+    @Column({ default: 'sent' })
+    status: string; // sent | seen
 
-    @ManyToOne(() => Booking, booking => booking.id, { nullable: true, onDelete: 'SET NULL' })
-    @JoinColumn({ name: 'booking_id' })
-    relatedBooking?: Booking;
+    @Column({ nullable: true })
+    booking_id: number;
 
-    @ManyToOne(() => Notification, Notification => Notification.id, { nullable: true, onDelete: 'SET NULL' })
-    @JoinColumn({ name: 'notification_id' })
-    relatedNotification?: Booking;
+    @Column({ nullable: true })
+    notification_id: number;
 
-    @CreateDateColumn({ type: 'timestamp' })
+    @Column({ nullable: true })
+    file_url: string;
+
+    @Column({ default: false })
+    is_from_admin: boolean;
+
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ type: 'timestamp' })
+    @UpdateDateColumn()
     updatedAt: Date;
 }
