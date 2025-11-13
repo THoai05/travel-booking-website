@@ -10,7 +10,8 @@ import { join } from 'path';
 import * as dotenv from "dotenv"
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
 
   dotenv.config()
 
@@ -20,10 +21,15 @@ async function bootstrap() {
     credentials: true,
   });
 
-  app.use('/uploads', (req, res, next) => {
-    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); // cho phép frontend load
-    next();
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
+    setHeaders: (res, path, stat) => {
+      res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    },
   });
+
+
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -37,6 +43,7 @@ async function bootstrap() {
 
   app.use(cookieParser());
   await app.listen(3636);
-  console.log('Backend running on http://localhost:3636');
+  console.log('✅ Backend running on http://localhost:3636');
+  console.log('✅ Uploads served from http://localhost:3636/uploads');
 }
 bootstrap();

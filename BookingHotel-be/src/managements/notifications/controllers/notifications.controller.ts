@@ -11,6 +11,8 @@ export class NotificationsController {
     return this.notificationsService.getNotificationsByUserId(userId);
   }
 
+
+
   // Đánh dấu thông báo là đã đọc
   @Patch(':id/read')
   markAsRead(@Param('id', ParseIntPipe) id: number) {
