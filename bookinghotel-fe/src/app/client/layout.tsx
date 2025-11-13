@@ -8,9 +8,15 @@ import { useState, useEffect } from "react";
 import { HeroUIProvider } from "@heroui/system";
 import { usePathname, useRouter } from "next/navigation";
 import ChatBox from "./components/common/ChatBox";
+import ZaloChatPopup from './components/common/ZaloChatPopup';
+import { useAuth } from '@/context/AuthContext';
+
+
+
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
+  const { user, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -66,7 +72,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             <main>{children}</main>
             <Footer />
             <ScrollToTopButton />
-            <ChatBox userId={currentUserId} />
+            {isAuthenticated && user && <ZaloChatPopup user={user} />}
+            <ChatBox />
           </>
         )}
       </QueryClientProvider>

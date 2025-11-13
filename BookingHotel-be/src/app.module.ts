@@ -15,6 +15,7 @@ import { ContactModule } from './managements/contact/module/contact.module';
 import { ChatModule } from './managements/chat/chat.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { InvoiceModule } from './managements/invoice/invoice.module';
+import { ZaloChatModule } from './managements/zalo/zalo.module'
 import { join } from 'path';
 
 @Module({
@@ -38,7 +39,8 @@ import { join } from 'path';
     FaqModule,
     ContactModule,
     ChatModule,
-    InvoiceModule
+    InvoiceModule,
+    ZaloChatModule
   ],
   controllers: [AppController],
   providers: [AppService],
