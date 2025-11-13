@@ -10,7 +10,7 @@ export class CouponsService {
         private readonly couponRepo: Repository<Coupon>,
     ) { }
 
-    // 🎯 Lấy coupon ngẫu nhiên theo loại
+    //  Lấy coupon ngẫu nhiên theo loại
     async getRandomCouponByCouponType(title?: string): Promise<any[]> {
         const queryBuilder = this.couponRepo
             .createQueryBuilder('coupon')
@@ -34,7 +34,7 @@ export class CouponsService {
 
     //  Phân trang danh sách coupon (cho trang admin)
     async getAllCoupons(
-        page: number = 1,
+        page: number = 1,   
         limit: number = 10,
         search?: string,
         status?: string,
@@ -46,7 +46,7 @@ export class CouponsService {
     }> {
         const queryBuilder = this.couponRepo.createQueryBuilder('coupon');
 
-        // 🔍 Tìm kiếm theo mã code hoặc loại coupon
+        // Tìm kiếm theo mã code hoặc loại coupon
         if (search) {
             queryBuilder.andWhere(
                 '(coupon.code LIKE :search OR coupon.couponType LIKE :search)',

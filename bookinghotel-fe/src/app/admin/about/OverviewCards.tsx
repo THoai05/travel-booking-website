@@ -1,6 +1,5 @@
 "use client";
 
-import { log } from "node:console";
 import { useApi } from "../about/useAPI"; // Đảm bảo đường dẫn hook là chính xác!
 
 export default function OverviewCards() {
