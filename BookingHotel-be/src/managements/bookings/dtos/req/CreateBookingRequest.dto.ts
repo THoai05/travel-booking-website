@@ -25,4 +25,8 @@ export class CreateBookingRequest{
     @IsNumber()
     roomTypeId?: number
 
+    @IsOptional()
+    @IsNumber()
+    ratePlanId?: number
+
 }

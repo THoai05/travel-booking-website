@@ -11,6 +11,7 @@ import { isValidBooking } from 'src/common/utils/booking-status.utils';
 import { Between, In } from 'typeorm';
 import { BookingStatus } from '../entities/bookings.entity';
 import { PaymentStatus, PaymentMethod } from 'src/managements/payments/entities/payments.entity';
+import { RatePlan } from 'src/managements/rooms/entities/ratePlans.entity';
 
 @Injectable()
 export class BookingsService {
@@ -21,7 +22,8 @@ export class BookingsService {
         private readonly userRepo: Repository<User>,
         @InjectRepository(RoomType)
         private readonly roomTypeRepo: Repository<RoomType>,
-
+        @InjectRepository(RatePlan)
+        private readonly ratePlanRepo: Repository<RatePlan>
     ) { }
 
     async createBooking(body: CreateBookingRequest): Promise<BookingResponseManagement> {
@@ -31,8 +33,11 @@ export class BookingsService {
             guestsCount,
             totalPrice,
             userId,
-            roomTypeId
+            roomTypeId,
+            ratePlanId
         } = body
+
+        console.log(body)
 
         const user = await this.userRepo.findOne({
             where: {
@@ -45,10 +50,19 @@ export class BookingsService {
         const roomType = await this.roomTypeRepo.findOne({
             where: {
                 id: roomTypeId
-            }
+            },
+            relations:['hotel']
         })
         if (!roomType) {
             throw new NotFoundException("Khong tim thay loai phong nay")
+        }
+        const ratePlan = await this.ratePlanRepo.findOne({
+            where: {
+                id: ratePlanId
+            }
+        })
+        if (!ratePlan) {
+            throw new NotFoundException("Khong tim thay kieu phong nay")
         }
         const bookingData = await this.bookingRepo.create({
             user,
@@ -56,12 +70,14 @@ export class BookingsService {
             checkInDate: checkinDate,
             checkOutDate: checkoutDate,
             guestsCount,
-            totalPrice
+            totalPrice,
+            rateplan: ratePlan
         })
         const bookingSaved = await this.bookingRepo.save(bookingData)
         return {
             bookingId: bookingSaved.id,
             userId: bookingSaved.user.id,
+            hotelName: bookingSaved.roomType.hotel.name,
             roomTypeId: bookingSaved.roomType.id,
             roomTypeName: bookingSaved.roomType.name,
             checkinDate: bookingSaved.checkInDate,
@@ -266,12 +282,12 @@ export class BookingsService {
     async getKPIAll(type: 'week' | 'month' | 'year') {
         const now = new Date();
 
-        // --- Xác định khoảng thời gian hiện tại ---
+        // --- Khoảng thời gian hiện tại ---
         let startDate: Date;
         let endDate: Date;
 
         if (type === 'week') {
-            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6); // 7 ngày
+            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 9); // 10 ngày
             endDate = now;
         } else if (type === 'month') {
             startDate = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -281,18 +297,20 @@ export class BookingsService {
             endDate = new Date(now.getFullYear(), 11, 31);
         }
 
-        // --- Khoảng thời gian trước (previous period) ---
+        // --- Khoảng thời gian trước ---
         let prevStart: Date;
         let prevEnd: Date;
 
-        if (type === 'week') {
+        if (type === 'week' || type === 'month') {
             prevStart = new Date(startDate);
-            prevStart.setDate(prevStart.getDate() - 7);
             prevEnd = new Date(endDate);
-            prevEnd.setDate(prevEnd.getDate() - 7);
-        } else if (type === 'month') {
-            prevStart = new Date(startDate.getFullYear(), startDate.getMonth() - 1, 1);
-            prevEnd = new Date(startDate.getFullYear(), startDate.getMonth(), 0);
+            if (type === 'week') {
+                prevStart.setDate(prevStart.getDate() - 10);
+                prevEnd.setDate(prevEnd.getDate() - 10);
+            } else {
+                prevStart.setMonth(prevStart.getMonth() - 1, 1);
+                prevEnd = new Date(prevStart.getFullYear(), prevStart.getMonth() + 1, 0);
+            }
         } else { // year
             prevStart = new Date(startDate.getFullYear() - 1, 0, 1);
             prevEnd = new Date(endDate.getFullYear() - 1, 11, 31);
@@ -300,63 +318,68 @@ export class BookingsService {
 
         const formatVNDate = (date: Date) => {
             const d = new Date(date);
-            d.setHours(d.getHours() + 7); // UTC+7
+            d.setHours(d.getHours() + 7);
             return d.toISOString().split('T')[0];
         };
 
-        // --- Lấy bookings hiện tại và previous period ---
-        const bookings = await this.bookingRepo.find({
-            where: { createdAt: Between(startDate, endDate) },
-            relations: ['payment'],
-        });
-
-        const prevBookings = await this.bookingRepo.find({
-            where: { createdAt: Between(prevStart, prevEnd) },
-            relations: ['payment'],
-        });
+        // --- Lấy dữ liệu ---
+        const bookings = await this.bookingRepo.find({ where: { createdAt: Between(startDate, endDate) }, relations: ['payment'] });
+        const prevBookings = await this.bookingRepo.find({ where: { createdAt: Between(prevStart, prevEnd) }, relations: ['payment'] });
 
         // --- Tính tổng ---
         const totalBookings = bookings.length;
         const totalCancelled = bookings.filter(b => b.status === BookingStatus.CANCELLED).length;
-        const totalRevenue = bookings
-            .filter(b => b.payment?.paymentStatus === PaymentStatus.SUCCESS)
+        const totalRevenue = bookings.filter(b => b.payment?.paymentStatus === PaymentStatus.SUCCESS)
             .reduce((sum, b) => sum + Number(b.totalPrice), 0);
 
         const prevTotalBookings = prevBookings.length;
         const prevCancelled = prevBookings.filter(b => b.status === BookingStatus.CANCELLED).length;
-        const prevRevenue = prevBookings
-            .filter(b => b.payment?.paymentStatus === PaymentStatus.SUCCESS)
+        const prevRevenue = prevBookings.filter(b => b.payment?.paymentStatus === PaymentStatus.SUCCESS)
             .reduce((sum, b) => sum + Number(b.totalPrice), 0);
 
-        // --- Tính change rate ---
-        const bookingsChangeRate = prevTotalBookings ? ((totalBookings - prevTotalBookings) / prevTotalBookings) * 100 : 0;
-        const cancelledChangeRate = prevCancelled ? ((totalCancelled - prevCancelled) / prevCancelled) * 100 : 0;
-        const revenueChangeRate = prevRevenue ? ((totalRevenue - prevRevenue) / prevRevenue) * 100 : 0;
+        // --- Tính changeRate 100% so với tổng ---
+        const bookingsChangeRate = totalBookings + prevTotalBookings ? (totalBookings / (totalBookings + prevTotalBookings)) * 100 : 0;
+        const cancelledChangeRate = totalCancelled + prevCancelled ? (totalCancelled / (totalCancelled + prevCancelled)) * 100 : 0;
+        const revenueChangeRate = totalRevenue + prevRevenue ? (totalRevenue / (totalRevenue + prevRevenue)) * 100 : 0;
 
-        // --- Khởi tạo chartData 10 ngày gần đây ---
+        // --- Khởi tạo chart ---
         const chartDates: string[] = [];
         const bookingsChartMap: Record<string, number> = {};
         const cancelledChartMap: Record<string, number> = {};
         const revenueChartMap: Record<string, number> = {};
 
-        for (let i = 9; i >= 0; i--) {
-            const d = new Date(now);
-            d.setDate(d.getDate() - i);
-            const key = formatVNDate(d);
-            chartDates.push(key);
-            bookingsChartMap[key] = 0;
-            cancelledChartMap[key] = 0;
-            revenueChartMap[key] = 0;
-        }
-
-        bookings.forEach(b => {
-            const key = formatVNDate(b.createdAt);
-            if (key in bookingsChartMap) bookingsChartMap[key]++;
-            if (b.status === BookingStatus.CANCELLED && key in cancelledChartMap) cancelledChartMap[key]++;
-            if (key in revenueChartMap && b.payment?.paymentStatus === PaymentStatus.SUCCESS) {
-                revenueChartMap[key] += Number(b.totalPrice);
+        if (type === 'year') {
+            for (let i = 0; i < 10; i++) {
+                const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const key = `${month.getFullYear()}-${(month.getMonth() + 1).toString().padStart(2, '0')}`;
+                chartDates.push(key);
+                bookingsChartMap[key] = 0;
+                cancelledChartMap[key] = 0;
+                revenueChartMap[key] = 0;
             }
-        });
+            bookings.forEach(b => {
+                const key = `${b.createdAt.getFullYear()}-${(b.createdAt.getMonth() + 1).toString().padStart(2, '0')}`;
+                if (key in bookingsChartMap) bookingsChartMap[key]++;
+                if (key in cancelledChartMap && b.status === BookingStatus.CANCELLED) cancelledChartMap[key]++;
+                if (key in revenueChartMap && b.payment?.paymentStatus === PaymentStatus.SUCCESS) revenueChartMap[key] += Number(b.totalPrice);
+            });
+        } else {
+            for (let i = 9; i >= 0; i--) {
+                const d = new Date(now);
+                d.setDate(d.getDate() - i);
+                const key = formatVNDate(d);
+                chartDates.push(key);
+                bookingsChartMap[key] = 0;
+                cancelledChartMap[key] = 0;
+                revenueChartMap[key] = 0;
+            }
+            bookings.forEach(b => {
+                const key = formatVNDate(b.createdAt);
+                if (key in bookingsChartMap) bookingsChartMap[key]++;
+                if (b.status === BookingStatus.CANCELLED && key in cancelledChartMap) cancelledChartMap[key]++;
+                if (key in revenueChartMap && b.payment?.paymentStatus === PaymentStatus.SUCCESS) revenueChartMap[key] += Number(b.totalPrice);
+            });
+        }
 
         return {
             bookings: {
@@ -376,6 +399,7 @@ export class BookingsService {
             },
         };
     }
+
 
     async getKPIDoanhThu(type: 'week' | 'month' | 'year') {
         const now = new Date();
@@ -543,22 +567,19 @@ export class BookingsService {
     }
 
     //PI tổng hợp cho xuất Excel (gồm dữ liệu doanh thu, tổng lượt đặt, lượt hủy, và thống kê trạng thái booking) theo ba mốc:
-    //7 ngày gần nhất, 30 (hoặc 31) ngày trong tháng vừa rồi, và 12 tháng trong năm.
+    //7 ngày gần nhất, 30 (hoặc 31) ngày trong tháng hiện tại, và 12 tháng trong năm.
     async getExportData(type: 'week' | 'month' | 'year') {
         const now = new Date();
         let startDate: Date;
         let endDate: Date;
 
         if (type === 'week') {
-            // 7 ngày gần nhất
             startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
             endDate = now;
         } else if (type === 'month') {
-            // Toàn bộ tháng vừa rồi
-            startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         } else {
-            // 12 tháng trong năm hiện tại
             startDate = new Date(now.getFullYear(), 0, 1);
             endDate = new Date(now.getFullYear(), 11, 31);
         }
@@ -574,12 +595,13 @@ export class BookingsService {
             relations: ['payment'],
         });
 
-        // --- Khởi tạo dữ liệu theo type ---
         const labels: string[] = [];
         const dataMap: Record<string, {
             revenue: number;
             totalBookings: number;
             cancelledBookings: number;
+            unpaidBookings: number;
+            unpaidRevenue: number; // thêm trường tổng tiền chưa thanh toán
             statusCount: Record<BookingStatus, number>;
         }> = {};
 
@@ -591,6 +613,8 @@ export class BookingsService {
                     revenue: 0,
                     totalBookings: 0,
                     cancelledBookings: 0,
+                    unpaidBookings: 0,
+                    unpaidRevenue: 0, // khởi tạo
                     statusCount: {
                         [BookingStatus.PENDING]: 0,
                         [BookingStatus.CONFIRMED]: 0,
@@ -609,6 +633,8 @@ export class BookingsService {
                     revenue: 0,
                     totalBookings: 0,
                     cancelledBookings: 0,
+                    unpaidBookings: 0,
+                    unpaidRevenue: 0, // khởi tạo
                     statusCount: {
                         [BookingStatus.PENDING]: 0,
                         [BookingStatus.CONFIRMED]: 0,
@@ -625,9 +651,7 @@ export class BookingsService {
         for (const b of bookings) {
             const key =
                 type === 'year'
-                    ? `${b.createdAt.getFullYear()}-${(b.createdAt.getMonth() + 1)
-                        .toString()
-                        .padStart(2, '0')}`
+                    ? `${b.createdAt.getFullYear()}-${(b.createdAt.getMonth() + 1).toString().padStart(2, '0')}`
                     : formatVNDate(b.createdAt);
 
             if (!dataMap[key]) continue;
@@ -638,6 +662,9 @@ export class BookingsService {
 
             if (b.payment && b.payment.paymentStatus === PaymentStatus.SUCCESS) {
                 dataMap[key].revenue += Number(b.totalPrice);
+            } else {
+                dataMap[key].unpaidBookings++; // đếm booking chưa thanh toán
+                dataMap[key].unpaidRevenue += Number(b.totalPrice); // tổng tiền chưa thanh toán
             }
         }
 
@@ -646,6 +673,8 @@ export class BookingsService {
             revenue: labels.map(l => dataMap[l].revenue),
             totalBookings: labels.map(l => dataMap[l].totalBookings),
             cancelledBookings: labels.map(l => dataMap[l].cancelledBookings),
+            unpaidBookings: labels.map(l => dataMap[l].unpaidBookings),
+            unpaidRevenue: labels.map(l => dataMap[l].unpaidRevenue), // thêm mảng này
             statusCount: {
                 pending: labels.map(l => dataMap[l].statusCount[BookingStatus.PENDING]),
                 confirmed: labels.map(l => dataMap[l].statusCount[BookingStatus.CONFIRMED]),
@@ -657,6 +686,8 @@ export class BookingsService {
 
         return { type, labels, data };
     }
+
+
 
     //API thống kê tổng doanh thu theo khách sạn, đồng thời trả các thông tin cơ bản của khách sạn và gom nhóm dữ liệu
     async getRevenueByHotel(): Promise<any[]> {
@@ -734,11 +765,13 @@ export class BookingsService {
             relations: ['payment'],
         });
 
-        // Khởi tạo map theo payment method
+        // Khởi tạo map theo payment method, thêm ZALOPAY và STRIPE
         const paymentData: Record<string, number[]> = {
             cod: [],
             momo: [],
             vnpay: [],
+            zalopay: [],
+            stripe: [],
         };
 
         const labels: string[] = [];
@@ -748,38 +781,37 @@ export class BookingsService {
             for (let m = 0; m < 12; m++) {
                 const monthKey = `${now.getFullYear()}-${(m + 1).toString().padStart(2, '0')}`;
                 labels.push(monthKey);
-                paymentData.cod.push(0);
-                paymentData.momo.push(0);
-                paymentData.vnpay.push(0);
+                Object.keys(paymentData).forEach(key => paymentData[key].push(0));
             }
+
             bookings.forEach(b => {
                 if (b.payment?.paymentStatus !== PaymentStatus.SUCCESS) return;
                 const key = `${b.createdAt.getFullYear()}-${(b.createdAt.getMonth() + 1).toString().padStart(2, '0')}`;
                 const idx = labels.indexOf(key);
                 if (idx === -1) return;
-                const method = b.payment.paymentMethod.toLowerCase() as keyof typeof paymentData;
-                paymentData[method][idx] += Number(b.totalPrice);
+                const method = b.payment.paymentMethod.toLowerCase();
+                if (method in paymentData) paymentData[method][idx] += Number(b.totalPrice);
             });
         } else {
             let current = new Date(startDate);
             while (current <= endDate) {
                 const dayKey = formatDateVN(current);
                 labels.push(dayKey);
-                paymentData.cod.push(0);
-                paymentData.momo.push(0);
-                paymentData.vnpay.push(0);
+                Object.keys(paymentData).forEach(key => paymentData[key].push(0));
                 current.setDate(current.getDate() + 1);
             }
+
             bookings.forEach(b => {
                 if (b.payment?.paymentStatus !== PaymentStatus.SUCCESS) return;
                 const key = formatDateVN(b.createdAt);
                 const idx = labels.indexOf(key);
                 if (idx === -1) return;
-                const method = b.payment.paymentMethod.toLowerCase() as keyof typeof paymentData;
-                paymentData[method][idx] += Number(b.totalPrice);
+                const method = b.payment.paymentMethod.toLowerCase();
+                if (method in paymentData) paymentData[method][idx] += Number(b.totalPrice);
             });
         }
 
         return { type, labels, paymentData };
     }
+
 }

@@ -1,5 +1,6 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, JoinColumn } from "typeorm";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, JoinColumn, OneToMany } from "typeorm";
 import { RoomType } from "./roomType.entity";
+import { Booking } from "src/managements/bookings/entities/bookings.entity";
 
 // Định nghĩa các loại chính sách để quản lý
 export enum CancellationPolicyType {
@@ -77,4 +78,7 @@ export class RatePlan {
     // Dùng cái này, bro có thể tính ra "until 02 Nov"
     // Ví dụ: User check-in ngày 5/11, deadline = 3
     // => Hủy miễn phí đến 5 - 3 = ngày 2/11.
+
+    @OneToMany(() => Booking, (booking) => booking.rateplan)
+    bookings:Booking[]
 }

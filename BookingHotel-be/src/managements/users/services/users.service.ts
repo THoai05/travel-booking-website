@@ -52,6 +52,7 @@ export class UsersService {
         'membershipLevel',
         'createdAt',
         'updatedAt',
+        'provider',
       ], // chỉ lấy các field cần thiết
     });
   }

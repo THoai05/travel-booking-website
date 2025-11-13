@@ -10,22 +10,27 @@ import api from '@/axios/axios';
 
 
 // Main Component
- const TravelokaPaymentPage: React.FC = () => {
+const TravelokaPaymentPage: React.FC = () => {
+   // Helper format tiền tệ
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+  }
   const [selectedPayment, setSelectedPayment] = useState('');
   const [showCoupon, setShowCoupon] = useState(false);
   const [usePoints, setUsePoints] = useState(false);
 
+  // Đã dịch các badge
   const paymentMethods: PaymentMethod[] = [
     {
       id: 'vnpay',
       name: 'VNPay',
-      badge: 'Enjoy Discount!',
+      badge: 'Tận hưởng ưu đãi!',
       icons: ['VietQR'],
     },
     {
       id: 'momo',
       name: 'Momo',
-      badge: 'Easy payment steps and faster verification',
+      badge: 'Các bước thanh toán dễ dàng và xác minh nhanh hơn',
       icons: ['VietinBank'],
     },
     {
@@ -76,7 +81,7 @@ import api from '@/axios/axios';
        return {
          bookingId: pendingBooking.bookingId.toString(),
    
-         name: "Pariat River Front Hotel Da Nang", // <-- Bro nói text cứng
+         name: pendingBooking.hotelName, // <-- Bro nói text cứng (Tên riêng, giữ nguyên)
    
          checkIn: formatDate(pendingBooking.checkinDate),
    
@@ -84,7 +89,7 @@ import api from '@/axios/axios';
    
          nights: nights,
    
-         roomType: `(1x) ${pendingBooking.roomName}`,
+         roomType:  pendingBooking.roomName,
    
          guests: pendingBooking.guestsCount, // Lấy từ booking
    
@@ -117,14 +122,7 @@ import api from '@/axios/axios';
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-2">
-            <div className="text-sky-600 font-bold text-2xl">Bluevera</div>
-            <div className="w-6 h-6 bg-sky-500 rounded-full"></div>
-          </div>
-        </div>
-      </header>
+      
 
       {/* Timer Banner */}
     
@@ -139,7 +137,7 @@ import api from '@/axios/axios';
                 <h2 className="text-2xl font-bold text-gray-900">Bạn muốn trả theo hình thức nào ?</h2>
                 <div className="flex items-center gap-1 text-sm text-gray-600">
                   <Info size={16} />
-                  <span>Secure Payment</span>
+                  <span>Thanh toán an toàn</span>
                 </div>
               </div>
 
@@ -155,18 +153,18 @@ import api from '@/axios/axios';
                 ))}
               </div>
 
-              {/* VietQR Instructions */}
+              {/* VietQR Instructions (Đã dịch) */}
               {selectedPayment === 'vietqr' && (
                 <div className="mt-4 bg-sky-50 border border-sky-200 rounded-lg p-4">
                   <ul className="text-sm text-gray-700 space-y-2 list-disc list-inside">
-                    <li>Make sure you have any e-wallet or mobile banking app that supports payment with VietQR.</li>
-                    <li>A QR code will appear after you click the 'Pay' button. Simply save or screenshot the QR code to complete your payment within the time limit.</li>
-                    <li>Please use the latest QR code provided to complete your payment.</li>
+                    <li>Đảm bảo bạn có ví điện tử hoặc ứng dụng ngân hàng di động hỗ trợ thanh toán bằng VietQR.</li>
+                    <li>Một mã QR sẽ xuất hiện sau khi bạn nhấp vào nút 'Thanh toán'. Chỉ cần lưu hoặc chụp ảnh màn hình mã QR để hoàn tất thanh toán trong thời gian quy định.</li>
+                    <li>Vui lòng sử dụng mã QR mới nhất được cung cấp để hoàn tất thanh toán của bạn.</li>
                   </ul>
                 </div>
               )}
 
-              {/* Coupon Section */}
+              {/* Coupon Section (Đã dịch) */}
               <div className="mt-6 pt-6 border-t">
                 <button
                   onClick={() => setShowCoupon(!showCoupon)}
@@ -174,26 +172,26 @@ import api from '@/axios/axios';
                 >
                   <div className="flex items-center gap-2">
                     <Info size={18} />
-                    <span>Apply Coupons</span>
+                    <span>Áp dụng Mã giảm giá</span>
                   </div>
-                  <span className="text-sky-600">Apply</span>
+                  <span className="text-sky-600">Áp dụng</span>
                 </button>
                 {showCoupon && (
                   <div className="mt-3">
                     <input
                       type="text"
-                      placeholder="Enter coupon code or select available coupon(s)"
+                      placeholder="Nhập mã giảm giá hoặc chọn mã có sẵn"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                     />
                   </div>
                 )}
               </div>
 
-              {/* Points Section */}
+              {/* Points Section (Đã dịch) */}
               <div className="mt-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Info size={18} className="text-yellow-600" />
-                  <span className="font-semibold text-gray-800">Redeem Bluvera Points</span>
+                  <Info size={1} className="text-yellow-600" />
+                  <span className="font-semibold text-gray-800">Đổi điểm Bluevera</span>
                   <Info size={16} className="text-gray-400" />
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -206,30 +204,32 @@ import api from '@/axios/axios';
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
                 </label>
               </div>
-              <p className="text-sm text-gray-600 mt-1 ml-7">Your Points: 300</p>
+              <p className="text-sm text-gray-600 mt-1 ml-7">Điểm của bạn: 300</p>
 
-              {/* Total Price */}
+              {/* Total Price (Đã dịch) */}
               <div className="mt-6 pt-6 border-t">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-xl font-bold text-gray-900">Total Price</span>
+                  <span className="text-xl font-bold text-gray-900">Tổng tiền</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-gray-900">414.686 VND</span>
+                    <span className="text-2xl font-bold text-gray-900">{formatCurrency(Number(pendingBooking?.totalPrice))}</span>
                     <ChevronDown size={20} className="text-gray-600" />
                   </div>
                 </div>
 
+                {/* Đã sửa text nút này */}
                 <button onClick={()=>handlePayment(selectedPayment)} className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-lg transition-colors">
-                  Pay & Show QR Code
+                  Tiến hành thanh toán
                 </button>
 
+                {/* Đã dịch "and" và "Privacy Policy" */}
                 <p className="text-xs text-center text-gray-600 mt-3">
                   Bạn đang đồng ý với{' '}
                   <a href="#" className="text-sky-600 underline">Chính sách và điều kiện của Bluvera</a>{' '}
-                  and <a href="#" className="text-sky-600 underline">Privacy Policy</a>.
+                  và <a href="#" className="text-sky-600 underline">Chính sách bảo mật</a>.
                 </p>
               </div>
 
-              {/* Rewards */}
+              {/* Rewards (Đã dịch) */}
               <div className="mt-4 flex gap-4 text-sm">
                 <div className="flex items-center gap-1 text-yellow-600">
                   <Info size={16} />
@@ -237,7 +237,7 @@ import api from '@/axios/axios';
                 </div>
                 <div className="flex items-center gap-1 text-sky-600">
                   <Info size={16} />
-                  <span>Earn 497,623 Priority Stars</span>
+                  <span>Nhận 497.623 Sao Ưu Tiên</span>
                 </div>
               </div>
             </div>
@@ -245,6 +245,10 @@ import api from '@/axios/axios';
 
           {/* Right Column - Hotel Summary */}
           <div className="lg:col-span-1">
+            {/* LƯU Ý: Component HotelSummaryCard được import từ file khác.
+              Nếu bên trong nó có text tiếng Anh (ví dụ: "Check-in", "Guests"),
+              bro sẽ cần phải dịch cả file: ./components/HotelSumaryCard
+            */}
             <HotelSummaryCard hotel={hotelDetailsProps} />
           </div>
         </div>

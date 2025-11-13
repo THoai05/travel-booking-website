@@ -331,7 +331,7 @@ const TravelokaBookingPage: React.FC = () => {
     return {
       bookingId: pendingBooking.bookingId.toString(),
 
-      name: "Pariat River Front Hotel Da Nang", // <-- Bro nói text cứng
+      name: pendingBooking.hotelName, // <-- Bro nói text cứng
 
       checkIn: formatDate(pendingBooking.checkinDate),
 
@@ -339,7 +339,7 @@ const TravelokaBookingPage: React.FC = () => {
 
       nights: nights,
 
-      roomType: `(1x) ${pendingBooking.roomName}`,
+      roomType: pendingBooking.roomName,
 
       guests: pendingBooking.guestsCount, // Lấy từ booking
 
@@ -391,15 +391,7 @@ const TravelokaBookingPage: React.FC = () => {
 
   // Chỉ check xem 3 nguồn data chính đã sẵn sàng chưa
 
-  console.log("1  " + pendingBooking);
-
-  console.log("2  " + user);
-
-  console.log("3  " + hotelDetailsProps);
-
-  console.log("4  " + guestDetailsProps);
-
-  console.log("5  " + priceDetailsProps);
+  
 
   if (
     !pendingBooking ||
@@ -471,7 +463,7 @@ const TravelokaBookingPage: React.FC = () => {
                   1
                 </div>
 
-                <span className="text-sky-600 font-semibold">Review</span>
+                <span className="text-sky-600 font-semibold">Kiểm tra</span>
               </div>
 
               <div className="text-gray-300">—</div>
@@ -481,7 +473,7 @@ const TravelokaBookingPage: React.FC = () => {
                   2
                 </div>
 
-                <span className="text-gray-500">Pay</span>
+                <span className="text-gray-500">Thanh toán</span>
               </div>
             </div>
           </div>
@@ -490,43 +482,13 @@ const TravelokaBookingPage: React.FC = () => {
 
       {/* Hotel Info Bar (Data thật) */}
 
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <h1 className="text-lg font-bold text-gray-900">
-            {hotelDetailsProps.name}
-          </h1>
-
-          {/* ... (Star rating giữ nguyên) ... */}
-
-          <div className="flex items-center gap-1 mt-1">
-            {[1, 2, 3].map((i) => (
-              <Star
-                key={i}
-                size={14}
-                fill="#FCD34D"
-                className="text-yellow-400"
-              />
-            ))}
-
-            <span className="text-sm text-gray-600 ml-1">7.9 (360)</span>
-          </div>
-        </div>
-      </div>
-
+   
       {/* Main Content */}
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Logged in Banner (Data thật) */}
 
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-6">
-          <p className="text-sm text-gray-700">
-            {/* FIX: Check user.userWithoutPassword an toàn hơn */}
-            Logged in as{" "}
-            <span className="font-semibold">
-              {user?.fullName || "User"} (Google)
-            </span>
-          </p>
-        </div>
+      
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Column - Forms (Đã pre-fill) */}

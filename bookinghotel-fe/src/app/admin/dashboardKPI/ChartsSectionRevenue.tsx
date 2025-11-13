@@ -1,189 +1,139 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from "recharts";
+import { useEffect, useState } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, ResponsiveContainer,
+  PieChart, Pie, Legend
+} from "recharts";
 import api from "@/axios/axios";
 
 interface RevenueDataItem {
   date: string;
   revenue: number;
+  unpaidRevenue: number;
 }
 
-// Hàm format tiền VND
 const formatVND = (value: number) =>
   value.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
-
-const formatVNDShort = (value: number): string => {
-  if (value >= 1_000_000_000) return (value / 1_000_000_000).toFixed(1).replace(/\.0$/, "") + "B"; // tỷ
-  if (value >= 1_000_000) return (value / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M"; // triệu
-  if (value >= 1_000) return (value / 1_000).toFixed(1).replace(/\.0$/, "") + "K"; // nghìn
-  return value.toString();
-};
-
-export function ChartsSectionRevenue() {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const types: ("week" | "month" | "year")[] = ["week", "month", "year"];
-
-  const [chartData, setChartData] = useState<{
-    week: RevenueDataItem[];
-    month: RevenueDataItem[];
-    year: RevenueDataItem[];
-  }>({ week: [], month: [], year: [] });
-
+export function RevenueCharts() {
+  const [data, setData] = useState<RevenueDataItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [kpiType, setKpiType] = useState<"week" | "month" | "year">("month");
-
-  // Drag-to-scroll
-  const [dragState, setDragState] = useState({ isDragging: false, startX: 0, scrollLeft: 0 });
-
-  // Tính width mỗi cột
-  const getColumnWidth = (type: "week" | "month" | "year") => {
-    switch (type) {
-      case "week":
-        return 160;
-      case "month":
-        return 37;
-      case "year":
-        return 90;
-      default:
-        return 50;
-    }
-  };
+  const [type, setType] = useState<"week" | "month" | "year">("week");
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const results: any = {};
-        for (const type of types) {
-          const res = await api.get(`/bookings/kpiRevenue?type=${type}`);
-          results[type] = res.data.data?.revenueByPeriod || [];
+        const res = await api.get(`/bookings/export-data/${type}`);
+        const labels: string[] = res.data.labels;
+        const raw = res.data.data;
+        if (!labels || !raw) {
+          setData([]);
+          return;
         }
-        setChartData(results);
+        const formatted: RevenueDataItem[] = labels.map((d: string, i: number) => ({
+          date: d,
+          revenue: raw.revenue?.[i] || 0,
+          unpaidRevenue: raw.unpaidRevenue?.[i] || 0,
+        }));
+        setData(formatted);
       } catch (err) {
-        console.error("Failed to fetch revenue KPI:", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [type]);
 
-  const onMouseDown = (e: React.MouseEvent) => {
-    if (!scrollRef.current) return;
-    setDragState({
-      isDragging: true,
-      startX: e.pageX - scrollRef.current.offsetLeft,
-      scrollLeft: scrollRef.current.scrollLeft,
-    });
-    scrollRef.current.style.cursor = "grabbing";
+  const totalRevenue = data.reduce((acc, cur) => acc + cur.revenue, 0);
+  const totalUnpaid = data.reduce((acc, cur) => acc + cur.unpaidRevenue, 0);
+
+  // Format rút gọn kiểu K/M/B
+  const formatVNDShort = (value: number) => {
+    if (value >= 1_000_000_000) return (value / 1_000_000_000).toFixed(2).replace(/\.?0+$/, "") + "B";
+    if (value >= 1_000_000) return (value / 1_000_000).toFixed(2).replace(/\.?0+$/, "") + "M";
+    if (value >= 1_000) return (value / 1_000).toFixed(2).replace(/\.?0+$/, "") + "K";
+    return value.toString();
   };
 
-  const onMouseLeaveOrUp = () => {
-    if (!scrollRef.current) return;
-    setDragState(prev => ({ ...prev, isDragging: false }));
-    scrollRef.current.style.cursor = "grab";
-  };
-
-  const onMouseMove = (e: React.MouseEvent) => {
-    if (!dragState.isDragging || !scrollRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - dragState.startX) * 1;
-    scrollRef.current.scrollLeft = dragState.scrollLeft - walk;
-  };
-
-  const data = chartData[kpiType];
-  const colWidth = getColumnWidth(kpiType);
-  const chartWidth = Math.max(data.length * colWidth, 500);
-
-  // Gradient màu từ xanh đậm -> xanh nhạt cho từng bar
-  const gradientColors = [
-    [16, 185, 129],  // #10b981
-    [52, 211, 153],  // #34d399
-    [110, 231, 183], // #6ee7b7
-  ];
-  const getGradientColor = (index: number) => {
-    const step = index / (data.length - 1 || 1) * (gradientColors.length - 1);
-    const lower = Math.floor(step);
-    const upper = Math.ceil(step);
-    const ratio = step - lower;
-
-    const r = Math.round(gradientColors[lower][0] + (gradientColors[upper][0] - gradientColors[lower][0]) * ratio);
-    const g = Math.round(gradientColors[lower][1] + (gradientColors[upper][1] - gradientColors[lower][1]) * ratio);
-    const b = Math.round(gradientColors[lower][2] + (gradientColors[upper][2] - gradientColors[lower][2]) * ratio);
-
-    return `rgb(${r}, ${g}, ${b})`;
-  };
-
-  if (loading) {
-    return (
-      <div className="mb-8">
-        <div className="bg-white border-2 border-dashed border-blue-300 rounded-xl p-6">
-          Loading revenue charts...
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="mb-8">
-      {/* Buttons chọn KPI */}
+      {/* KPI Type Buttons */}
       <div className="mb-4 flex gap-2">
-        {types.map(type => (
+        {["week", "month", "year"].map(t => (
           <button
-            key={type}
-            className={`px-4 py-1 rounded ${kpiType === type ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
-            onClick={() => setKpiType(type)}
+            key={t}
+            className={`px-4 py-1 rounded ${type === t ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
+            onClick={() => setType(t as any)}
           >
-            {type.charAt(0).toUpperCase() + type.slice(1)}
+            {t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
         ))}
       </div>
 
-      {/* Chart */}
-      <Card className="border-0 shadow-none">
+      <Card className="bg-white border-2 border-dashed border-blue-300 rounded-xl">
         <CardHeader>
-          <CardTitle className="text-gray-900">{kpiType.charAt(0).toUpperCase() + kpiType.slice(1)} Revenue</CardTitle>
+          <CardTitle>Revenue Overview</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div
-            ref={scrollRef}
-            className="overflow-x-auto cursor-grab"
-            onMouseDown={onMouseDown}
-            onMouseLeave={onMouseLeaveOrUp}
-            onMouseUp={onMouseLeaveOrUp}
-            onMouseMove={onMouseMove}
-            style={{ WebkitOverflowScrolling: "touch" }}
-          >
-            <div style={{ minWidth: chartWidth, width: chartWidth, height: 300 }}>
+        <CardContent className="flex flex-col md:flex-row gap-6">
 
-              <BarChart width={chartWidth} height={300} data={data}>
+          {/* Bar Chart */}
+          <div className="flex-1 h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data}>
                 <defs>
-                  <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity={1} />   {/* xanh lá đậm */}
-                    <stop offset="100%" stopColor="#6ee7b7" stopOpacity={0.6} /> {/* xanh lá nhạt */}
+                  <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#6ee7b7" stopOpacity={0.6} />
+                  </linearGradient>
+                  <linearGradient id="unpaidGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f87171" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#fca5a5" stopOpacity={0.6} />
                   </linearGradient>
                 </defs>
-
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 12 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 12 }} tickFormatter={formatVNDShort} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: "8px" }}
-                  formatter={(value: number) => [formatVND(value), "Revenue"]}
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: "#9ca3af" }} />
+                <YAxis
+                  tickFormatter={formatVNDShort}
+                  tick={{ fontSize: 12, fill: "#9ca3af" }}
                 />
-                <Bar dataKey="revenue" radius={[6, 6, 0, 0]} maxBarSize={50}>
-                  {data.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={getGradientColor(index)} />
-                  ))}
-                </Bar>
+                <Tooltip formatter={(v: number) => formatVND(v)} />
+                <Bar dataKey="revenue" radius={[6, 6, 0, 0]} fill="url(#revenueGradient)" maxBarSize={50} />
+                <Bar dataKey="unpaidRevenue" radius={[6, 6, 0, 0]} fill="url(#unpaidGradient)" maxBarSize={50} />
               </BarChart>
-
-            </div>
+            </ResponsiveContainer>
           </div>
+
+          {/* Pie Chart */}
+          <div className="flex-1 h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: "Paid Revenue", value: totalRevenue },
+                    { name: "Unpaid Revenue", value: totalUnpaid }
+                  ]}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label={({ name, value }) => `${name}: ${formatVND(value)}`}
+                >
+                  <Cell key="paid" fill="#10b981" />
+                  <Cell key="unpaid" fill="#f87171" />
+                </Pie>
+                <Legend />
+                <Tooltip formatter={(v: number) => formatVND(v)} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
         </CardContent>
       </Card>
     </div>

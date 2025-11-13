@@ -16,6 +16,7 @@ import blogReducer from './features/blog/blogSlice'
 import userReducer from './features/user/userSlice'
 import bookingReducer from './features/bookingSlice'
 import reviewReducer from './features/review/reviewSlice'
+import favouriteReducer from './features/favourite/favouriteSlice'
 
 // --- Tạo root reducer ---
 const rootReducer = combineReducers({
@@ -23,7 +24,8 @@ const rootReducer = combineReducers({
   blogs: blogReducer,
   user: userReducer,
   booking:bookingReducer,
-  reviews:reviewReducer
+  reviews:reviewReducer,
+  favourites:favouriteReducer
 })
 
 // --- 4. Cấu hình persist ---

@@ -44,6 +44,19 @@ const HotelSummaryCard: React.FC<{ hotel: HotelDetails; guest: GuestDetails }> =
   }
   // --- END FIX ---
 
+
+  const roomTypeName = new Map([
+    ['deluxe double', "Phòng đôi sang trọng",],
+    ['deluxe family', "Phòng gia đình sang trọng",],
+    ['grand family', "Phòng đại gia đình",],
+    ['deluxe triple', "Phòng ba sang trọng",],
+    ['standard', "Phòng tiêu chuẩn",],
+    ['double room', "Phòng đôi tiêu chuẩn ",],
+    ['triple room', "Phòng ba tiêu chuẩn",],
+    
+  ])
+  
+
   return (
   <div className="bg-sky-50 rounded-lg p-5">
     <div className="flex items-start gap-3 mb-4">
@@ -51,7 +64,7 @@ const HotelSummaryCard: React.FC<{ hotel: HotelDetails; guest: GuestDetails }> =
         <MapPin size={20} />
       </div>
       <div>
-        <h3 className="font-semibold text-gray-800 text-sm">Hotel Summary</h3>
+        <h3 className="font-semibold text-gray-800 text-sm">Thông tin đơn hàng</h3>
         <p className="text-xs text-gray-600">Mã đơn hàng : {hotel.bookingId}</p>
       </div>
     </div>
@@ -76,7 +89,10 @@ const HotelSummaryCard: React.FC<{ hotel: HotelDetails; guest: GuestDetails }> =
     </div>
 
     <div className="border-t pt-4 space-y-3">
-      <p className="font-semibold text-sm">{hotel.roomType}</p>
+     <div className='flex items-center gap-2'>
+             <Info size={16} />
+             <p className="font-semibold text-sm">{roomTypeName.get(hotel.roomType)}</p>
+               </div>
       
       <div className="flex items-center gap-2 text-sm text-gray-700">
         <Users size={16} />
@@ -105,11 +121,11 @@ S         <Bed size={16} />
       <div className="flex gap-2 mt-2">
         <span className="text-xs flex items-center gap-1">
           <CheckCircle2 size={14} className="text-gray-500" />
-          {guest.nonRefundable ? 'Non-refundable' : 'Refundable'}
+          {guest.nonRefundable ? 'Không cho phép hoàn trả' : 'Refundable'}
         </span>
         <span className="text-xs flex items-center gap-1">
           <CheckCircle2 size={14} className="text-gray-500" />
-          {guest.nonReschedulable ? 'Non-reschedulable' : 'Reschedulable'}
+          {guest.nonReschedulable ? 'Không cho phép đổi lịch' : 'Reschedulable'}
         </span>
       </div>
     </div>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { NAV_LINKS } from "../../../../constants/index";
-import { useEffect, useState, useRef } from "react"; // <-- THÊM MỚI: useRef
+import { useEffect, useState, useRef } from "react";
 import Login from "@/app/auth/login/page";
 import Register from "@/app/auth/register/page";
 import { useAuth } from "@/context/AuthContext";
@@ -13,7 +13,6 @@ import api from "@/axios/axios";
 
 import NotificationsPage from "@/app/client/notifications/page";
 
-// --- THÊM MỚI: Icons (cần cài react-icons: npm install react-icons) ---
 import {
   HiUserCircle,
   HiOutlineHeart,
@@ -25,21 +24,6 @@ import {
   HiOutlineBookmark,
 } from "react-icons/hi";
 
-interface UserProfile {
-  id: number;
-  username: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  role: string;
-  avatar?: string;
-  dob?: string | null;
-  gender?: string;
-  loyaltyPoints?: number;
-  membershipLevel?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
 interface ChatMessage {
   id: number;
   sender: User | null;
@@ -58,7 +42,7 @@ interface User {
 const Header = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
 
   const [showLogin, setShowLogin] = useState(false);
@@ -132,6 +116,20 @@ const Header = () => {
     if (user?.role === "admin") {
       router.replace("/admin");
     }
+
+    const fetchProfileAndUser = async () => {
+      try {
+        const response = await api.get("auth/profile");
+        let storedId = null;
+        if (response.status !== 401) {
+          const profileData = response.data;
+          storedId = profileData.id;
+          setProfile(profileData);
+        }
+      } catch (err: any) {
+      }
+    };
+    fetchProfileAndUser(); // lần đầu load
 
   }, [user]);
 
@@ -234,15 +232,136 @@ const Header = () => {
             {/* Giờ chỉ hiển thị icon và tên, nút Đăng xuất đã chuyển vào dropdown */}
             {!loading && user && (
               <div className="flex items-center gap-2 font-medium text-sm text-gray-700">
-                <HiUserCircle className="w-6 h-6" />
-                <span className="hidden sm:inline">
-                  {user.username || "bạn"}
-                </span>
+
+                {/* Avatar */}
+                {/* Avatar with wings & falling feathers */}
+                <div className="relative flex items-center justify-center">
+                  {/* Cánh trái */}
+                  <svg
+                    className="absolute -left-6 w-16 h-16 animate-wing-left"
+                    viewBox="0 0 64 64"
+                  >
+                    <path
+                      d="M32 32 C10 10, 0 64, 32 32"
+                      fill="url(#gradientLeft)"
+                    />
+                    <defs>
+                      <linearGradient id="gradientLeft" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor={
+                          profile?.membershipLevel === "Gold" ? "#facc15" :
+                            profile?.membershipLevel === "Platinum" ? "#3b82f6" : "#9ca3af"
+                        } />
+                        <stop offset="50%" stopColor={
+                          profile?.membershipLevel === "Gold" ? "#fcd34d" :
+                            profile?.membershipLevel === "Platinum" ? "#8b5cf6" : "#d1d5db"
+                        } />
+                        <stop offset="100%" stopColor={
+                          profile?.membershipLevel === "Gold" ? "#fbbf24" :
+                            profile?.membershipLevel === "Platinum" ? "#ec4899" : "#9ca3af"
+                        } />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+
+                  {/* Cánh phải */}
+                  <svg
+                    className="absolute -right-6 w-16 h-16 animate-wing-right"
+                    viewBox="0 0 64 64"
+                  >
+                    <path
+                      d="M32 32 C54 10, 64 64, 32 32"
+                      fill="url(#gradientRight)"
+                    />
+                    <defs>
+                      <linearGradient id="gradientRight" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor={
+                          profile?.membershipLevel === "Gold" ? "#facc15" :
+                            profile?.membershipLevel === "Platinum" ? "#3b82f6" : "#9ca3af"
+                        } />
+                        <stop offset="50%" stopColor={
+                          profile?.membershipLevel === "Gold" ? "#fcd34d" :
+                            profile?.membershipLevel === "Platinum" ? "#8b5cf6" : "#d1d5db"
+                        } />
+                        <stop offset="100%" stopColor={
+                          profile?.membershipLevel === "Gold" ? "#fbbf24" :
+                            profile?.membershipLevel === "Platinum" ? "#ec4899" : "#9ca3af"
+                        } />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+
+                  {/* Avatar chính với gradient border */}
+                  <div
+                    className={`relative rounded-full p-[2px] 
+      ${profile?.membershipLevel === "Gold"
+                        ? "bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400"
+                        : profile?.membershipLevel === "Platinum"
+                          ? "bg-gradient-to-r from-blue-500 via-purple-400 to-pink-500"
+                          : "bg-gradient-to-r from-gray-400 via-gray-200 to-gray-400"
+                      }`}
+                  >
+                    <img
+                      src={profile?.avatar || "https://avatars.githubusercontent.com/u/9919?s=128&v=4"}
+                      alt="User Avatar"
+                      className="rounded-full h-10 w-10 object-cover border-2 border-gray-900"
+                    />
+
+                    {/* Lông rơi */}
+                    <div className="absolute inset-0 pointer-events-none">
+                      {[...Array(5)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="absolute w-1 h-2 bg-white opacity-70 rounded-full animate-feather"
+                          style={{
+                            left: `${Math.random() * 100}%`,
+                            animationDelay: `${Math.random() * 2}s`,
+                            animationDuration: `${1 + Math.random() * 1.5}s`,
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+
+
+                {/* Username + Membership */}
+                {profile && (
+                  <div className="flex flex-col justify-center items-start">
+                    {/* Username */}
+                    <span className="text-sm font-medium text-gray-800 truncate max-w-[120px]">
+                      {profile.username || "bạn"}
+                    </span>
+
+                    {/* Membership */}
+                    <div className="flex items-center gap-1 text-xs font-semibold">
+                      <span className="truncate max-w-[120px]">
+                        {profile.membershipLevel ?? "Silver"} ({profile.loyaltyPoints ?? 0})
+                      </span>
+                      <span
+                        className={
+                          profile.membershipLevel === "Silver"
+                            ? "text-gray-400"
+                            : profile.membershipLevel === "Gold"
+                              ? "text-yellow-400"
+                              : profile.membershipLevel === "Platinum"
+                                ? "text-blue-600"
+                                : "text-gray-400"
+                        }
+                      >
+                        {profile.membershipLevel === "Silver"
+                          ? "🥈"
+                          : profile.membershipLevel === "Gold"
+                            ? "🥇"
+                            : profile.membershipLevel === "Platinum"
+                              ? "🏆"
+                              : "🥈"}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
-
-            {/* Nếu có profile */}
-
 
             {/* --- CHỈNH SỬA: DROPDOWN MENU (YÊU CẦU 2) --- */}
 
@@ -264,13 +383,14 @@ const Header = () => {
                 {/* Nút trigger */}
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="menu-icon cursor-pointer"
+                  className="menu-icon cursor-pointer w-10 h-10 flex items-center justify-center"
                 >
                   <Image
                     src="/menu.png"
                     alt="menu icon"
-                    width={32}
-                    height={32}
+                    width={35} // kích thước cố định cho ảnh
+                    height={35}
+                    className="object-contain"
                   />
                 </button>
 
@@ -300,17 +420,6 @@ const Header = () => {
                     >
                       <HiOutlineHeart className="mr-3 w-5 h-5" />
                       Yêu thích
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        router.push("/rooms/room-monitor");
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      <HiOutlineClipboardCheck className="mr-3 w-5 h-5" />
-                      Giám sát phòng
                     </button>
 
                     <button

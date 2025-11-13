@@ -3,6 +3,10 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { getUsers, deleteUser } from "@/service/users/userService";
+import DashboardPage from "./dashboard/page"; // import trực tiếp component
+import {
+  Activity,
+} from "lucide-react";
 
 interface User {
   id: number;
@@ -11,7 +15,12 @@ interface User {
   email: string;
   phone: string;
   role: string;
+  membershipLevel: string;
   avatar?: string;
+  loyaltyPoints: number;
+  createdAt?: string;
+  updatedAt?: string;
+  dob?: string;
 }
 
 export default function UserPage() {
@@ -26,6 +35,11 @@ export default function UserPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const usersPerPage = 5;
+
+  const [sortColumn, setSortColumn] = useState<keyof User>("id");
+
+  const [showDashboard, setShowDashboard] = useState(false);
+
 
   // 🕒 Lấy danh sách và so sánh với cũ
   useEffect(() => {
@@ -67,7 +81,25 @@ export default function UserPage() {
           u.fullName.toLowerCase().includes(search.toLowerCase()) ||
           u.email.toLowerCase().includes(search.toLowerCase()))
     )
-    .sort((a, b) => (sortOrder === "asc" ? a.id - b.id : b.id - a.id));
+    .sort((a, b) => {
+      const aValue = a[sortColumn];
+      const bValue = b[sortColumn];
+
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+
+      // So sánh string hay number
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return sortOrder === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      } else {
+        return sortOrder === "asc"
+          ? (aValue as any) - (bValue as any)
+          : (bValue as any) - (aValue as any);
+      }
+    });
+
 
   // 📄 Pagination
   const indexOfLastUser = currentPage * usersPerPage;
@@ -75,11 +107,49 @@ export default function UserPage() {
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
-  const handleSort = () =>
-    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+  const handleSort = (column: keyof User) => {
+    if (sortColumn === column) {
+      // Nếu click lại cột đang sắp xếp thì đảo thứ tự
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      // Nếu click cột mới thì đặt cột đó và sắp xếp tăng dần
+      setSortColumn(column);
+      setSortOrder("asc");
+    }
+  };
+
 
   const openModal = (user: User) => setSelectedUser(user);
   const closeModal = () => setSelectedUser(null);
+
+  const getPaginationNumbers = () => {
+    const nums: (number | string)[] = [];
+    const max = 5; // số nút hiển thị tối đa trước khi hiển thị "..."
+    if (totalPages <= max) {
+      for (let i = 1; i <= totalPages; i++) nums.push(i);
+    } else {
+      nums.push(1);
+      let start = Math.max(currentPage - 1, 2);
+      let end = Math.min(currentPage + 1, totalPages - 1);
+
+      if (start > 2) nums.push("...");
+      for (let i = start; i <= end; i++) nums.push(i);
+      if (end < totalPages - 1) nums.push("...");
+      nums.push(totalPages);
+    }
+    return nums;
+  };
+
+  const formatDateUTC = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    return d.toLocaleString("vi-VN", {
+      timeZone: "UTC",
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+    });
+  };
+
 
   return (
     <div className="flex flex-col sm:flex-row min-h-screen bg-[#f5f7fa] p-4 sm:p-6 overflow-x-hidden">
@@ -87,32 +157,63 @@ export default function UserPage() {
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-gray-800">👥 Quản lý người dùng</h1>
-          <button
-            className="px-4 py-2 bg-green-400 text-white rounded-xl hover:bg-green-600 transition"
-            onClick={() => router.push("/admin/user/add")}
-          >
-            ➕ Thêm User
-          </button>
+
         </div>
 
         {/* Search + Filter */}
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <button
+            className="border border-gray-300 px-4 py-2 bg-green-0 text-black rounded-[5px] hover:bg-green-50 transition"
+            onClick={() => router.push("/admin/user/add")}
+          >
+            📝 Thêm User
+          </button>
           <input
             type="text"
             placeholder="🔍 Tìm kiếm người dùng..."
-            className="border border-gray-300 rounded-xl px-4 py-2 w-full sm:w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="border border-gray-300 rounded-[5px] px-4 py-2 w-full sm:w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-400"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <select
             value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}
-            className="border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="border border-gray-300 rounded-[5px] px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             <option value="all">Tất cả vai trò</option>
             <option value="admin">Admin</option>
             <option value="customer">Customer</option>
           </select>
+
+          <div>
+            <button
+              onClick={() => setShowDashboard(true)}
+              className="border p-2 rounded bg-green-200 hover:bg-green-300 flex items-center gap-2"
+            >
+              <Activity className="w-4 h-4" />
+              Thống kê
+            </button>
+
+            {showDashboard && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+                <div className="bg-white w-full max-w-7xl max-h-[90vh] rounded-lg shadow-lg overflow-auto p-4 relative">
+                  {/* Header với nút đóng */}
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-bold">Dashboard Room Monitor</h2>
+                    <button
+                      onClick={() => setShowDashboard(false)}
+                      className="text-gray-500 hover:text-gray-800 text-xl font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  {/* Nội dung dashboard */}
+                  <DashboardPage />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Desktop Table */}
@@ -120,19 +221,15 @@ export default function UserPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b bg-gray-100">
-                <th
-                  className="p-3 cursor-pointer hover:text-blue-500 select-none"
-                  onClick={handleSort}
-                >
-                  ID {sortOrder === "asc" ? "▲" : "▼"}
-                </th>
-                <th className="p-3">Avatar</th>
-                <th className="p-3">Username</th>
-                <th className="p-3">Full Name</th>
-                <th className="p-3">Email</th>
-                <th className="p-3">Phone</th>
-                <th className="p-3">Role</th>
-                <th className="p-3">Action</th>
+                <th className="p-3 cursor-pointer text-center hover:text-blue-500 select-none" onClick={() => handleSort("id")}>ID {sortColumn === "id" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3  text-center">Avatar</th>
+                <th className="p-3 cursor-pointer text-center hover:text-blue-500 select-none" onClick={() => handleSort("username")}>Username {sortColumn === "username" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 cursor-pointer  text-center hover:text-blue-500 select-none" onClick={() => handleSort("fullName")}>Full Name {sortColumn === "fullName" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 cursor-pointer  text-center hover:text-blue-500 select-none" onClick={() => handleSort("email")}>Email {sortColumn === "email" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 cursor-pointer text-center hover:text-blue-500 select-none" onClick={() => handleSort("phone")}>Phone {sortColumn === "phone" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 cursor-pointer  text-center hover:text-blue-500 select-none" onClick={() => handleSort("role")}>Role {sortColumn === "role" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 cursor-pointer  text-center hover:text-blue-500 select-none" onClick={() => handleSort("dob")}>Dob {sortColumn === "dob" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                <th className="p-3 text-center">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -143,56 +240,59 @@ export default function UserPage() {
                   whileHover={{ scale: 1.02 }}
                   onClick={() => openModal(user)}
                 >
-                  <td className="p-3">{user.id}</td>
-                  <td className="p-3">
-                    {user.avatar ? (
-                      <img
-                        src={user.avatar}
-                        alt={user.username}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                        ?
+                  <td className="p-3 text-center">{user.id}</td>
+                  <td className="p-3 text-center">
+                    <div className="relative w-12 h-12 flex items-center justify-center">
+                      {/* Cánh trái */}
+                      <svg className="absolute -left-6 w-16 h-16 animate-wing-left" viewBox="0 0 64 64">
+                        <defs>
+                          <linearGradient id={`gradientLeft-${user.id}`} x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stopColor={user?.membershipLevel === "Gold" ? "#facc15" : user?.membershipLevel === "Platinum" ? "#3b82f6" : "#9ca3af"} />
+                            <stop offset="50%" stopColor={user?.membershipLevel === "Gold" ? "#fcd34d" : user?.membershipLevel === "Platinum" ? "#8b5cf6" : "#d1d5db"} />
+                            <stop offset="100%" stopColor={user?.membershipLevel === "Gold" ? "#fbbf24" : user?.membershipLevel === "Platinum" ? "#ec4899" : "#9ca3af"} />
+                          </linearGradient>
+                        </defs>
+                        <path d="M32 32 C10 10, 0 64, 32 32" fill={`url(#gradientLeft-${user.id})`} />
+                      </svg>
+                      {/* Cánh phải */}
+                      <svg className="absolute -right-6 w-16 h-16 animate-wing-right" viewBox="0 0 64 64">
+                        <defs>
+                          <linearGradient id={`gradientRight-${user.id}`} x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stopColor={user?.membershipLevel === "Gold" ? "#facc15" : user?.membershipLevel === "Platinum" ? "#3b82f6" : "#9ca3af"} />
+                            <stop offset="50%" stopColor={user?.membershipLevel === "Gold" ? "#fcd34d" : user?.membershipLevel === "Platinum" ? "#8b5cf6" : "#d1d5db"} />
+                            <stop offset="100%" stopColor={user?.membershipLevel === "Gold" ? "#fbbf24" : user?.membershipLevel === "Platinum" ? "#ec4899" : "#9ca3af"} />
+                          </linearGradient>
+                        </defs>
+                        <path d="M32 32 C54 10, 64 64, 32 32" fill={`url(#gradientRight-${user.id})`} />
+                      </svg>
+                      {/* Avatar với gradient border */}
+                      <div className={`relative flex items-center justify-center ${user?.membershipLevel === "Platinum" ? "w-8 h-13 rounded-[80%/40%] p-[2px]" : "w-12 h-13 rounded-full p-[3px]"} ${user?.membershipLevel === "Gold" ? "bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400" : user?.membershipLevel === "Platinum" ? "bg-gradient-to-r from-blue-500 via-purple-400 to-pink-500" : "bg-gradient-to-r from-gray-400 via-gray-200 to-gray-400"}`}>
+                        <img src={user?.avatar || "https://avatars.githubusercontent.com/u/9919?s=128&v=4"} alt="User Avatar" className={`w-full h-full object-cover ${user?.membershipLevel === "Platinum" ? "rounded-[50%/40%]" : "rounded-full"}`} />
+                        <div className="absolute inset-0 pointer-events-none">
+                          {[...Array(5)].map((_, i) => (
+                            <div key={i} className="absolute w-1 h-2 bg-white opacity-70 rounded-full animate-feather" style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 2}s`, animationDuration: `${1 + Math.random() * 1.5}s` }} />
+                          ))}
+                        </div>
                       </div>
-                    )}
+                    </div>
                   </td>
-                  <td className="p-3">{user.username}</td>
-                  <td className="p-3">{user.fullName}</td>
-                  <td className="p-3">{user.email}</td>
-                  <td className="p-3">{user.phone}</td>
-                  <td className="p-3 font-medium">
-                    {user.role === "admin" ? (
-                      <span className="text-red-500">Admin</span>
-                    ) : (
-                      <span className="text-blue-500">Customer</span>
-                    )}
+                  <td className="p-3  text-center">{user.username}</td>
+                  <td className="p-3 text-center">{user.fullName}</td>
+                  <td className="p-3 text-center">{user.email}</td>
+                  <td className="p-3 text-center">{user.phone}</td>
+                  <td className="p-3 font-medium text-center">
+                    {user.role === "admin" ? <span className="text-red-500">Admin</span> : <span className="text-blue-500">Customer</span>}
                   </td>
-                  <td className="p-3 flex gap-2">
-                    <button
-                      className="px-2 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 transition"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        localStorage.setItem("editUserId", user.id.toString());
-                        router.replace("/admin/user/edit");
-                      }}
-                    >
-                      ✏️ Sửa
-                    </button>
-                    <button
-                      className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(user.id);
-                      }}
-                    >
-                      🗑️ Xóa
-                    </button>
+                  <td className="p-3 text-center">{formatDateUTC(user.dob)}</td>
+                  <td className="p-3 flex gap-2 text-center">
+                    <button className="px-2 py-1 bg-yellow-0 text-black rounded hover:bg-yellow-100 transition" onClick={(e) => { e.stopPropagation(); localStorage.setItem("editUserId", user.id.toString()); router.replace("/admin/user/edit"); }}>✏️ Sửa</button>
+                    <button className="px-2 py-1 bg-red-0 text-black rounded hover:bg-red-100 transition" onClick={(e) => { e.stopPropagation(); handleDelete(user.id); }}>🗑️ Xóa</button>
                   </td>
                 </motion.tr>
               ))}
             </tbody>
           </table>
+
         </div>
 
         {/* Mobile Cards */}
@@ -214,9 +314,8 @@ export default function UserPage() {
                 <p className="text-sm text-gray-600 truncate">{user.email}</p>
                 <p className="text-sm text-gray-600 truncate">{user.phone}</p>
                 <p
-                  className={`text-sm font-medium truncate ${
-                    user.role === "admin" ? "text-red-500" : "text-blue-500"
-                  }`}
+                  className={`text-sm font-medium truncate ${user.role === "admin" ? "text-red-500" : "text-blue-500"
+                    }`}
                 >
                   {user.role}
                 </p>
@@ -247,20 +346,33 @@ export default function UserPage() {
         </div>
 
         {/* Pagination */}
-        <div className="flex justify-center mt-6 gap-2 flex-wrap">
-          {Array.from({ length: totalPages }, (_, i) => (
-            <motion.button
+        <div className="flex flex-wrap justify-center gap-2 mt-4">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 border rounded bg-gray-200 disabled:opacity-50"
+          >
+            Previous
+          </button>
+          {getPaginationNumbers().map((num, i) => (
+            <button
               key={i}
-              onClick={() => setCurrentPage(i + 1)}
-              whileHover={{ scale: 1.1 }}
-              className={`px-4 py-2 rounded-xl ${
-                currentPage === i + 1 ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"
-              }`}
+              disabled={num === "..."}
+              onClick={() => typeof num === "number" && setCurrentPage(num)}
+              className={`px-3 py-1 border rounded ${num === currentPage ? "bg-blue-500 text-white" : "bg-gray-200"}`}
             >
-              {i + 1}
-            </motion.button>
+              {num}
+            </button>
           ))}
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 border rounded bg-gray-200 disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
+
       </div>
 
       {/* Modal */}
@@ -295,16 +407,51 @@ export default function UserPage() {
                 transition={{ type: "spring", stiffness: 120 }}
               />
               <h2 className="text-center text-xl font-bold mb-2">{selectedUser.fullName}</h2>
-              <p className="text-center text-gray-600 mb-1">@{selectedUser.username}</p>
-              <p className="text-center text-gray-600">{selectedUser.email}</p>
+              <p className="text-center text-gray-600 mb-1">📋 @{selectedUser.username}</p>
+              <p className="text-center text-gray-600">📧 {selectedUser.email}</p>
               <p className="text-center text-gray-600 mb-2">📞 {selectedUser.phone}</p>
+              <p className="text-center text-gray-600 mb-2">🗓️ {formatDateUTC(selectedUser.createdAt)}</p>
+              <p className="text-center text-gray-600 mb-2">🗓️ {formatDateUTC(selectedUser.updatedAt)}</p>
               <p
-                className={`text-center font-medium ${
-                  selectedUser.role === "admin" ? "text-red-500" : "text-blue-500"
-                }`}
+                className={`text-center font-medium ${selectedUser.role === "admin" ? "text-red-500" : "text-blue-500"
+                  }`}
               >
-                {selectedUser.role === "admin" ? "Administrator" : "Customer"}
+                🎭 {selectedUser.role === "admin" ? "Administrator" : "Customer"}
               </p>
+              {/* Membership */}
+              <div className="text-center text-gray-600 mb-2">
+                <span
+                  className={
+                    selectedUser.membershipLevel === "Silver"
+                      ? "text-gray-400"
+                      : selectedUser.membershipLevel === "Gold"
+                        ? "text-yellow-400"
+                        : selectedUser.membershipLevel === "Platinum"
+                          ? "text-blue-600"
+                          : "text-gray-400"
+                  }
+                >
+                  {selectedUser.membershipLevel === "Silver"
+                    ? "🥈"
+                    : selectedUser.membershipLevel === "Gold"
+                      ? "🥇"
+                      : selectedUser.membershipLevel === "Platinum"
+                        ? "🏆"
+                        : "🥈"}
+                </span>
+                <span className={
+                  selectedUser.membershipLevel === "Silver"
+                    ? "text-gray-400"
+                    : selectedUser.membershipLevel === "Gold"
+                      ? "text-yellow-400"
+                      : selectedUser.membershipLevel === "Platinum"
+                        ? "text-blue-600"
+                        : "text-gray-400"
+                }>
+                  {selectedUser.membershipLevel ?? "Silver"} ({selectedUser.loyaltyPoints ?? 0} điểm)
+                </span>
+
+              </div>
             </motion.div>
           </motion.div>
         )}
