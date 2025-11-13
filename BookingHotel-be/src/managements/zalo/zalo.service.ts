@@ -43,6 +43,7 @@ export class ZaloChatService {
     async markAsSeen(id: number) {
         await this.chatRepo.update(id, { status: 'seen' });
     }
+
     async createImageMessage(file: Express.Multer.File, sender_id: number, receiver_id: number) {
         const filePath = `/uploads/zalo/${file.filename}`; // đường dẫn public
         const message = this.chatRepo.create({
