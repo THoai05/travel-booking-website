@@ -39,12 +39,24 @@ enum BookingStatus {
   EXPIRED = 'expired',
 }
 
+// ================== ENUM ROOM TYPE ==================
+export enum RoomTypeName {
+  DELUXE_DOUBLE = "deluxe double",
+  DELUXE_FAMILY = "deluxe family",
+  GRAND_FAMILY = "grand family",
+  DELUXE_TRIPLE = "deluxe triple",
+  STANDARD = "standard",
+  DOUBLE_ROOM = "double room",
+  TRIPPLE_ROOM = "triple room",
+}
+
 export default function RoomMonitorPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [userId, setUserId] = useState<number | null>(null);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [roomTypeFilter, setRoomTypeFilter] = useState<string | null>(null);
 
   const [sortKey, setSortKey] = useState<"createdAt" | "updatedAt" | "checkInDate" | "checkOutDate" | "hotelName" | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -121,11 +133,13 @@ export default function RoomMonitorPage() {
   // Filter + search
   const filteredRooms = rooms
     .filter(r => !statusFilter || r.bookingStatus === statusFilter)
+    .filter(r => !roomTypeFilter || r.roomTypeName?.toLowerCase() === roomTypeFilter.toLowerCase())
     .filter(r => {
       const hotelName = removeVietnameseAccents(r.hotelName.toLowerCase());
       const searchTerm = removeVietnameseAccents(search.toLowerCase());
       return hotelName.includes(searchTerm);
     });
+
 
   // Group rooms
   let grouped: HotelGroup[] = Object.values(
@@ -283,7 +297,7 @@ export default function RoomMonitorPage() {
       <div className="flex flex-col md:flex-row gap-4 mb-4">
         <input
           type="text"
-          placeholder="Tìm theo tên khách sạn..."
+          placeholder="🔍 Tìm theo tên khách sạn..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="border p-2 rounded w-full md:w-1/3"
@@ -293,17 +307,17 @@ export default function RoomMonitorPage() {
           onChange={e => setSortKey(e.target.value as any || null)}
           className="border p-2 rounded w-full md:w-1/4"
         >
-          <option value="">Sắp xếp theo</option>
-          <option value="checkInDate">Ngày nhận phòng</option>
-          <option value="checkOutDate">Ngày trả phòng</option>
-          <option value="hotelName">Tên khách sạn</option>
+          <option value="">📝 Sắp xếp theo</option>
+          <option value="checkInDate">📅 Ngày nhận phòng</option>
+          <option value="checkOutDate">📅 Ngày trả phòng</option>
+          <option value="hotelName">🏨 Tên khách sạn</option>
         </select>
         {sortKey && (
           <button
             onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
             className="border p-2 rounded bg-gray-200"
           >
-            Thứ tự: {sortOrder.toUpperCase()}
+            {sortOrder === "asc" ? "⬆️" : "⬇️"} Thứ tự: {sortOrder.toUpperCase()}
           </button>
         )}
       </div>
@@ -314,17 +328,66 @@ export default function RoomMonitorPage() {
           onClick={() => setStatusFilter(null)}
           className={`px-4 py-2 rounded ${statusFilter === null ? "bg-blue-500 text-white" : "bg-gray-200"}`}
         >
-          All
+          🏷️ All
         </button>
-        {Object.values(BookingStatus).map(status => (
-          <button
-            key={status}
-            onClick={() => setStatusFilter(statusFilter === status ? null : status)}
-            className={`px-4 py-2 rounded ${statusFilter === status ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-          >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </button>
-        ))}
+        {Object.values(BookingStatus).map(status => {
+          let icon = "❓"; // default icon
+          switch (status) {
+            case "pending":
+              icon = "⏳";
+              break;
+            case "confirmed":
+              icon = "✅";
+              break;
+            case "cancelled":
+              icon = "❌";
+              break;
+            case "completed":
+              icon = "🎉";
+              break;
+            case "expired":
+              icon = "⌛";
+              break;
+          }
+          return (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(statusFilter === status ? null : status)}
+              className={`px-4 py-2 rounded ${statusFilter === status ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+            >
+              {icon} {status.charAt(0).toUpperCase() + status.slice(1)}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Filter Room Type */}
+      <div className="flex gap-2 mb-6 flex-wrap">
+        <button
+          onClick={() => setRoomTypeFilter(null)}
+          className={`px-4 py-2 rounded ${roomTypeFilter === null ? "bg-green-500 text-white" : "bg-gray-200"}`}
+        >
+          🏨 All Room Types
+        </button>
+        {Object.values(RoomTypeName).map(type => {
+          let icon = "🛏️"; // default icon
+          if (type.includes("deluxe")) icon = "💎";
+          else if (type.includes("family") || type.includes("grand")) icon = "👨‍👩‍👧‍👦";
+          else if (type.includes("double")) icon = "👥";
+          else if (type.includes("triple") || type.includes("tripple")) icon = "👨‍👩‍👦";
+          else if (type.includes("standard")) icon = "🛌";
+
+          return (
+            <button
+              key={type}
+              onClick={() => setRoomTypeFilter(roomTypeFilter === type ? null : type)}
+              className={`px-4 py-2 rounded capitalize ${roomTypeFilter === type ? "bg-green-500 text-white" : "bg-gray-200 hover:bg-gray-300"
+                }`}
+            >
+              {icon} {type}
+            </button>
+          );
+        })}
       </div>
 
       {/* Room groups */}
@@ -373,8 +436,8 @@ export default function RoomMonitorPage() {
 
           <div
             className={`grid gap-6 ${group.rooms.length === 1
-                ? "grid-cols-1" // chiếm 1 cột full width
-                : "grid-cols-1 md:grid-cols-2" // 2 phần tử thì 2 cột trên md
+              ? "grid-cols-1" // chiếm 1 cột full width
+              : "grid-cols-1 md:grid-cols-2" // 2 phần tử thì 2 cột trên md
               }`}
           >
             {group.rooms.map((room) => (
