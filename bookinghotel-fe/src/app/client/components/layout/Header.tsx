@@ -100,18 +100,23 @@ const Header = () => {
     };
   }, [dropdownRef]);
 
+  const fetchNotification = async () => {
+    try {
+      const res = await api.get(`notifications/user/${user?.id}/unread-count`);
+      setUnreadCount(res.data.unreadCount);
+
+    } catch {
+      //toast.error("Không thể lấy thông tin người dùng!");
+    }
+  };
+
   // 🔹 Lấy userId
   useEffect(() => {
-    const fetchNotification = async () => {
-      try {
-        const res = await api.get(`notifications/user/${user?.id}/unread-count`);
-        setUnreadCount(res.data.unreadCount);
-
-      } catch {
-        //toast.error("Không thể lấy thông tin người dùng!");
-      }
-    };
     fetchNotification();
+
+    const interval = setInterval(() => {
+      fetchNotification();
+    }, 5000);
 
     if (user?.role === "admin") {
       router.replace("/admin");
@@ -130,6 +135,8 @@ const Header = () => {
       }
     };
     fetchProfileAndUser(); // lần đầu load
+    
+    return () => clearInterval(interval);
 
   }, [user]);
 
@@ -335,7 +342,15 @@ const Header = () => {
 
                     {/* Membership */}
                     <div className="flex items-center gap-1 text-xs font-semibold">
-                      <span className="truncate max-w-[120px]">
+                      <span className={
+                        profile.membershipLevel === "Silver"
+                          ? "text-gray-400 truncate max-w-[120px]"
+                          : profile.membershipLevel === "Gold"
+                            ? "text-yellow-400 truncate max-w-[120px]"
+                            : profile.membershipLevel === "Platinum"
+                              ? "text-pink-600 truncate max-w-[120px]"
+                              : "text-gray-400 truncate max-w-[120px]"
+                      }>
                         {profile.membershipLevel ?? "Silver"} ({profile.loyaltyPoints ?? 0})
                       </span>
                       <span
@@ -349,6 +364,7 @@ const Header = () => {
                                 : "text-gray-400"
                         }
                       >
+
                         {profile.membershipLevel === "Silver"
                           ? "🥈"
                           : profile.membershipLevel === "Gold"
@@ -476,7 +492,7 @@ const Header = () => {
 
       {showNotifications && (
         <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
-          <div className="bg-white w-full max-w-lg max-h-[80vh] rounded-[5px] shadow-lg overflow-auto p-4">
+          <div className="bg-white w-full max-w-xl max-h-[80vh] rounded-[5px] shadow-lg overflow-auto p-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold">Thông báo</h2>
               <button

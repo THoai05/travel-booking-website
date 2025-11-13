@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import api from "@/axios/axios";
 import { toast } from "react-hot-toast";
-import { FiTrash2, FiRefreshCw, FiUserCheck, FiHome, FiCreditCard, FiGift } from "react-icons/fi";
+import { FiTrash2, FiRefreshCw, FiUserCheck, FiHome, FiCreditCard, FiGift, FiCheckSquare, } from "react-icons/fi";
 import { useAuth } from "@/context/AuthContext";
+
 
 interface Notification {
     id: number;
@@ -173,13 +174,23 @@ export default function NotificationsPage() {
         setDetailData(null);
     };
 
+    // 🔹 Chọn tất cả
+    const toggleSelectAll = () => {
+        if (selectedIds.length === paginatedNotifications.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(paginatedNotifications.map((n) => n.id));
+        }
+    };
+
+
     return (
         <div className="min-h-screen flex flex-col items-center bg-gray-50 p-4 sm:p-6" onClick={() => toast.dismiss()}>
             {/* Tìm kiếm & lọc */}
             <div className="w-full max-w-2xl flex flex-col gap-2 mb-4">
                 <input
                     type="text"
-                    placeholder="Tìm kiếm theo tiêu đề..."
+                    placeholder="🔍 Tìm kiếm theo tiêu đề..."
                     value={searchTitle}
                     onChange={(e) => setSearchTitle(e.target.value)}
                     className="w-full p-2 rounded border border-gray-300 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -225,6 +236,16 @@ export default function NotificationsPage() {
                 >
                     <FiRefreshCw className="text-xl" />
                     {loading ? "Đang tải..." : "Load data"}
+                </button>
+
+                <button
+                    onClick={toggleSelectAll}
+                    className="flex-1 flex justify-center items-center gap-2 bg-white border border-gray-300 shadow px-4 py-2 rounded-[5px] hover:bg-gray-100 transition text-sm"
+                >
+                    <FiCheckSquare className="text-xl" />
+                    {selectedIds.length === paginatedNotifications.length
+                        ? "Bỏ chọn tất cả"
+                        : "Chọn tất cả"}
                 </button>
 
                 <button
