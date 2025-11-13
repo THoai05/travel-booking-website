@@ -1,7 +1,7 @@
 "use client";
 
 import { FileText, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
-// ✅ Đã sửa đường dẫn import để giải quyết lỗi biên dịch
+//  Đã sửa đường dẫn import để giải quyết lỗi biên dịch
 import { useApi } from "./useAPI";
 import { useDownloader } from "./useDownExel";
 import { useState, useMemo } from "react";
@@ -10,7 +10,7 @@ export default function BookingTable() {
     // State cho Tìm kiếm
     const [searchKeyword, setSearchKeyword] = useState('');
 
-    // 💡 Lấy các thông tin phân trang (page, totalPages, changePage) từ useApi
+    //  Lấy các thông tin phân trang (page, totalPages, changePage) từ useApi
     const {
         data: bookingData,
         loading,

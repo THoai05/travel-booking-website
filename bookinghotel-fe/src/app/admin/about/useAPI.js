@@ -50,8 +50,8 @@ export function useApi(
             if (isPaginatedEndpoint) {
                 finalParams = {
                     ...finalParams,
-                    page: page, // ⬅️ Luôn gửi tham số page
-                    limit: limit, // ⬅️ Luôn gửi tham số limit
+                    page: page, //  Luôn gửi tham số page
+                    limit: limit, //  Luôn gửi tham số limit
                 };
             }
 
@@ -111,7 +111,7 @@ export function useApi(
     };
 
 
-    // ✅ Trả về kết quả đầy đủ
+    //  Trả về kết quả đầy đủ
     return {
         // Data & Status
         data,
