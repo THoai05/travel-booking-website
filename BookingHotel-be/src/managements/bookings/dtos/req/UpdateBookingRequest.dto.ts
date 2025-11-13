@@ -1,4 +1,4 @@
-import {  IsOptional, IsString } from "class-validator"
+import {  IsNumber, IsOptional, IsString } from "class-validator"
 
 export class UpdateBookingRequest{
     @IsOptional()
@@ -19,5 +19,19 @@ export class UpdateBookingRequest{
 
     @IsOptional()
     @IsString()
-    status?:string
+    status?: string
+
+    @IsOptional()
+    @IsString()
+    couponeCode?: string
+
+    @IsOptional()
+    @IsNumber()
+    couponId?: string
+
+    @IsOptional()
+    @IsNumber()
+    totalPrice?:number
+    
+
 }

@@ -118,7 +118,7 @@ export class PaymentGateService {
         const ipnUrl = "https://callback.url/notify";
         // const ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
         const amount = orderAmoutString;
-        const requestType = "captureWalssslet"
+        const requestType = "captureWallet"
         const extraData = "";
 
         const rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId + "&requestType=" + requestType
@@ -244,8 +244,8 @@ export class PaymentGateService {
             throw new BadRequestException("Giao dich that bai")
         }
         
-        const { vnp_TxnRef } = params
-        const updateBookingData = await this.bookingService.updateBookingForGuests(Number(vnp_TxnRef), { status: "confirmed" })
+        const { vnp_TxnRef,vnp_Amount } = params
+        const updateBookingData = await this.bookingService.updateBookingForGuests(Number(vnp_TxnRef), { status: "confirmed",totalPrice:Number(vnp_Amount) })
         return updateBookingData
     }
 
@@ -286,17 +286,17 @@ export class PaymentGateService {
             throw new BadRequestException("Giao dich that bai");
         }
 
-        return this.bookingService.updateBookingForGuests(Number(orderId), { status: "confirmed" });
+        return this.bookingService.updateBookingForGuests(Number(orderId), { status: "confirmed",totalPrice:Number(amount) });
     }
 
     async verifyZalopay(params: Record<string, string>): Promise<any> {
-        const { apptransid,status } = params
+        const { apptransid,status,amount } = params
         const id = apptransid.split('_')[1];
         if (status !== '1') {
             throw new BadRequestException("Giao dịch thất bại");
         }
 
-        return this.bookingService.updateBookingForGuests(Number(id), { status: "confirmed" });
+        return this.bookingService.updateBookingForGuests(Number(id), { status: "confirmed",totalPrice:Number(amount) });
     }
 
     async verifyStipe(orderCode:string): Promise<any> {

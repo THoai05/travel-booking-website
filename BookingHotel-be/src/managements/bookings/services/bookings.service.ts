@@ -12,6 +12,7 @@ import { Between, In } from 'typeorm';
 import { BookingStatus } from '../entities/bookings.entity';
 import { PaymentStatus, PaymentMethod } from 'src/managements/payments/entities/payments.entity';
 import { RatePlan } from 'src/managements/rooms/entities/ratePlans.entity';
+import { Coupon } from 'src/managements/coupons/entities/coupons.entity';
 
 @Injectable()
 export class BookingsService {
@@ -23,7 +24,9 @@ export class BookingsService {
         @InjectRepository(RoomType)
         private readonly roomTypeRepo: Repository<RoomType>,
         @InjectRepository(RatePlan)
-        private readonly ratePlanRepo: Repository<RatePlan>
+        private readonly ratePlanRepo: Repository<RatePlan>,
+        @InjectRepository(Coupon)
+        private readonly couponRepo:Repository<Coupon>
     ) { }
 
     async createBooking(body: CreateBookingRequest): Promise<BookingResponseManagement> {
@@ -37,7 +40,6 @@ export class BookingsService {
             ratePlanId
         } = body
 
-        console.log(body)
 
         const user = await this.userRepo.findOne({
             where: {
@@ -97,7 +99,9 @@ export class BookingsService {
             contactEmail,
             contactPhone,
             guestsFullName,
-            status
+            status,
+            couponId,
+            couponeCode,totalPrice
         } = body
 
         const updateBookingData = await this.bookingRepo.findOne({
@@ -125,6 +129,7 @@ export class BookingsService {
             updateBookingData.guestFullName = guestsFullName
         }
 
+
         if (status !== undefined) {
             const isValid = isValidBooking(status)
             if (!isValid) {
@@ -132,6 +137,34 @@ export class BookingsService {
             }
             updateBookingData.status = status
         }
+
+    
+
+        if (couponeCode || couponId) {
+            const coupon = await this.couponRepo.findOne({
+                where: [
+                    { code: couponeCode },
+                    { id: Number(couponId) },
+                ],
+            });
+            
+            if (!coupon) {
+                throw new BadRequestException("Khong tim thay coupon nao")
+            }
+            if (coupon.discountType === 'percent') {
+                updateBookingData.totalPriceUpdate = updateBookingData.totalPrice -  Math.floor(updateBookingData.totalPrice / 100 * Number(coupon.discountValue))
+            } else {
+                updateBookingData.totalPriceUpdate = updateBookingData.totalPrice -  Math.floor(Number(coupon.discountValue))
+            }
+        }
+        
+        if (totalPrice) {
+            updateBookingData.totalPrice = Number(totalPrice)
+        }
+            
+
+
+        
 
         const updateBookingSaved = await this.bookingRepo.save(updateBookingData)
 
@@ -154,7 +187,8 @@ export class BookingsService {
             contactEmail: updateBookingSaved.contactEmail,
             contactPhone: updateBookingSaved.contactPhone,
             guestsFullName: updateBookingSaved.guestFullName,
-            status: updateBookingSaved.status
+            status: updateBookingSaved.status,
+            totalPriceUpdate:updateBookingSaved.totalPriceUpdate
         }
     }
 

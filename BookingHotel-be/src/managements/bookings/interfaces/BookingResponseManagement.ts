@@ -16,5 +16,6 @@ export interface BookingResponseManagement {
     contactEmail?: string
     contactPhone?: string
     guestsFullName?: string
-    status?:string
+    status?: string
+    totalPriceUpdate?:number
 }

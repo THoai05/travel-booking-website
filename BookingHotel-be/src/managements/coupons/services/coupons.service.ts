@@ -29,7 +29,6 @@ export class CouponsService {
             .orderBy('RAND()','ASC')
             .limit(3)
             .getMany()
-        
         return coupons
     }
 }
