@@ -25,8 +25,11 @@ export class CouponsService {
         if (title) {
             queryBuilder.andWhere('coupon.couponType = :title', { title });
         }
-
-        return await queryBuilder.orderBy('RAND()', 'ASC').limit(3).getMany();
+        const coupons =  queryBuilder
+            .orderBy('RAND()','ASC')
+            .limit(3)
+            .getMany()
+        return coupons
     }
 
     //  Phân trang danh sách coupon (cho trang admin)

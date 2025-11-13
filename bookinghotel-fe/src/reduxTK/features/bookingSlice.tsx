@@ -21,9 +21,11 @@ export interface PendingBooking {
   contactFullName?: string
   contactEmail?: string
   contactPhone?: string
-  guestsFullName?:string
+  guestsFullName?: string
+  
   // Bro có thể thêm status và expiresAt vào đây nếu BE trả về
-  status?: string 
+  status?: string
+  totalPriceUpdate?:number
 }
 
 // 2. Định nghĩa "hình dạng" của state
