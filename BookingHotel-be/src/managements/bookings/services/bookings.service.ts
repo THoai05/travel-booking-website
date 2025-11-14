@@ -101,8 +101,11 @@ export class BookingsService {
             guestsFullName,
             status,
             couponId,
-            couponeCode,totalPrice
+            couponCode,totalPrice
         } = body
+
+
+        console.log("body duoc gui len ",body)
 
         const updateBookingData = await this.bookingRepo.findOne({
             where: { id: bookingId },
@@ -140,12 +143,20 @@ export class BookingsService {
 
     
 
-        if (couponeCode || couponId) {
+        if (couponCode || couponId) {
+
+
+            const conditions: any[] = [];
+
+            if (couponCode) conditions.push({ code: couponCode });
+
+            const parsedId = Number(couponId);
+            if (!isNaN(parsedId)) conditions.push({ id: parsedId });
+
+            
             const coupon = await this.couponRepo.findOne({
-                where: [
-                    { code: couponeCode },
-                    { id: Number(couponId) },
-                ],
+                where: 
+                    conditions
             });
             
             if (!coupon) {
@@ -157,7 +168,7 @@ export class BookingsService {
                 updateBookingData.totalPriceUpdate = updateBookingData.totalPrice -  Math.floor(Number(coupon.discountValue))
             }
         }
-        
+            
         if (totalPrice) {
             updateBookingData.totalPrice = Number(totalPrice)
         }

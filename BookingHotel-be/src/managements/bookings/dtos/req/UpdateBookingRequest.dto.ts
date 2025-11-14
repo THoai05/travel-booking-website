@@ -23,7 +23,7 @@ export class UpdateBookingRequest{
 
     @IsOptional()
     @IsString()
-    couponeCode?: string
+    couponCode?: string
 
     @IsOptional()
     @IsNumber()
