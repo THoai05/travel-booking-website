@@ -6,6 +6,7 @@ import { GetAllDataCitiesRequest } from '../dtos/req/GetAllDataCitiesRequest.dto
 import { GetDataCitiesFilterRequest } from '../dtos/req/GetDataCitiesFilterRequest.dto';
 import { NearSpot } from '../entities/nearSpot.entity';
 import { Hotel } from 'src/managements/hotels/entities/hotel.entity';
+import { ImagesService } from 'src/managements/images/services/images.service';
 
 @Injectable()
 export class CityService {
@@ -15,7 +16,8 @@ export class CityService {
         @InjectRepository(NearSpot)
         private readonly nearSpotRepo: Repository<NearSpot>,
         @InjectRepository(Hotel)
-        private readonly hotelRepo:Repository<Hotel>
+        private readonly hotelRepo: Repository<Hotel>,
+        private readonly imageService:ImagesService
     ) {
     }
 
@@ -145,18 +147,44 @@ export class CityService {
         .limit(15)
         
         // Không cần .take(10) ở đây nữa vì đã lọc bằng WHERE IN
-        .getRawMany();
+           .getRawMany();
+       
+       if (!hotels || hotels.length === 0) {
+            return [];
+       }
+       
+       const imagesPromises = hotels.map(hotel => {
+           return this.imageService.getImagesByTypeAndId('hotel',hotel.id)
+       })
 
-    // Phần map vẫn y hệt
-    return hotels.map(h => ({
-        id: h.id,
-        name: h.name,
-        address: h.address,
-        avgPrice: h.avgPrice,
-        phone: h.phone,
-        city: { id: h.cityId, title: h.cityName },
-        avgRating: Number(Number(h.avgRating || 0).toFixed(2)),
-        reviewCount: Number(h.reviewCount || 0)
-    }));
+       const imageResults = await Promise.all(imagesPromises);
+
+    const finalResults = hotels.map((h, index) => {
+       const hotelImages = imageResults[index].data; 
+
+        let imageUrl = ""; 
+        
+        if (hotelImages && hotelImages.length > 0) {
+            const mainImage = hotelImages.find(img => img.isMain === true);
+            
+            if (mainImage) {
+                imageUrl = mainImage.url;
+            } else {
+                imageUrl = hotelImages[0].url;
+            }
+        } 
+        return {
+            id: h.id,
+            name: h.name,
+            address: h.address,
+            avgPrice: h.avgPrice,
+            phone: h.phone,
+            city: { id: h.cityId, title: h.cityName },
+            avgRating: Number(Number(h.avgRating || 0).toFixed(2)),
+            reviewCount: Number(h.reviewCount || 0),
+            images: imageUrl
+        };
+    });
+    return finalResults;
 }
 }

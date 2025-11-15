@@ -35,7 +35,7 @@ export default function AccommodationCard({ accommodation }: AccommodationCardPr
       {/* Image Section */}
       <div className="relative h-48 overflow-hidden">
         <ImageWithFallback
-          src={accommodation.imageUrl || defaultImage}
+          src={accommodation.images || defaultImage}
           alt={accommodation.name}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
         />
@@ -63,7 +63,7 @@ export default function AccommodationCard({ accommodation }: AccommodationCardPr
         {/* Location */}
         <div className="flex items-center gap-1.5 text-gray-600 mb-1">
           <MapPin className="w-4 h-4 text-sky-500 flex-shrink-0" />
-          <span className="text-sm font-bold truncate">{accommodation.city.title}</span>
+          <span className="text-sm font-bold truncate">{accommodation?.city?.title || ""}</span>
         </div>
         
         {/* Review Count */}
