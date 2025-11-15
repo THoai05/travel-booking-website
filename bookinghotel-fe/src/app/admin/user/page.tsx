@@ -58,7 +58,7 @@ export default function UserPage() {
           setOldUsers(data);
         }
       } catch (error) {
-        console.error("Lỗi khi lấy danh sách user:", error);
+        //console.error("Lỗi khi lấy danh sách user:", error);
       }
     };
     fetchData();

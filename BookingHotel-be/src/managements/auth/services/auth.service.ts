@@ -67,8 +67,13 @@ export class AuthService {
 
 		const now = new Date();
 		const nowUTC = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-		user.lastLogin = nowUTC;
-		await this.userRepo.save(user);
+
+		await this.userRepo.update(
+			{ username: usernameOrEmail }, // hoặc email
+			{ lastLogin: nowUTC }
+		);
+
+
 
 		// Loại bỏ password
 		const { password: _, ...userWithoutPassword } = user;
@@ -99,8 +104,12 @@ export class AuthService {
 
 		const now = new Date();
 		const nowUTC = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-		user.lastLogin = nowUTC;
-		await this.userRepo.save(user);
+
+		await this.userRepo.update(
+			{ username: username }, // hoặc email
+			{ lastLogin: nowUTC }
+		);
+
 
 		// Loại bỏ password
 		const { password: _, ...userWithoutPassword } = user;
