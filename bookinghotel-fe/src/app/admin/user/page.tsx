@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { getUsers, deleteUser } from "@/service/users/userService";
 import DashboardPage from "./dashboard/page"; // import trực tiếp component
+import BookingHistoryPage from "./booking-history/page"; // import trực tiếp component
 import {
-  Activity,
+  Activity, Monitor, Pencil, Trash2, History,
 } from "lucide-react";
 
 interface User {
@@ -39,7 +40,7 @@ export default function UserPage() {
   const [sortColumn, setSortColumn] = useState<keyof User>("id");
 
   const [showDashboard, setShowDashboard] = useState(false);
-
+  const [showBookingHistory, setShowBookingHistory] = useState(false);
 
   // 🕒 Lấy danh sách và so sánh với cũ
   useEffect(() => {
@@ -213,6 +214,28 @@ export default function UserPage() {
                 </div>
               </div>
             )}
+
+
+
+            {showBookingHistory && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+                <div className="bg-white w-full max-w-7xl h-full max-h-[90vh] rounded-lg shadow-lg overflow-auto p-4 relative">
+                  {/* Header với nút đóng */}
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-bold">Dashboard Room Monitor</h2>
+                    <button
+                      onClick={() => setShowBookingHistory(false)}
+                      className="text-gray-500 hover:text-gray-800 text-xl font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  {/* Nội dung dashboard */}
+                  <BookingHistoryPage />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -285,9 +308,44 @@ export default function UserPage() {
                   </td>
                   <td className="p-3 text-center">{formatDateUTC(user.dob)}</td>
                   <td className="p-3 flex gap-2 text-center">
-                    <button className="px-2 py-1 bg-yellow-0 text-black rounded hover:bg-yellow-100 transition" onClick={(e) => { e.stopPropagation(); localStorage.setItem("editUserId", user.id.toString()); router.replace("/admin/user/edit"); }}>✏️ Sửa</button>
-                    <button className="px-2 py-1 bg-red-0 text-black rounded hover:bg-red-100 transition" onClick={(e) => { e.stopPropagation(); handleDelete(user.id); }}>🗑️ Xóa</button>
+                    <div className="flex flex-col space-y-4">
+                      {/* Nhóm nút Sửa + Xóa */}
+                      <div className="flex space-x-3">
+                        <button
+                          className="flex items-center gap-1 px-3 py-1 bg-yellow-50 text-black rounded hover:bg-yellow-100 transition"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            localStorage.setItem("editUserId", user.id.toString());
+                            router.replace("/admin/user/edit");
+                          }}
+                        >
+                          <Pencil size={16} /> Sửa
+                        </button>
+                        <button
+                          className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-red-100 transition"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(user.id);
+                          }}
+                        >
+                          <Trash2 size={16} /> Xóa
+                        </button>
+                      </div>
+
+                      {/* Nút xem lịch sử đặt phòng */}
+                      <button
+                        className="flex items-center gap-1 px-3 py-1 bg-blue-50 text-black rounded hover:bg-blue-100 transition"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          localStorage.setItem("editUserId", user.id.toString());
+                          setShowBookingHistory(true);
+                        }}
+                      >
+                        <History size={16} /> Booking history
+                      </button>
+                    </div>
                   </td>
+
                 </motion.tr>
               ))}
             </tbody>
@@ -340,6 +398,7 @@ export default function UserPage() {
                 >
                   🗑️ Xóa
                 </button>
+
               </div>
             </motion.div>
           ))}
@@ -410,8 +469,8 @@ export default function UserPage() {
               <p className="text-center text-gray-600 mb-1">📋 @{selectedUser.username}</p>
               <p className="text-center text-gray-600">📧 {selectedUser.email}</p>
               <p className="text-center text-gray-600 mb-2">📞 {selectedUser.phone}</p>
-              <p className="text-center text-gray-600 mb-2">🗓️ {formatDateUTC(selectedUser.createdAt)}</p>
-              <p className="text-center text-gray-600 mb-2">🗓️ {formatDateUTC(selectedUser.updatedAt)}</p>
+              <p className="text-center text-gray-600 mb-2">🗓️ Created At: {formatDateUTC(selectedUser.createdAt)}</p>
+              <p className="text-center text-gray-600 mb-2">🗓️ Updated At: {formatDateUTC(selectedUser.updatedAt)}</p>
               <p
                 className={`text-center font-medium ${selectedUser.role === "admin" ? "text-red-500" : "text-blue-500"
                   }`}
