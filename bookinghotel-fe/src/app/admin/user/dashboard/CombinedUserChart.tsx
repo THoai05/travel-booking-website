@@ -4,184 +4,201 @@ import { useEffect, useState } from "react";
 import api from "@/axios/axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    Legend,
-    PieChart as RePieChart,
-    Pie,
-    Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
 } from "recharts";
 
-export enum ProviderLogin {
-    LOCAL = 'local',
-    GOOGLE = 'google',
-    GITHUB = 'github'
+interface UserData {
+  id: number;
+  username: string;
+  lastLogin: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface KPIItem {
-    date: string;
-    created_local: number;
-    created_google: number;
-    created_github: number;
-    updated_local: number;
-    updated_google: number;
-    updated_github: number;
+  date: string;
+  lastLogin: number;
+  createdAt: number;
+  updatedAt: number;
+  usersInDate: UserData[];
 }
 
 export function CombinedUserChart() {
-    const [chartData, setChartData] = useState<KPIItem[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [type, setType] = useState<"week" | "month" | "year">("week");
+  const [chartData, setChartData] = useState<KPIItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [hoveredUsers, setHoveredUsers] = useState<UserData[]>([]);
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupPos, setPopupPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
-    const providerColors: Record<string, string> = {
-        created_local: "#3B82F6",
-        created_google: "#6366F1",
-        created_github: "#8B5CF6",
-        updated_local: "#22C55E",
-        updated_google: "#16A34A",
-        updated_github: "#10B981",
-    };
+  const colors = {
+    lastLogin: "#3B82F6",
+    createdAt: "#10B981",
+    updatedAt: "#F59E0B",
+  };
 
-    useEffect(() => {
-        fetchChartData();
-    }, [type]);
+  useEffect(() => {
+    fetchChartData();
+  }, []);
 
-    const fetchChartData = async () => {
-        try {
-            setLoading(true);
-            const res = await api.get("/users");
-            const users = res.data?.users ?? [];
+  const fetchChartData = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/users");
+      const users: UserData[] = res.data?.users ?? [];
 
-            const today = new Date();
-            const last10Days: string[] = [];
-            for (let i = 9; i >= 0; i--) {
-                const d = new Date(today);
-                d.setDate(today.getDate() - i);
-                last10Days.push(d.toISOString().split("T")[0]);
-            }
+      const today = new Date();
+      const last10Days: string[] = [];
+      for (let i = 9; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        last10Days.push(d.toISOString().split("T")[0]);
+      }
 
-            const data: KPIItem[] = last10Days.map(date => ({
-                date,
-                created_local: users.filter(u => u.provider === ProviderLogin.LOCAL && u.createdAt?.slice(0, 10) === date).length,
-                created_google: users.filter(u => u.provider === ProviderLogin.GOOGLE && u.createdAt?.slice(0, 10) === date).length,
-                created_github: users.filter(u => u.provider === ProviderLogin.GITHUB && u.createdAt?.slice(0, 10) === date).length,
-                updated_local: users.filter(u => u.provider === ProviderLogin.LOCAL && u.updatedAt?.slice(0, 10) === date).length,
-                updated_google: users.filter(u => u.provider === ProviderLogin.GOOGLE && u.updatedAt?.slice(0, 10) === date).length,
-                updated_github: users.filter(u => u.provider === ProviderLogin.GITHUB && u.updatedAt?.slice(0, 10) === date).length,
-            }));
+      const data: KPIItem[] = last10Days.map(date => {
+        const usersInDate = users.filter(
+          u =>
+            u.lastLogin?.slice(0, 10) === date ||
+            u.createdAt?.slice(0, 10) === date ||
+            u.updatedAt?.slice(0, 10) === date
+        );
 
-            setChartData(data);
-        } catch (error) {
-            console.error("Error fetching user statistics:", error);
-            setChartData([]);
-        } finally {
-            setLoading(false);
-        }
-    };
+        return {
+          date,
+          lastLogin: users.filter(u => u.lastLogin?.slice(0, 10) === date).length,
+          createdAt: users.filter(u => u.createdAt?.slice(0, 10) === date).length,
+          updatedAt: users.filter(u => u.updatedAt?.slice(0, 10) === date).length,
+          usersInDate,
+        };
+      });
 
-    // Pie chart tổng hợp tất cả provider
-    // Pie chart tổng hợp tất cả provider, loại bỏ các giá trị bằng 0
-    const pieData = [
-        { name: "Created Local", value: chartData.reduce((sum, item) => sum + item.created_local, 0), color: providerColors.created_local },
-        { name: "Created Google", value: chartData.reduce((sum, item) => sum + item.created_google, 0), color: providerColors.created_google },
-        { name: "Created Github", value: chartData.reduce((sum, item) => sum + item.created_github, 0), color: providerColors.created_github },
-        { name: "Updated Local", value: chartData.reduce((sum, item) => sum + item.updated_local, 0), color: providerColors.updated_local },
-        { name: "Updated Google", value: chartData.reduce((sum, item) => sum + item.updated_google, 0), color: providerColors.updated_google },
-        { name: "Updated Github", value: chartData.reduce((sum, item) => sum + item.updated_github, 0), color: providerColors.updated_github },
-    ].filter(entry => entry.value > 0); // <- chỉ giữ các entry > 0
+      setChartData(data);
+    } catch (error) {
+      console.error("Error fetching user statistics:", error);
+      setChartData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Xử lý hover: cập nhật danh sách users và vị trí popup
+  const handleBarMouseMove = (data: KPIItem | null, e: any) => {
+    if (!data || !e) {
+      setShowPopup(false);
+      return;
+    }
 
-    // Custom tooltip
-    const CustomTooltip = ({ active, payload, label }: any) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="bg-white p-2 border rounded shadow">
-                    <div className="font-medium mb-1">{label}</div>
-                    {payload.map((entry: any, idx: number) => (
-                        <div key={idx} style={{ color: entry.fill }}>
-                            {entry.name}: {entry.value}
-                        </div>
-                    ))}
-                </div>
-            );
-        }
-        return null;
-    };
+    const pageX = e?.pageX ?? 0;
+    const pageY = e?.pageY ?? 0;
 
-    return (
-        <div className="mb-8">
-            <Card className="bg-white border-2 border-dashed border-blue-300 rounded-xl p-4">
-                <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <CardTitle>User Dashboard</CardTitle>
-                    {/* <div className="flex gap-2">
-                        {["week", "month", "year"].map(t => (
-                            <button
-                                key={t}
-                                onClick={() => setType(t as "week" | "month" | "year")}
-                                className={`px-4 py-2 rounded font-medium transition ${type === t ? "bg-blue-600 text-white shadow-md" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
-                            >
-                                {t.charAt(0).toUpperCase() + t.slice(1)}
-                            </button>
-                        ))}
-                    </div> */}
-                </CardHeader>
+    setHoveredUsers(data.usersInDate);
+    setPopupPos({ x: pageX + 10, y: pageY + 10 });
+    setShowPopup(true);
+  };
 
-                <CardContent>
-                    {loading ? <div>Loading...</div> : !chartData.length ? <div>No user data available.</div> : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Stacked Bar Chart */}
-                            <div className="bg-white rounded p-4 shadow">
-                                <h3 className="text-gray-900 mb-2 font-medium">Trend by Date (Created vs Updated)</h3>
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                        <XAxis dataKey="date" tick={{ fill: "#9ca3af", fontSize: 12 }} axisLine={false} tickLine={false} />
-                                        <YAxis tick={{ fill: "#9ca3af", fontSize: 12 }} axisLine={false} tickLine={false} />
-                                        <Tooltip content={<CustomTooltip />} />
-                                        <Legend verticalAlign="top" height={50} wrapperStyle={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-start", gap: 10, marginBottom: 5 }} />
-                                        {/* Created */}
-                                        <Bar dataKey="created_local" stackId="a" fill={providerColors.created_local} name="Created Local" />
-                                        <Bar dataKey="created_google" stackId="a" fill={providerColors.created_google} name="Created Google" />
-                                        <Bar dataKey="created_github" stackId="a" fill={providerColors.created_github} name="Created Github" />
-                                        {/* Updated */}
-                                        <Bar dataKey="updated_local" stackId="b" fill={providerColors.updated_local} name="Updated Local" />
-                                        <Bar dataKey="updated_google" stackId="b" fill={providerColors.updated_google} name="Updated Google" />
-                                        <Bar dataKey="updated_github" stackId="b" fill={providerColors.updated_github} name="Updated Github" />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
+  const handlePopupClose = () => {
+    setShowPopup(false);
+  };
 
-                            {/* Pie Chart */}
-                            <div className="bg-white rounded p-4 shadow flex flex-col items-center justify-center">
-                                <h3 className="text-gray-900 mb-2 font-medium">Total Users by Provider</h3>
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <RePieChart>
-                                        <Pie
-                                            data={pieData}
-                                            dataKey="value"
-                                            nameKey="name"
-                                            cx="50%"
-                                            cy="50%"
-                                            outerRadius={100}
-                                            label={(entry) => `${entry.name}: ${entry.value}`}
-                                        >
-                                            {pieData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.color} />
-                                            ))}
-                                        </Pie>
-                                        <Legend verticalAlign="bottom" height={36} />
-                                    </RePieChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+  return (
+    <div className="mb-8 relative">
+      <Card className="bg-white border-2 border-dashed border-blue-300 rounded-xl p-4">
+        <CardHeader>
+          <CardTitle>User Dashboard (Last 10 Days)</CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          {loading ? (
+            <div>Loading...</div>
+          ) : !chartData.length ? (
+            <div>No user data available.</div>
+          ) : (
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fill: "#9ca3af", fontSize: 12 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis tick={{ fill: "#9ca3af", fontSize: 12 }} axisLine={false} tickLine={false} />
+                <Bar
+                  dataKey="lastLogin"
+                  stackId="a"
+                  fill={colors.lastLogin}
+                  name="Last Login"
+                  onMouseMove={handleBarMouseMove}
+                  onMouseLeave={() => setShowPopup(false)}
+                />
+                <Bar
+                  dataKey="createdAt"
+                  stackId="a"
+                  fill={colors.createdAt}
+                  name="Created At"
+                  onMouseMove={handleBarMouseMove}
+                  onMouseLeave={() => setShowPopup(false)}
+                />
+                <Bar
+                  dataKey="updatedAt"
+                  stackId="a"
+                  fill={colors.updatedAt}
+                  name="Updated At"
+                  onMouseMove={handleBarMouseMove}
+                  onMouseLeave={() => setShowPopup(false)}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Popup hiển thị user */}
+      {showPopup && hoveredUsers.length > 0 && (
+        <div
+          className="absolute z-50 w-80 max-h-96 overflow-auto bg-white border border-gray-300 rounded shadow-lg p-2"
+          style={{
+            top: isNaN(popupPos.y) ? 0 : popupPos.y,
+            left: isNaN(popupPos.x) ? 0 : popupPos.x,
+          }}
+        >
+          <div className="flex justify-between items-center mb-2">
+            <span className="font-medium">Users on this day</span>
+            <button
+              onClick={handlePopupClose}
+              className="text-red-500 font-bold text-xl leading-none"
+            >
+              ×
+            </button>
+          </div>
+          <div className="overflow-auto max-h-72">
+            <table className="w-full text-sm table-fixed border-collapse">
+              <thead>
+                <tr>
+                  <th className="text-left p-1">Username</th>
+                  <th className="p-1">Created</th>
+                  <th className="p-1">Updated</th>
+                  <th className="p-1">Last Login</th>
+                </tr>
+              </thead>
+              <tbody>
+                {hoveredUsers.map(user => (
+                  <tr key={user.id} className="border-t">
+                    <td className="p-1">{user.username}</td>
+                    <td className="p-1">{new Date(user.createdAt).toLocaleString()}</td>
+                    <td className="p-1">{new Date(user.updatedAt).toLocaleString()}</td>
+                    <td className="p-1">{new Date(user.lastLogin).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-    );
+      )}
+    </div>
+  );
 }
