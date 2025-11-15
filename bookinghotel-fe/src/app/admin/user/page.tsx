@@ -7,6 +7,7 @@ import DashboardPage from "./dashboard/page"; // import trực tiếp component
 import BookingHistoryPage from "./booking-history/page"; // import trực tiếp component
 import ProfilePage from "./edit/page"; // import trực tiếp component
 import Register from "./add/page"; // import trực tiếp component
+import { toast } from "react-hot-toast";
 
 import {
   Activity, Monitor, Pencil, Trash2, History,
@@ -45,6 +46,7 @@ export default function UserPage() {
   const [showDashboard, setShowDashboard] = useState(false);
   const [showBookingHistory, setShowBookingHistory] = useState(false);
   const [showProfilePage, setShowProfilePage] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
 
   // 🕒 Lấy danh sách và so sánh với cũ
   useEffect(() => {
@@ -69,7 +71,7 @@ export default function UserPage() {
     try {
       if (confirm("Bạn có chắc muốn xóa user này?")) {
         const data = await deleteUser(userId);
-        alert(data.message || "Xóa thành công");
+        toast.success(data.message || "✅ Xóa thành công!");
         setUsers(users.filter((u) => u.id !== userId)); // refresh danh sách local
       }
     } catch (err: any) {
@@ -155,6 +157,12 @@ export default function UserPage() {
     });
   };
 
+  // =================== sử dụng toLocaleDateString với UTC ===================
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("vi-VN", { timeZone: "UTC" });
+  };
 
   return (
     <div className="flex flex-col sm:flex-row min-h-screen bg-[#f5f7fa] p-4 sm:p-6 overflow-x-hidden">
@@ -169,7 +177,7 @@ export default function UserPage() {
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <button
             className="border border-gray-300 px-4 py-2 bg-green-0 text-black rounded-[5px] hover:bg-green-50 transition"
-            onClick={() => router.push("/admin/user/add")}
+            onClick={() => setShowRegister(true)}
           >
             📝 Thêm User
           </button>
@@ -260,6 +268,26 @@ export default function UserPage() {
                 </div>
               </div>
             )}
+
+            {showRegister && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+                <div className="bg-white w-full max-w-xl h-full max-h-xl rounded-lg shadow-lg overflow-auto p-4 relative">
+                  {/* Header với nút đóng */}
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-bold">Đăng ký người dùng</h2>
+                    <button
+                      onClick={() => setShowRegister(false)}
+                      className="text-gray-500 hover:text-gray-800 text-xl font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  {/* Nội dung dashboard */}
+                  <Register />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -330,7 +358,7 @@ export default function UserPage() {
                   <td className="p-3 font-medium text-center">
                     {user.role === "admin" ? <span className="text-red-500">Admin</span> : <span className="text-blue-500">Customer</span>}
                   </td>
-                  <td className="p-3 text-center">{formatDateUTC(user.dob)}</td>
+                  <td className="p-3 text-center">{formatDate(user.dob)}</td>
                   <td className="p-3 flex gap-2 text-center">
                     <div className="flex flex-col space-y-4">
                       {/* Nhóm nút Sửa + Xóa */}
