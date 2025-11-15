@@ -33,7 +33,7 @@ export function CombinedUserChart() {
   const [loading, setLoading] = useState(true);
   const [hoveredUsers, setHoveredUsers] = useState<UserData[]>([]);
   const [showPopup, setShowPopup] = useState(false);
-  const [popupPos, setPopupPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [popupPosition, setPopupPosition] = useState<"left-0" | "right-0">("right-0");
 
   const colors = {
     lastLogin: "#3B82F6",
@@ -85,24 +85,18 @@ export function CombinedUserChart() {
     }
   };
 
-  // Xử lý hover: cập nhật danh sách users và vị trí popup
-  const handleBarMouseMove = (data: KPIItem | null, e: any) => {
-    if (!data || !e) {
-      setShowPopup(false);
-      return;
-    }
-
-    const pageX = e?.pageX ?? 0;
-    const pageY = e?.pageY ?? 0;
-
+  // Hover bar với index để xác định left-0 hay right-0
+  const handleBarMouseEnter = (data: KPIItem | null, index: number) => {
+    if (!data) return;
     setHoveredUsers(data.usersInDate);
-    setPopupPos({ x: pageX + 10, y: pageY + 10 });
     setShowPopup(true);
+
+    // 5 ngày đầu: right-0, 5 ngày cuối: left-0
+    if (index < 5) setPopupPosition("right-0");
+    else setPopupPosition("left-0");
   };
 
-  const handlePopupClose = () => {
-    setShowPopup(false);
-  };
+  const handlePopupClose = () => setShowPopup(false);
 
   return (
     <div className="mb-8 relative">
@@ -111,14 +105,17 @@ export function CombinedUserChart() {
           <CardTitle>User Dashboard (Last 10 Days)</CardTitle>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="relative">
           {loading ? (
             <div>Loading...</div>
           ) : !chartData.length ? (
             <div>No user data available.</div>
           ) : (
             <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+              <BarChart
+                data={chartData}
+                margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis
                   dataKey="date"
@@ -126,79 +123,80 @@ export function CombinedUserChart() {
                   axisLine={false}
                   tickLine={false}
                 />
-                <YAxis tick={{ fill: "#9ca3af", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <Bar
-                  dataKey="lastLogin"
-                  stackId="a"
-                  fill={colors.lastLogin}
-                  name="Last Login"
-                  onMouseMove={handleBarMouseMove}
-                  onMouseLeave={() => setShowPopup(false)}
+                <YAxis
+                  tick={{ fill: "#9ca3af", fontSize: 12 }}
+                  axisLine={false}
+                  tickLine={false}
                 />
-                <Bar
-                  dataKey="createdAt"
-                  stackId="a"
-                  fill={colors.createdAt}
-                  name="Created At"
-                  onMouseMove={handleBarMouseMove}
-                  onMouseLeave={() => setShowPopup(false)}
-                />
-                <Bar
-                  dataKey="updatedAt"
-                  stackId="a"
-                  fill={colors.updatedAt}
-                  name="Updated At"
-                  onMouseMove={handleBarMouseMove}
-                  onMouseLeave={() => setShowPopup(false)}
-                />
+
+                {["lastLogin", "createdAt", "updatedAt"].map((key, barIndex) => (
+                  <Bar
+                    key={key}
+                    dataKey={key}
+                    stackId="a"
+                    fill={(colors as any)[key]}
+                    name={key}
+                    minPointSize={1}
+                    cursor="pointer"
+                    isAnimationActive={false}
+                    onMouseEnter={(data, index) =>
+                      handleBarMouseEnter(data.payload, index ?? 0)
+                    }
+                  //onMouseLeave={() => setShowPopup(false)}
+                  />
+                ))}
               </BarChart>
             </ResponsiveContainer>
           )}
+
+          {showPopup && hoveredUsers.length > 0 && (
+            <div
+              className={`absolute top-0 z-50 w-80 max-h-96 overflow-auto bg-white border border-gray-300 rounded shadow-lg p-2 m-2 ${popupPosition}`}
+            >
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-medium">Users on this day</span>
+                <button
+                  onClick={handlePopupClose}
+                  className="text-red-500 font-bold text-xl leading-none"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="overflow-auto max-h-72">
+                <table className="w-full text-sm table-fixed border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="text-left p-1">Username</th>
+                      <th className="p-1">Created</th>
+                      <th className="p-1">Updated</th>
+                      <th className="p-1">Last Login</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {hoveredUsers.map(user => (
+                      <tr key={user.id} className="border-t">
+                        <td className="p-1">{user.username}</td>
+                        <td className="p-1 text-green-700">{new Date(user.createdAt).toLocaleString()}</td>
+                        <td className="p-1 text-yellow-700">{new Date(user.updatedAt).toLocaleString()}</td>
+                        <td className="p-1 text-blue-700">{new Date(user.lastLogin).toLocaleString()}</td>
+                      </tr>
+                    ))}
+
+                    {/* Hàng tổng */}
+                    <tr className="font-bold border-t bg-gray-100">
+                      <td className="p-1">Total</td>
+                      <td className="p-1 text-green-700">{hoveredUsers.filter(u => u.createdAt).length}</td>
+                      <td className="p-1 text-yellow-700">{hoveredUsers.filter(u => u.updatedAt).length}</td>
+                      <td className="p-1 text-blue-700">{hoveredUsers.filter(u => u.lastLogin).length}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {/* Popup hiển thị user */}
-      {showPopup && hoveredUsers.length > 0 && (
-        <div
-          className="absolute z-50 w-80 max-h-96 overflow-auto bg-white border border-gray-300 rounded shadow-lg p-2"
-          style={{
-            top: isNaN(popupPos.y) ? 0 : popupPos.y,
-            left: isNaN(popupPos.x) ? 0 : popupPos.x,
-          }}
-        >
-          <div className="flex justify-between items-center mb-2">
-            <span className="font-medium">Users on this day</span>
-            <button
-              onClick={handlePopupClose}
-              className="text-red-500 font-bold text-xl leading-none"
-            >
-              ×
-            </button>
-          </div>
-          <div className="overflow-auto max-h-72">
-            <table className="w-full text-sm table-fixed border-collapse">
-              <thead>
-                <tr>
-                  <th className="text-left p-1">Username</th>
-                  <th className="p-1">Created</th>
-                  <th className="p-1">Updated</th>
-                  <th className="p-1">Last Login</th>
-                </tr>
-              </thead>
-              <tbody>
-                {hoveredUsers.map(user => (
-                  <tr key={user.id} className="border-t">
-                    <td className="p-1">{user.username}</td>
-                    <td className="p-1">{new Date(user.createdAt).toLocaleString()}</td>
-                    <td className="p-1">{new Date(user.updatedAt).toLocaleString()}</td>
-                    <td className="p-1">{new Date(user.lastLogin).toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
