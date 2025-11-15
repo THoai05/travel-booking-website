@@ -72,4 +72,10 @@ export class BookingsController {
   async getPaymentStats(@Query('type') type: 'week' | 'month' | 'year') {
     return await this.bookingsService.getPaymentStatsForExcel(type);
   }
+
+    // 📌 Lây tất cả booking
+    @Get('get-all-booking')
+    async getAllBooking() {
+      return this.bookingsService.getAllBooking();
+    }
 }

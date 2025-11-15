@@ -866,4 +866,41 @@ export class BookingsService {
         return { type, labels, paymentData };
     }
 
+    //Lấy tất cả danh sách booking
+    async getAllBooking() {
+        return this.bookingRepo
+            .createQueryBuilder('b')
+            .leftJoin('b.user', 'u')
+            .leftJoin('b.payment', 'p')
+            .select([
+                'u.id AS userId',
+                'u.username AS username',
+                'u.fullName AS fullName',
+                'u.email AS email',
+                'u.lastLogin AS lastLogin',
+                'u.createdAt AS userCreatedAt',
+                'u.updatedAt AS userUpdatedAt',
+                'u.avatar AS avatar',
+                'u.provider AS provider',
+
+                // Aggregates
+                'COUNT(b.id) AS totalBookings',
+                `SUM(CASE WHEN b.status = 'pending' THEN 1 ELSE 0 END) AS pending`,
+                `SUM(CASE WHEN b.status = 'confirmed' THEN 1 ELSE 0 END) AS confirmed`,
+                `SUM(CASE WHEN b.status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled`,
+                `SUM(CASE WHEN b.status = 'completed' THEN 1 ELSE 0 END) AS completed`,
+                `SUM(CASE WHEN b.status = 'expired' THEN 1 ELSE 0 END) AS expired`,
+
+                // Payment stats
+                `SUM(CASE WHEN p.payment_status = 'success' THEN p.amount ELSE 0 END) AS paidAmount`,
+                `SUM(CASE WHEN p.payment_status = 'pending' THEN p.amount ELSE 0 END) AS unpaidAmount`,
+                `SUM(CASE WHEN p.payment_status = 'success' THEN 1 ELSE 0 END) AS totalPaid`,
+                `SUM(CASE WHEN p.payment_status = 'pending' THEN 1 ELSE 0 END) AS totalUnpaid`,
+            ])
+            .groupBy('u.id')
+            .orderBy('u.createdAt', 'DESC')
+            .getRawMany();
+    }
+
+
 }
