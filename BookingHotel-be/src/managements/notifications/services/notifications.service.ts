@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification } from '../entities/notification.entity';
 import { User } from 'src/managements/users/entities/users.entity';
+import { ZaloChatService } from 'src/managements/zalo/zalo.service';
 
 @Injectable()
 export class NotificationsService {
@@ -12,9 +13,41 @@ export class NotificationsService {
 
         @InjectRepository(User)
         private usersRepo: Repository<User>,
+
+        private zaloChatService: ZaloChatService,
     ) { }
 
-    // Lấy danh sách thông báo theo userId
+    // ==========================
+    // Tạo thông báo + đẩy tin nhắn vào zalo_chat
+    // ==========================
+    async createNotification(data: any) {
+        const user = await this.usersRepo.findOne({ where: { id: data.user_id } });
+        if (!user) throw new NotFoundException('User not found');
+
+        // 1️⃣ Lưu notification vào DB
+        const noti = this.notificationsRepo.create({
+            title: data.title,
+            message: data.message,
+            type: data.type ?? 'system',
+            user: user,
+        });
+
+        const savedNoti = await this.notificationsRepo.save(noti);
+
+        // 2️⃣ Gửi thông báo vào zalo chat
+        await this.zaloChatService.createMessage({
+            sender_id: data.sender_id ?? 1,  // admin
+            receiver_id: data.user_id,
+            type: 'notification',
+            notification_id: savedNoti.id,
+        });
+
+        return savedNoti;
+    }
+
+    // ==========================
+    // Các hàm cũ giữ nguyên
+    // ==========================
     async getNotificationsByUserId(userId: number) {
         const user = await this.usersRepo.findOne({ where: { id: userId } });
         if (!user) throw new NotFoundException('User not found');
@@ -25,7 +58,6 @@ export class NotificationsService {
         });
     }
 
-    // Đánh dấu thông báo là đã đọc
     async markAsRead(notificationId: number) {
         const notification = await this.notificationsRepo.findOne({ where: { id: notificationId } });
         if (!notification) throw new NotFoundException('Notification not found');
@@ -34,7 +66,6 @@ export class NotificationsService {
         return this.notificationsRepo.save(notification);
     }
 
-    // Xóa thông báo
     async deleteNotification(notificationId: number) {
         const notification = await this.notificationsRepo.findOne({ where: { id: notificationId } });
         if (!notification) throw new NotFoundException('Notification not found');
@@ -43,18 +74,16 @@ export class NotificationsService {
         return { message: 'Notification deleted successfully' };
     }
 
-    // Lấy chi tiết thông báo theo notificationId
     async getNotificationDetail(notificationId: number) {
         const notification = await this.notificationsRepo.findOne({
             where: { id: notificationId },
-            relations: ['user'], // nếu muốn lấy thông tin user luôn
+            relations: ['user'],
         });
-        if (!notification) throw new NotFoundException('Notification not found');
 
+        if (!notification) throw new NotFoundException('Notification not found');
         return notification;
     }
 
-    // Tổng số thông báo chưa đọc
     async countUnreadNotifications(userId: number): Promise<number> {
         const user = await this.usersRepo.findOne({ where: { id: userId } });
         if (!user) throw new NotFoundException('User not found');
@@ -63,4 +92,7 @@ export class NotificationsService {
             where: { user: { id: userId }, isRead: false },
         });
     }
+
+
+
 }

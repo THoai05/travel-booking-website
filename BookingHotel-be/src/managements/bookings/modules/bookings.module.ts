@@ -6,11 +6,12 @@ import { Booking } from '../entities/bookings.entity';
 import { User } from 'src/managements/users/entities/users.entity';
 import { RoomType } from 'src/managements/rooms/entities/roomType.entity';
 import { RatePlan } from 'src/managements/rooms/entities/ratePlans.entity';
+import { ZaloChatModule } from 'src/managements/zalo/zalo.module';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Booking,User,RoomType,RatePlan])],
+  imports: [TypeOrmModule.forFeature([Booking, User, RoomType, RatePlan]), ZaloChatModule],
   controllers: [BookingsController],
   providers: [BookingsService],
-  exports:[BookingsService]
+  exports: [BookingsService]
 })
-export class BookingsModule {}
+export class BookingsModule { }

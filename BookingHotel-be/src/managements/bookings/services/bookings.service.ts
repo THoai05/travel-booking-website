@@ -51,7 +51,7 @@ export class BookingsService {
             where: {
                 id: roomTypeId
             },
-            relations:['hotel']
+            relations: ['hotel']
         })
         if (!roomType) {
             throw new NotFoundException("Khong tim thay loai phong nay")
@@ -813,5 +813,4 @@ export class BookingsService {
 
         return { type, labels, paymentData };
     }
-
 }

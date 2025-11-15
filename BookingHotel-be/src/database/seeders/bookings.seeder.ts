@@ -7,10 +7,6 @@ import {
 import { User } from '../../managements/users/entities/users.entity';
 import { RatePlan } from '../../managements/rooms/entities/ratePlans.entity';
 
-function daysInMonth(year: number, month: number) {
-  return new Date(year, month, 0).getDate();
-}
-
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -40,81 +36,18 @@ export default class BookingSeeder implements Seeder {
     }
 
     const totalBookings = 100;
-    const year = 2025;
     const bookingsCreatedAt: Date[] = [];
 
-    // ========================
-    // 📅 Xác định tháng hiện tại
-    // ========================
-    const currentMonth = new Date().getMonth() + 1;
+    const now = new Date();
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 3); // ví dụ seed dữ liệu 3 tháng về quá khứ
 
-    // ========================
-    // 🧩 Sinh dữ liệu theo tháng hiện tại
-    // ========================
-    if (currentMonth === 1) {
-      // 🟢 Nếu là tháng 1 → toàn bộ 100 booking trong tháng 1
-      const dim = daysInMonth(year, 1);
-      for (let i = 0; i < totalBookings; i++) {
-        const day = randomInt(1, dim);
-        bookingsCreatedAt.push(
-          new Date(year, 0, day, randomInt(0, 23), randomInt(0, 59), randomInt(0, 59))
-        );
-      }
-    } else if (currentMonth === 2) {
-      // 🟢 Nếu là tháng 2 → tháng 1 có 26 booking, tháng 2 có 74 booking
-      const dim1 = daysInMonth(year, 1);
-      const dim2 = daysInMonth(year, 2);
-
-      for (let i = 0; i < 26; i++) {
-        const day = randomInt(1, dim1);
-        bookingsCreatedAt.push(
-          new Date(year, 0, day, randomInt(0, 23), randomInt(0, 59), randomInt(0, 59))
-        );
-      }
-
-      for (let i = 0; i < 74; i++) {
-        const day = randomInt(1, dim2);
-        bookingsCreatedAt.push(
-          new Date(year, 1, day, randomInt(0, 23), randomInt(0, 59), randomInt(0, 59))
-        );
-      }
-    } else {
-      // 🟢 Nếu là tháng >= 3
-      // Các tháng nhỏ hơn tháng hiện tại (ví dụ tháng 1,2): mỗi tháng có 1 booking
-      for (let month = 1; month < currentMonth; month++) {
-        const dim = daysInMonth(year, month);
-        const day = randomInt(1, dim);
-        bookingsCreatedAt.push(
-          new Date(year, month - 1, day, randomInt(0, 23), randomInt(0, 59), randomInt(0, 59))
-        );
-      }
-
-      // Thêm 25 booking ngẫu nhiên trong các tháng nhỏ hơn tháng hiện tại
-      for (let i = 0; i < 25; i++) {
-        const month = randomInt(1, currentMonth - 1);
-        const dim = daysInMonth(year, month);
-        const day = randomInt(1, dim);
-        bookingsCreatedAt.push(
-          new Date(year, month - 1, day, randomInt(0, 23), randomInt(0, 59), randomInt(0, 59))
-        );
-      }
-
-      // Còn lại booking rơi vào tháng hiện tại
-      const remaining = totalBookings - bookingsCreatedAt.length;
-      const dimCurr = daysInMonth(year, currentMonth);
-      for (let i = 0; i < remaining; i++) {
-        const day = randomInt(1, dimCurr);
-        bookingsCreatedAt.push(
-          new Date(
-            year,
-            currentMonth - 1,
-            day,
-            randomInt(0, 23),
-            randomInt(0, 59),
-            randomInt(0, 59)
-          )
-        );
-      }
+    // Tạo createdAt ngẫu nhiên từ startDate → hiện tại
+    for (let i = 0; i < totalBookings; i++) {
+      const createdAt = new Date(
+        startDate.getTime() + Math.random() * (now.getTime() - startDate.getTime())
+      );
+      bookingsCreatedAt.push(createdAt);
     }
 
     // 🔀 Trộn ngẫu nhiên toàn bộ danh sách
@@ -133,12 +66,13 @@ export default class BookingSeeder implements Seeder {
     for (let i = 0; i < totalBookings; i++) {
       const createdAt = bookingsCreatedAt[i];
 
-      // updatedAt > createdAt (0–3 ngày sau)
+      // updatedAt ≥ createdAt (0–3 ngày sau, nhưng không vượt quá hiện tại)
       const updatedAt = new Date(createdAt);
       updatedAt.setDate(updatedAt.getDate() + randomInt(0, 3));
+      if (updatedAt > now) updatedAt.setTime(now.getTime());
       updatedAt.setHours(randomInt(0, 23), randomInt(0, 59), randomInt(0, 59));
 
-      // checkIn = createdAt + (1–7) ngày
+      // checkIn = createdAt + (1–7) ngày (có thể vượt quá hiện tại, tuỳ ý)
       const checkIn = new Date(createdAt);
       checkIn.setDate(checkIn.getDate() + randomInt(1, 7));
       checkIn.setHours(14, 0, 0);
@@ -183,6 +117,6 @@ export default class BookingSeeder implements Seeder {
     }
 
     await bookingRepository.save(bookings);
-    console.log(`🌱 Seeded ${bookings.length} bookings successfully for month ${currentMonth}`);
+    console.log(`🌱 Seeded ${bookings.length} bookings successfully (past → present)`);
   }
 }
