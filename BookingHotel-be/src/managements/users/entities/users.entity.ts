@@ -33,10 +33,10 @@ export enum MembershipLevel {
 }
 
 
-export enum ProviderLogin  {
+export enum ProviderLogin {
   LOCAL = 'local',
   GOOGLE = 'google',
-  GITHUB = 'github'  
+  GITHUB = 'github'
 }
 
 
@@ -64,7 +64,7 @@ export class User {
     name: 'role',
     type: 'nvarchar',
     nullable: false,
-    default:UserRole.CUSTOMER
+    default: UserRole.CUSTOMER
   })
   role: UserRole;
 
@@ -121,22 +121,26 @@ export class User {
   posts: Post[];
 
   @Column({
-    type:'varchar',
-    default:null
+    type: 'varchar',
+    default: null
   })
   googleId: string
-  
-  @Column({type:'varchar',
-    default:null
+
+  @Column({
+    type: 'varchar',
+    default: null
   })
-  githubId:string
-    
+  githubId: string
+
   @Column({
     type: 'enum',
     enum: ProviderLogin,
-    default:ProviderLogin.LOCAL
+    default: ProviderLogin.LOCAL
   })
-  provider:  ProviderLogin
+  provider: ProviderLogin
+
+  @Column({ name: 'last_login', type: 'datetime', nullable: true })
+  lastLogin?: Date;
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;

@@ -4,8 +4,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { getUsers, deleteUser } from "@/service/users/userService";
 import DashboardPage from "./dashboard/page"; // import trực tiếp component
+import BookingHistoryPage from "./booking-history/page"; // import trực tiếp component
+import ProfilePage from "./edit/page"; // import trực tiếp component
+import Register from "./add/page"; // import trực tiếp component
+import { toast } from "react-hot-toast";
+
 import {
-  Activity,
+  Activity, Monitor, Pencil, Trash2, History,
 } from "lucide-react";
 
 interface User {
@@ -39,7 +44,9 @@ export default function UserPage() {
   const [sortColumn, setSortColumn] = useState<keyof User>("id");
 
   const [showDashboard, setShowDashboard] = useState(false);
-
+  const [showBookingHistory, setShowBookingHistory] = useState(false);
+  const [showProfilePage, setShowProfilePage] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
 
   // 🕒 Lấy danh sách và so sánh với cũ
   useEffect(() => {
@@ -64,7 +71,7 @@ export default function UserPage() {
     try {
       if (confirm("Bạn có chắc muốn xóa user này?")) {
         const data = await deleteUser(userId);
-        alert(data.message || "Xóa thành công");
+        toast.success(data.message || "✅ Xóa thành công!");
         setUsers(users.filter((u) => u.id !== userId)); // refresh danh sách local
       }
     } catch (err: any) {
@@ -150,6 +157,12 @@ export default function UserPage() {
     });
   };
 
+  // =================== sử dụng toLocaleDateString với UTC ===================
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("vi-VN", { timeZone: "UTC" });
+  };
 
   return (
     <div className="flex flex-col sm:flex-row min-h-screen bg-[#f5f7fa] p-4 sm:p-6 overflow-x-hidden">
@@ -164,7 +177,7 @@ export default function UserPage() {
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <button
             className="border border-gray-300 px-4 py-2 bg-green-0 text-black rounded-[5px] hover:bg-green-50 transition"
-            onClick={() => router.push("/admin/user/add")}
+            onClick={() => setShowRegister(true)}
           >
             📝 Thêm User
           </button>
@@ -199,7 +212,7 @@ export default function UserPage() {
                 <div className="bg-white w-full max-w-7xl max-h-[90vh] rounded-lg shadow-lg overflow-auto p-4 relative">
                   {/* Header với nút đóng */}
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-bold">Dashboard Room Monitor</h2>
+                    <h2 className="text-lg font-bold">Thống kê</h2>
                     <button
                       onClick={() => setShowDashboard(false)}
                       className="text-gray-500 hover:text-gray-800 text-xl font-bold"
@@ -210,6 +223,68 @@ export default function UserPage() {
 
                   {/* Nội dung dashboard */}
                   <DashboardPage />
+                </div>
+              </div>
+            )}
+
+
+
+            {showBookingHistory && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+                <div className="bg-white w-full max-w-7xl h-full max-h-[90vh] rounded-lg shadow-lg overflow-auto p-4 relative">
+                  {/* Header với nút đóng */}
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-bold">Lịch sử đặt phòng</h2>
+                    <button
+                      onClick={() => setShowBookingHistory(false)}
+                      className="text-gray-500 hover:text-gray-800 text-xl font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  {/* Nội dung dashboard */}
+                  <BookingHistoryPage />
+                </div>
+              </div>
+            )}
+
+            {showProfilePage && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+                <div className="bg-white w-full max-w-7xl h-full max-h-[90vh] rounded-lg shadow-lg overflow-auto p-4 relative">
+                  {/* Header với nút đóng */}
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-bold">Sửa thông tin người dùng</h2>
+                    <button
+                      onClick={() => setShowProfilePage(false)}
+                      className="text-gray-500 hover:text-gray-800 text-xl font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  {/* Nội dung dashboard */}
+                  <ProfilePage />
+                </div>
+              </div>
+            )}
+
+            {showRegister && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+                <div className="bg-white w-full max-w-xl h-full max-h-xl rounded-lg shadow-lg overflow-auto p-4 relative">
+                  {/* Header với nút đóng */}
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-bold">Đăng ký người dùng</h2>
+                    <button
+                      onClick={() => setShowRegister(false)}
+                      className="text-gray-500 hover:text-gray-800 text-xl font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  {/* Nội dung dashboard */}
+                  <Register />
                 </div>
               </div>
             )}
@@ -283,11 +358,46 @@ export default function UserPage() {
                   <td className="p-3 font-medium text-center">
                     {user.role === "admin" ? <span className="text-red-500">Admin</span> : <span className="text-blue-500">Customer</span>}
                   </td>
-                  <td className="p-3 text-center">{formatDateUTC(user.dob)}</td>
+                  <td className="p-3 text-center">{formatDate(user.dob)}</td>
                   <td className="p-3 flex gap-2 text-center">
-                    <button className="px-2 py-1 bg-yellow-0 text-black rounded hover:bg-yellow-100 transition" onClick={(e) => { e.stopPropagation(); localStorage.setItem("editUserId", user.id.toString()); router.replace("/admin/user/edit"); }}>✏️ Sửa</button>
-                    <button className="px-2 py-1 bg-red-0 text-black rounded hover:bg-red-100 transition" onClick={(e) => { e.stopPropagation(); handleDelete(user.id); }}>🗑️ Xóa</button>
+                    <div className="flex flex-col space-y-4">
+                      {/* Nhóm nút Sửa + Xóa */}
+                      <div className="flex space-x-3">
+                        <button
+                          className="flex items-center gap-1 px-3 py-1 bg-yellow-50 text-black rounded hover:bg-yellow-100 transition"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            localStorage.setItem("editUserId", user.id.toString());
+                            setShowProfilePage(true);
+                          }}
+                        >
+                          <Pencil size={16} /> Sửa
+                        </button>
+                        <button
+                          className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-red-100 transition"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(user.id);
+                          }}
+                        >
+                          <Trash2 size={16} /> Xóa
+                        </button>
+                      </div>
+
+                      {/* Nút xem lịch sử đặt phòng */}
+                      <button
+                        className="flex items-center gap-1 px-3 py-1 bg-blue-50 text-black rounded hover:bg-blue-100 transition"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          localStorage.setItem("editUserId", user.id.toString());
+                          setShowBookingHistory(true);
+                        }}
+                      >
+                        <History size={16} /> Booking history
+                      </button>
+                    </div>
                   </td>
+
                 </motion.tr>
               ))}
             </tbody>
@@ -340,6 +450,7 @@ export default function UserPage() {
                 >
                   🗑️ Xóa
                 </button>
+
               </div>
             </motion.div>
           ))}
@@ -410,8 +521,8 @@ export default function UserPage() {
               <p className="text-center text-gray-600 mb-1">📋 @{selectedUser.username}</p>
               <p className="text-center text-gray-600">📧 {selectedUser.email}</p>
               <p className="text-center text-gray-600 mb-2">📞 {selectedUser.phone}</p>
-              <p className="text-center text-gray-600 mb-2">🗓️ {formatDateUTC(selectedUser.createdAt)}</p>
-              <p className="text-center text-gray-600 mb-2">🗓️ {formatDateUTC(selectedUser.updatedAt)}</p>
+              <p className="text-center text-gray-600 mb-2">🗓️ Created At: {formatDateUTC(selectedUser.createdAt)}</p>
+              <p className="text-center text-gray-600 mb-2">🗓️ Updated At: {formatDateUTC(selectedUser.updatedAt)}</p>
               <p
                 className={`text-center font-medium ${selectedUser.role === "admin" ? "text-red-500" : "text-blue-500"
                   }`}

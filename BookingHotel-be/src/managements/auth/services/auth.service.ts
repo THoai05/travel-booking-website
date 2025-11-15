@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -65,6 +65,11 @@ export class AuthService {
 		const payload = { sub: user.id, username: user.username, role: user.role };
 		const token = await this.jwtService.signAsync(payload);
 
+		const now = new Date();
+		const nowUTC = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+		user.lastLogin = nowUTC;
+		await this.userRepo.save(user);
+
 		// Loại bỏ password
 		const { password: _, ...userWithoutPassword } = user;
 
@@ -80,7 +85,7 @@ export class AuthService {
 	}
 
 
-	async loginGoogle(username:string) {
+	async loginGoogle(username: string) {
 		const user = await this.userRepo.findOne({
 			where: {
 				username
@@ -91,6 +96,11 @@ export class AuthService {
 
 		const payload = { sub: user.id, username: user.username, role: user.role };
 		const token = await this.jwtService.signAsync(payload);
+
+		const now = new Date();
+		const nowUTC = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+		user.lastLogin = nowUTC;
+		await this.userRepo.save(user);
 
 		// Loại bỏ password
 		const { password: _, ...userWithoutPassword } = user;
