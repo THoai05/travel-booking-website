@@ -1,12 +1,14 @@
 'use client'
 import React, { useState, useEffect,useMemo } from 'react';
-import { Clock, Info, Wifi, Users, Bed, Coffee, MapPin, Phone, Mail, CheckCircle2, ChevronDown } from 'lucide-react';
+import { Clock, Info, Wifi, Users, Bed, Coffee, MapPin, Phone, Mail, CheckCircle2, ChevronDown ,Ticket} from 'lucide-react';
 import PaymentMethodOption from './components/PaymentMethodOption';
 import HotelSummaryCard from './components/HotelSumaryCard';
 import { selectBooking } from "@/reduxTK/features/bookingSlice";
 import { useAppSelector, useAppDispatch } from "@/reduxTK/hook";
 import { format, differenceInCalendarDays, parseISO } from "date-fns";
 import api from '@/axios/axios';
+import { useHandleRandomCouponByTitle } from '@/service/coupon/couponService';
+import { setPendingBooking } from '@/reduxTK/features/bookingSlice';
 
 
 // Main Component
@@ -15,10 +17,94 @@ const TravelokaPaymentPage: React.FC = () => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
   }
+  const { pendingBooking } = useAppSelector(selectBooking);
+
   const [selectedPayment, setSelectedPayment] = useState('');
   const [showCoupon, setShowCoupon] = useState(false);
   const [usePoints, setUsePoints] = useState(false);
+  const { data: couponData, error: couponError, isLoading: couponIsLoading } = useHandleRandomCouponByTitle(selectedPayment)
+  
+  const [selectedCouponId, setSelectedCouponId] = useState(null);
+  const [selectedCouponCode, setSelectedCouponeCode] = useState<string>('')
+  const dispatch = useAppDispatch()
 
+useEffect(() => {
+  const handler = setTimeout(() => {
+    if (pendingBooking?.bookingId) {
+      
+      const applyCoupon = async () => {
+        try {
+          const response = await api.patch(
+            `bookings/${pendingBooking.bookingId}`,
+            {
+              couponId: selectedCouponId,
+            }
+          );
+          
+          if (response.data.message === "success") {
+             
+            const bookingData = response.data.updateData
+            
+            dispatch(setPendingBooking(bookingData))
+              }
+
+        } catch (error) {
+          console.error('Lỗi áp dụng coupon:', error);
+        }
+      };
+      applyCoupon();
+    }
+  }, 1000);
+
+
+  return () => {
+    clearTimeout(handler);
+  };
+
+}, [selectedCouponId, pendingBooking?.bookingId]); 
+
+
+  const handleCouponCode = async () => {
+    console.log(selectedCouponCode)
+    if (selectedCouponCode === "") {
+      return null
+    }
+      try {
+          const response = await api.patch(
+            `bookings/${pendingBooking.bookingId}`,
+            {
+              couponCode: selectedCouponCode,
+            }
+          );
+          
+          if (response.data.message === "success") {
+             
+            const bookingData = response.data.updateData
+            
+            dispatch(setPendingBooking(bookingData))
+              }
+
+        } catch (error) {
+          console.error('Lỗi áp dụng coupon:', error);
+        }
+
+}
+
+
+
+const formatDiscount = (coupon) => {
+  if (coupon.discountType === 'percent') {
+    // Lấy phần nguyên của giá trị
+    const percentValue = Math.floor(parseFloat(coupon.discountValue));
+    return `Giảm ${percentValue}%`;
+  }
+  if (coupon.discountType === 'fixed') {
+    const fixedValue = parseFloat(coupon.discountValue);
+    // Format tiền tệ kiểu Việt Nam
+    return `Giảm ${new Intl.NumberFormat('vi-VN').format(fixedValue)}đ`;
+  }
+  return coupon.code; // Fallback
+};
   // Đã dịch các badge
   const paymentMethods: PaymentMethod[] = [
     {
@@ -58,8 +144,7 @@ const TravelokaPaymentPage: React.FC = () => {
          return dateString;
        }
      };
-   const { pendingBooking } = useAppSelector(selectBooking);
-   console.log(pendingBooking)
+
 
    const hotelDetailsProps = useMemo(() => {
        if (!pendingBooking) return null;
@@ -109,10 +194,10 @@ const TravelokaPaymentPage: React.FC = () => {
    }, [pendingBooking]);
    
 
-   const handlePayment = async (paymentMethod:string) => {
+  const handlePayment = async (paymentMethod: string) => {
      const response = await api.get(`payment-gate/${paymentMethod}`, {
        params: {
-         orderAmount: Number(pendingBooking?.totalPrice),
+         orderAmount: pendingBooking?.totalPriceUpdate ? Number(pendingBooking?.totalPriceUpdate) : Number(pendingBooking?.totalPrice) ,
          orderCode:pendingBooking?.bookingId.toString()
        }
      })
@@ -120,7 +205,7 @@ const TravelokaPaymentPage: React.FC = () => {
    }
    
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 mt-10">
       {/* Header */}
       
 
@@ -165,53 +250,147 @@ const TravelokaPaymentPage: React.FC = () => {
               )}
 
               {/* Coupon Section (Đã dịch) */}
-              <div className="mt-6 pt-6 border-t">
-                <button
-                  onClick={() => setShowCoupon(!showCoupon)}
-                  className="flex items-center justify-between w-full text-sky-600 font-semibold"
-                >
-                  <div className="flex items-center gap-2">
-                    <Info size={18} />
-                    <span>Áp dụng Mã giảm giá</span>
-                  </div>
-                  <span className="text-sky-600">Áp dụng</span>
-                </button>
-                {showCoupon && (
-                  <div className="mt-3">
-                    <input
-                      type="text"
-                      placeholder="Nhập mã giảm giá hoặc chọn mã có sẵn"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                    />
-                  </div>
-                )}
+      <div className="mt-6 pt-6 border-t">
+  <button
+    onClick={() => setShowCoupon(!showCoupon)}
+    className="flex items-center justify-between w-full text-sky-600 font-semibold"
+  >
+    <div className="flex items-center gap-2">
+      <Info size={18} />
+      <span>
+        {selectedCouponId
+          ? 'Đã chọn 1 mã'
+          : 'Áp dụng Mã giảm giá'}
+      </span>
+    </div>
+    <span className="text-sky-600">
+      {showCoupon ? 'Đóng' : 'Áp dụng'}
+    </span>
+  </button>
+
+  {/* Phần nội dung được xổ xuống */}
+  {showCoupon && (
+    <div className="mt-4 space-y-3">
+      {/* 1. Ô input đã được thêm onFocus */}
+     <div className="flex gap-2">
+    <input
+        type="text"
+        placeholder="Nhập mã giảm giá khác"
+        // --- THAY ĐỔI 2: Thay 'w-full' bằng 'flex-1' ---
+        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+        onChange={(e) => setSelectedCouponeCode(e.target.value)}
+    />
+    
+    {/* --- THAY ĐỔI 3: Thêm nút "Áp dụng" --- */}
+    <button
+        type="button"
+        onClick={handleCouponCode}
+        className="px-4 py-2 text-white bg-sky-500 rounded-lg hover:bg-sky-600"
+    >
+        Áp dụng
+    </button>
+    {/* ------------------------------------- */}
+</div>
+
+                    {couponData ? (
+                       <div className="relative text-center">
+        <hr className="border-gray-200" />
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-2 text-sm text-gray-500">
+          HOẶC
+        </span>
+      </div>
+     ):null}
+
+      {/* 2. Hiển thị loading, error hoặc danh sách coupon */}
+      {couponIsLoading && (
+        <p className="text-gray-500 text-center">Đang tải mã...</p>
+      )}
+
+      {couponError && (
+        <p className="text-red-500 text-center">
+          Không thể tải mã giảm giá.
+        </p>
+      )}
+
+      {/* 3. Danh sách coupon */}
+      {couponData && couponData.length > 0 && (
+        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+          {couponData.map((coupon) => (
+            <label
+              key={coupon.id}
+              className={`flex items-center w-full p-3 border rounded-lg cursor-pointer transition-all ${
+                selectedCouponId === coupon.id
+                  ? 'border-sky-500 ring-2 ring-sky-200 bg-sky-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              {/* Nút chọn bên trái */}
+              <input
+                type="radio"
+                name="coupon-selection"
+                value={coupon.id}
+                checked={selectedCouponId === coupon.id}
+                // --- THAY ĐỔI 2: Cập nhật logic onChange ---
+                onChange={() =>
+                  setSelectedCouponId((prevId) =>
+                    prevId === coupon.id ? null : coupon.id
+                  )
+                }
+                // ------------------------------------------
+                className="h-5 w-5 text-sky-600 border-gray-300 focus:ring-sky-500"
+              />
+
+              {/* Hình (Icon) */}
+              <div className="ml-3">
+                <Ticket
+                  size={24}
+                  className={
+                    coupon.discountType === 'percent'
+                      ? 'text-green-500'
+                      : 'text-orange-500'
+                  }
+                />
               </div>
 
-              {/* Points Section (Đã dịch) */}
-              <div className="mt-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Info size={1} className="text-yellow-600" />
-                  <span className="font-semibold text-gray-800">Đổi điểm Bluevera</span>
-                  <Info size={16} className="text-gray-400" />
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={usePoints}
-                    onChange={(e) => setUsePoints(e.target.checked)}
-                    className="sr-only peer"
+              {/* Nội dung (flex-grow để đẩy code sang phải) */}
+              <div className="ml-3 flex-grow flex items-center justify-between">
+                {/* Mô tả giảm giá */}
+                <span className="font-medium text-gray-800">
+                  {formatDiscount(coupon)}
+                </span>
+
+                {/* Logo payment bên phải */}
+                <div className="w-10 h-6 rounded flex items-center justify-center overflow-hidden bg-white">
+                  <img
+                    src={`/coupon/${selectedPayment}.png`}
+                    alt={`${selectedPayment} logo`}
+                    className="w-full h-full object-contain"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
-                </label>
+                </div>
               </div>
-              <p className="text-sm text-gray-600 mt-1 ml-7">Điểm của bạn: 300</p>
+            </label>
+          ))}
+        </div>
+      )}
+
+      {/* Trường hợp không có coupon nào */}
+      {couponData && couponData.length === 0 && !couponIsLoading && (
+        <p className="text-gray-500 text-center">
+          Không có mã giảm giá nào.
+        </p>
+      )}
+    </div>
+  )}
+</div>
+
+  
 
               {/* Total Price (Đã dịch) */}
               <div className="mt-6 pt-6 border-t">
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-xl font-bold text-gray-900">Tổng tiền</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-gray-900">{formatCurrency(Number(pendingBooking?.totalPrice))}</span>
+                    <span className="text-2xl font-bold text-gray-900">{pendingBooking?.totalPriceUpdate ? formatCurrency(Number(pendingBooking?.totalPriceUpdate)): formatCurrency(Number(pendingBooking?.totalPrice))}</span>
                     <ChevronDown size={20} className="text-gray-600" />
                   </div>
                 </div>
@@ -229,17 +408,7 @@ const TravelokaPaymentPage: React.FC = () => {
                 </p>
               </div>
 
-              {/* Rewards (Đã dịch) */}
-              <div className="mt-4 flex gap-4 text-sm">
-                <div className="flex items-center gap-1 text-yellow-600">
-                  <Info size={16} />
-                  <span>Cộng thêm 1,336 điểm Bluevera</span>
-                </div>
-                <div className="flex items-center gap-1 text-sky-600">
-                  <Info size={16} />
-                  <span>Nhận 497.623 Sao Ưu Tiên</span>
-                </div>
-              </div>
+              
             </div>
           </div>
 

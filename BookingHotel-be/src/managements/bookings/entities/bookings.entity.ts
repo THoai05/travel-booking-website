@@ -39,6 +39,7 @@ export class Booking {
 
 
 
+    
   @ManyToOne(() => RoomType, (roomType) => roomType.bookings, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'roomType_id' })
   roomType: RoomType;
@@ -47,7 +48,6 @@ export class Booking {
   @ManyToOne(() => RatePlan, (rateplan) => rateplan.bookings, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'rateplan_id' })
   rateplan: RatePlan;
-
 
   @OneToOne(() => Payment, (payment) => payment.booking, { onDelete: 'CASCADE' })
   payment: Payment
@@ -89,6 +89,9 @@ export class Booking {
 
   @Column({ name: 'total_price', type: 'decimal', precision: 10, scale: 2, nullable: false })
   totalPrice: number;
+
+  @Column({ name: 'total_price_update', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  totalPriceUpdate: number;
 
   @Column({ name: 'special_requests', type: 'text', nullable: true })
   specialRequests?: string;

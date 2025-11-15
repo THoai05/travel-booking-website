@@ -7,9 +7,10 @@ import { User } from 'src/managements/users/entities/users.entity';
 import { RoomType } from 'src/managements/rooms/entities/roomType.entity';
 import { RatePlan } from 'src/managements/rooms/entities/ratePlans.entity';
 import { ZaloChatModule } from 'src/managements/zalo/zalo.module';
+import { Coupon } from 'src/managements/coupons/entities/coupons.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Booking, User, RoomType, RatePlan]), ZaloChatModule],
+  imports: [TypeOrmModule.forFeature([Booking, User, RoomType, RatePlan,Coupon]), ZaloChatModule],
   controllers: [BookingsController],
   providers: [BookingsService],
   exports: [BookingsService]
