@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
   OneToOne,
 } from 'typeorm';
@@ -13,6 +14,7 @@ import { Room } from 'src/managements/rooms/entities/rooms.entity';
 import { Payment } from 'src/managements/payments/entities/payments.entity';
 import { RoomType } from 'src/managements/rooms/entities/roomType.entity';
 import { RatePlan } from 'src/managements/rooms/entities/ratePlans.entity';
+import { ZaloChat } from 'src/managements/zalo/entities/zalo.entity';
 
 export enum BookingStatus {
   PENDING = 'pending',
@@ -28,22 +30,30 @@ export class Booking {
   id: number;
 
 
-  
-  
+
+
   @ManyToOne(() => User, (user) => user.bookings, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
+
+
+
+
     
   @ManyToOne(() => RoomType, (roomType) => roomType.bookings, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'roomType_id' })
   roomType: RoomType;
 
+
   @ManyToOne(() => RatePlan, (rateplan) => rateplan.bookings, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'rateplan_id'})
+  @JoinColumn({ name: 'rateplan_id' })
   rateplan: RatePlan;
 
   @OneToOne(() => Payment, (payment) => payment.booking, { onDelete: 'CASCADE' })
-  payment:Payment
+  payment: Payment
+
+  @OneToMany(() => ZaloChat, chat => chat.booking)
+  zalo_chats: ZaloChat[];
 
   @Column({ name: 'check_in_date', type: 'date', nullable: false })
   checkInDate: Date;
@@ -57,24 +67,24 @@ export class Booking {
   @Column({
     name: 'status',
     type: 'enum',
-    enum:BookingStatus,
-    default:BookingStatus.PENDING,
+    enum: BookingStatus,
+    default: BookingStatus.PENDING,
   })
   status: BookingStatus;
 
   @Column({ name: 'expires_at', type: 'datetime', nullable: true })
   expiresAt: Date;
 
-  @Column({ name: 'contact_full_name', type: 'nvarchar',nullable:true })
+  @Column({ name: 'contact_full_name', type: 'nvarchar', nullable: true })
   contactFullName: string;
 
-  @Column({ name: 'contact_email', type: 'nvarchar',nullable:true })
+  @Column({ name: 'contact_email', type: 'nvarchar', nullable: true })
   contactEmail: string;
 
-  @Column({ name: 'contact_phone', type: 'varchar', length: 20,nullable:true })
+  @Column({ name: 'contact_phone', type: 'varchar', length: 20, nullable: true })
   contactPhone: string;
 
-  @Column({ name: 'guest_full_name', type: 'nvarchar',nullable:true }) 
+  @Column({ name: 'guest_full_name', type: 'nvarchar', nullable: true })
   guestFullName: string;
 
   @Column({ name: 'total_price', type: 'decimal', precision: 10, scale: 2, nullable: false })

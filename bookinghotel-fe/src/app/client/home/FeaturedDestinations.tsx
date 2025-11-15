@@ -41,15 +41,15 @@ const FeaturedDestinations = () => {
   // }, []); // Vẫn giữ dependency rỗng để gọi 1 lần
 
   const cities = [
-  {id:1,name: "Hồ Chí Minh", img: "/hcm.png", subtitle: "342 khách sạn lân cận"},
-  { id:2,name: "Lào Cai", img: "/laocai.png", subtitle: "356 Tours" },
-  { id:3,name: "Hà Nội", img: "/hanoi.png", subtitle: "356 Tours" },
-  { id:4,name: "Quảng Ninh", img: "/quangninh.png", subtitle: "356 Tours" },
-  { id:5,name: "Đà Nẵng", img: "/danang.png", subtitle: "356 Tours" },
-  { id:6,name: "Đà Lạt", img: "/dalat.png", subtitle: "356 Tours" },
-  {id:7,name: "Thừa Thiên Huế", img: "/hue.png",subtitle: "356 Tours"},
-  {id:8,name: "Phú Quốc", img: "/phuquoc.png", subtitle: "356 Tours" },
-];
+    { id: 1, name: "Hồ Chí Minh", img: "/hcm.png", subtitle: "342 khách sạn lân cận" },
+    { id: 2, name: "Lào Cai", img: "/laocai.png", subtitle: "356 Tours" },
+    { id: 3, name: "Hà Nội", img: "/hanoi.png", subtitle: "356 Tours" },
+    { id: 4, name: "Quảng Ninh", img: "/quangninh.png", subtitle: "356 Tours" },
+    { id: 5, name: "Đà Nẵng", img: "/danang.png", subtitle: "356 Tours" },
+    { id: 6, name: "Đà Lạt", img: "/dalat.png", subtitle: "356 Tours" },
+    { id: 7, name: "Thừa Thiên Huế", img: "/hue.png", subtitle: "356 Tours" },
+    { id: 8, name: "Phú Quốc", img: "/phuquoc.png", subtitle: "356 Tours" },
+  ];
 
   return (
     <section className="w-full bg-white py-20">
@@ -82,8 +82,8 @@ const FeaturedDestinations = () => {
                     <Image
                       src={city.img}
                       alt={city.name}
-                      width={160}
-                      height={240}
+                      width={100}
+                      height={100}
                       className="object-cover w-full h-full transition-transform duration-300 hover:scale-110"
                     />
                   </div>
