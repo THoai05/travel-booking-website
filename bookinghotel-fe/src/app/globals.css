@@ -342,3 +342,15 @@
 .animate-feather {
   animation: feather-fall linear infinite;
 }
+
+.swiper-button-prev,
+.swiper-button-next {
+  opacity: 0;
+  transition: opacity 0.3s ease; 
+  background: transparent !important;
+}
+
+.group:hover .swiper-button-prev,
+.group:hover .swiper-button-next {
+  opacity: 1;
+}

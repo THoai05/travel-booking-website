@@ -37,7 +37,7 @@ export default function AccommodationCard({ accommodation }: AccommodationCardPr
       {/* Image Section */}
       <div className="relative h-48 overflow-hidden">
         <ImageWithFallback
-          src={accommodation.imageUrl || defaultImage}
+          src={accommodation.images || defaultImage}
           alt={accommodation.name}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
         />
