@@ -2,7 +2,7 @@
 import { useState } from "react";
 import useDiscounts from "./useDiscounts";
 import DiscountTable from "./DiscountTable";
-// import DiscountModal from "./DiscountModal"; // Đảm bảo import này đúng
+import DiscountModal from "./DiscountModal"; // Đảm bảo import này đúng
 
 export default function DiscountPage() {
   // Lấy TẤT CẢ các giá trị và hàm cần thiết từ hook
@@ -10,7 +10,7 @@ export default function DiscountPage() {
     data,
     page,          
     totalPages,    
-    changePage,    
+    changePage, 
     create,
     update,
     remove

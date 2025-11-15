@@ -1,6 +1,6 @@
 // DiscountTable.js (Giữ nguyên - chỉ là minh họa)
 import { Edit, Trash, ChevronLeft, ChevronRight } from "lucide-react";
-// import StatusBadge from "./StatusBadge"; // Nhớ import StatusBadge nếu chưa có
+import StatusBadge from "./StatusBadge";
 
 export default function DiscountTable({
     data,
@@ -37,7 +37,7 @@ export default function DiscountTable({
                                 <td className="py-3 px-4">{new Date(item.startDate).toLocaleDateString("vi-VN")}</td>
                                 <td className="py-3 px-4">{new Date(item.endDate).toLocaleDateString("vi-VN")}</td>
                                 <td className="py-3 px-4">
-                                    {/* <StatusBadge status={item.status} /> */}
+                                    <StatusBadge status={item.status} />
                                 </td>
                                 <td className="py-3 px-4 flex gap-3">
                                     <button

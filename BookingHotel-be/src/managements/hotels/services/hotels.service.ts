@@ -309,3 +309,8 @@ return hotels.map(h => ({
 }
  
 }
+
+export class HotelManagementService {}
+
+
+//==================//
