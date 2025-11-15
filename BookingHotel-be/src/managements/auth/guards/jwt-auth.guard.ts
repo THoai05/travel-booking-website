@@ -10,8 +10,6 @@ export class JwtAuthGuard implements CanActivate {
     const token = request.cookies?.access_Token;
 
     // 🔹 Log debug token
-    console.log('JwtAuthGuard token:', token);
-
     if (!token) {
       console.warn('❌ Missing token in request cookies');
       throw new UnauthorizedException('Missing token');
