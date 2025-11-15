@@ -22,6 +22,7 @@ import {
   Coffee,
   Phone,
   Loader2,
+  Checkbox
 } from "lucide-react";
 
 import HotelSummaryCard from "./components/HotelSummaryCard";
@@ -72,24 +73,27 @@ interface SpecialRequest {
   checked: boolean;
 }
 
+
+
+interface FormErrors { // <-- THÊM TYPE NÀY
+  fullName?: string;
+  mobileNumber?: string;
+  email?: string;
+  guestFullName?: string;
+}
 // ... (Các types HotelDetails, GuestDetails nếu có thì bro xóa đi) ...
 
 // --- (Các sub-components của bro giữ nguyên: InputField, PhoneInput, Checkbox, Section) ---
 
 const InputField: React.FC<{
   label: string;
-
   placeholder?: string;
-
   value: string;
-
   onChange: (value: string) => void;
-
   required?: boolean;
-
   type?: string;
-
   helper?: string;
+  error?: string; // <-- THÊM PROP NÀY
 }> = ({
   label,
   placeholder,
@@ -98,65 +102,58 @@ const InputField: React.FC<{
   required,
   type = "text",
   helper,
+  error, // <-- LẤY PROP NÀY
 }) => (
   <div className="mb-4">
     <label className="block text-sm font-semibold text-gray-700 mb-2">
       {label}
       {required && "*"}
     </label>
-
     <input
       type={type}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
+      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none ${
+        error ? "border-red-500" : "border-gray-300" // <-- BORDER ĐỎ
+      }`}
     />
-
-    {helper && <p className="text-xs text-gray-500 mt-1">{helper}</p>}
+    {helper && !error && ( // <-- Ẩn helper nếu có lỗi
+      <p className="text-xs text-gray-500 mt-1">{helper}</p>
+    )}
+    {error && <p className="text-red-500 text-xs mt-1">{error}</p>} {/* HIỆN LỖI */}
   </div>
 );
 
 const PhoneInput: React.FC<{
   countryCode: string;
-
   phoneNumber: string;
-
   onCountryChange: (code: string) => void;
-
   onPhoneChange: (phone: string) => void;
-}> = ({ countryCode, phoneNumber, onCountryChange, onPhoneChange }) => (
+  error?: string; // <-- THÊM PROP NÀY
+}> = ({ countryCode, phoneNumber, onCountryChange, onPhoneChange, error }) => ( // <-- LẤY PROP NÀY
   <div className="mb-4">
     <label className="block text-sm font-semibold text-gray-700 mb-2">
       Số điện thoại
     </label>
-
     <div className="flex gap-2">
-      <div className="w-32">
-        <div className="flex items-center gap-2 px-3 py-3 border border-gray-300 rounded-lg bg-white">
-          <span className="text-xl">🇻🇳</span>
-
-          <span className="font-semibold">+84</span>
-
-          <ChevronDown size={16} className="text-gray-500" />
-        </div>
-      </div>
-
       <input
         type="tel"
         value={phoneNumber}
         onChange={(e) => onPhoneChange(e.target.value)}
-        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
+        className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none ${
+          error ? "border-red-500" : "border-gray-300" // <-- BORDER ĐỎ
+        }`}
       />
     </div>
-
-    <p className="text-xs text-gray-500 mt-1">
-      VD:081922121
-    </p>
+    {!error && ( // <-- Ẩn helper nếu có lỗi
+      <p className="text-xs text-gray-500 mt-1">VD:081922121</p>
+    )}
+    {error && <p className="text-red-500 text-xs mt-1">{error}</p>} {/* HIỆN LỖI */}
   </div>
-);
+  );
 
-const Checkbox: React.FC<{
+  const Checkbox: React.FC<{
   checked: boolean;
 
   onChange: (checked: boolean) => void;
@@ -201,7 +198,36 @@ const Section: React.FC<{
 
 const TravelokaBookingPage: React.FC = () => {
   // --- 2. LẤY DATA TỪ CÁC NGUỒN ---
+  const [errors, setErrors] = useState<FormErrors>({});
+  
 
+  const validate = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    // 1. Validate Contact Form
+    if (!bookingForm.fullName.trim()) {
+      newErrors.fullName = "Họ và tên là bắt buộc.";
+    }
+    if (!bookingForm.email.trim()) {
+      newErrors.email = "Email là bắt buộc.";
+    } else if (!/\S+@\S+\.\S+/.test(bookingForm.email)) { // Check format email
+      newErrors.email = "Email không hợp lệ.";
+    }
+    if (!bookingForm.mobileNumber.trim()) {
+      newErrors.mobileNumber = "Số điện thoại là bắt buộc.";
+    } else if (!/^0\d{9}$/.test(bookingForm.mobileNumber)) { // Check 10 số, bắt đầu bằng 0
+      newErrors.mobileNumber = "Số điện thoại phải đúng 10 số (VD: 0912345678).";
+    }
+
+    // 2. Validate Guest Form
+    if (!guestForm.fullName.trim()) {
+      newErrors.guestFullName = "Họ và tên khách là bắt buộc.";
+    }
+
+    setErrors(newErrors);
+    // Trả về true nếu không có lỗi (Object.keys(newErrors).length === 0)
+    return Object.keys(newErrors).length === 0;
+  };
   const dispatch = useAppDispatch();
 
   const router = useRouter();
@@ -293,7 +319,13 @@ const TravelokaBookingPage: React.FC = () => {
     value: string | boolean
   ) => {
     setBookingForm((prev) => ({ ...prev, [field]: value }));
+    // Xóa lỗi khi người dùng nhập
+    if (errors[field as keyof FormErrors]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
   };
+
+
 
   // --- 5. TẠO PROPS TỪ DATA THẬT (Thay thế Mock Data) ---
 
@@ -415,18 +447,37 @@ const TravelokaBookingPage: React.FC = () => {
 
   // --- 7. RENDER COMPONENT VỚI DATA THẬT ---
 
- const handlePaymentCheckout = async (
+ const handleGuestNameChange = (v: string) => {
+    setGuestForm({ fullName: v });
+    if (errors.guestFullName) {
+      setErrors((prev) => ({ ...prev, guestFullName: "" }));
+    }
+  };
 
- ) => {
+  // ... (toggleRequest, formatDate, ...props) ...
+  
+  // --- 6. XỬ LÝ LOADING / ERROR ---
+  
+  // ... (if loading ... ) ...
+
+  // --- 7. RENDER COMPONENT VỚI DATA THẬT ---
+
+  const handlePaymentCheckout = async () => {
+    // --- BƯỚC 1: VALIDATE TRƯỚC KHI GỬI ---
+    if (!validate()) {
+      return; // Dừng lại nếu validate thất bại
+    }
+
+    // --- BƯỚC 2: LOGIC GỬI API (giữ nguyên) ---
     try {
       const response = await api.patch(`bookings/${pendingBooking.bookingId}`, {
-        contactFullName:bookingForm.fullName,
-        contactEmail:bookingForm.email,
-        contactPhone:bookingForm.mobileNumber,
-        guestsFullName:guestForm.fullName
-    })
-    if (response.data.message === "success") {
-      const bookingData = response.data.updateData
+        contactFullName: bookingForm.fullName,
+        contactEmail: bookingForm.email,
+        contactPhone: bookingForm.mobileNumber,
+        guestsFullName: guestForm.fullName,
+      });
+      if (response.data.message === "success") {
+         const bookingData = response.data.updateData
       dispatch(setPendingBooking(bookingData))
 
       // 2. LƯU VÀO SESSION (Chỉ ID)
@@ -434,11 +485,11 @@ const TravelokaBookingPage: React.FC = () => {
 
       // 3. Chuyển trang
       router.push('/payment/checkout')
-    }
+      }
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -496,11 +547,8 @@ const TravelokaBookingPage: React.FC = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Booking Contact */}
 
-            <Section icon={<Mail size={20} />} title="Liên hệ đơn hàng">
-              <p className="text-sm text-gray-600 mb-4">
-               Vui lòng điền đầy đủ thông tin để đơn hàng chính xác nhất
-              </p>
-
+           <Section icon={<Mail size={20} />} title="Liên hệ đơn hàng">
+              {/* ... (p tag) ... */}
               <InputField
                 label="Họ và tên"
                 placeholder=""
@@ -508,16 +556,16 @@ const TravelokaBookingPage: React.FC = () => {
                 onChange={(v) => updateBookingForm("fullName", v)}
                 required
                 helper="VD: Hà Công Hậu"
+                error={errors.fullName} // <-- TRUYỀN LỖI XUỐNG
               />
-
               <div className="grid md:grid-cols-2 gap-4">
                 <PhoneInput
                   countryCode={bookingForm.countryCode}
                   phoneNumber={bookingForm.mobileNumber}
                   onCountryChange={(v) => updateBookingForm("countryCode", v)}
                   onPhoneChange={(v) => updateBookingForm("mobileNumber", v)}
+                  error={errors.mobileNumber} // <-- TRUYỀN LỖI XUỐNG
                 />
-
                 <InputField
                   label="Email"
                   type="email"
@@ -525,10 +573,10 @@ const TravelokaBookingPage: React.FC = () => {
                   value={bookingForm.email}
                   onChange={(v) => updateBookingForm("email", v)}
                   required
+                  error={errors.email} // <-- TRUYỀN LỖI XUỐNG
                 />
               </div>
-
-              <div className="mt-4">
+                <div className="mt-4">
                 <Checkbox
                   checked={bookingForm.bookingForMyself}
                   onChange={(v) => updateBookingForm("bookingForMyself", v)}
@@ -540,17 +588,15 @@ const TravelokaBookingPage: React.FC = () => {
             {/* Guest Detail (Đã pre-fill bằng logic "useEffect") */}
 
             <Section icon={<User size={20} />} title="Thông tin chi tiết khách hàng">
-              <p className="text-sm text-gray-600 mb-4">
-                Điền thông tin đầy đủ để nhận đơn hàng chính xác nhất
-              </p>
-
+              {/* ... (p tag) ... */}
               <InputField
                 label="Họ và tên"
                 placeholder=""
                 value={guestForm.fullName}
-                onChange={(v) => setGuestForm({ fullName: v })}
+                onChange={handleGuestNameChange} // <-- DÙNG HANDLER MỚI
                 required
                 helper="VD:Hà Công Hậu"
+                error={errors.guestFullName} // <-- TRUYỀN LỖI XUỐNG
               />
             </Section>
 
