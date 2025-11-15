@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { getUsers, deleteUser } from "@/service/users/userService";
 import DashboardPage from "./dashboard/page"; // import trực tiếp component
 import BookingHistoryPage from "./booking-history/page"; // import trực tiếp component
+import ProfilePage from "./edit/page"; // import trực tiếp component
+import Register from "./add/page"; // import trực tiếp component
+
 import {
   Activity, Monitor, Pencil, Trash2, History,
 } from "lucide-react";
@@ -41,6 +44,7 @@ export default function UserPage() {
 
   const [showDashboard, setShowDashboard] = useState(false);
   const [showBookingHistory, setShowBookingHistory] = useState(false);
+  const [showProfilePage, setShowProfilePage] = useState(false);
 
   // 🕒 Lấy danh sách và so sánh với cũ
   useEffect(() => {
@@ -200,7 +204,7 @@ export default function UserPage() {
                 <div className="bg-white w-full max-w-7xl max-h-[90vh] rounded-lg shadow-lg overflow-auto p-4 relative">
                   {/* Header với nút đóng */}
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-bold">Dashboard Room Monitor</h2>
+                    <h2 className="text-lg font-bold">Thống kê</h2>
                     <button
                       onClick={() => setShowDashboard(false)}
                       className="text-gray-500 hover:text-gray-800 text-xl font-bold"
@@ -222,7 +226,7 @@ export default function UserPage() {
                 <div className="bg-white w-full max-w-7xl h-full max-h-[90vh] rounded-lg shadow-lg overflow-auto p-4 relative">
                   {/* Header với nút đóng */}
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-bold">Dashboard Room Monitor</h2>
+                    <h2 className="text-lg font-bold">Lịch sử đặt phòng</h2>
                     <button
                       onClick={() => setShowBookingHistory(false)}
                       className="text-gray-500 hover:text-gray-800 text-xl font-bold"
@@ -233,6 +237,26 @@ export default function UserPage() {
 
                   {/* Nội dung dashboard */}
                   <BookingHistoryPage />
+                </div>
+              </div>
+            )}
+
+            {showProfilePage && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+                <div className="bg-white w-full max-w-7xl h-full max-h-[90vh] rounded-lg shadow-lg overflow-auto p-4 relative">
+                  {/* Header với nút đóng */}
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-bold">Sửa thông tin người dùng</h2>
+                    <button
+                      onClick={() => setShowProfilePage(false)}
+                      className="text-gray-500 hover:text-gray-800 text-xl font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  {/* Nội dung dashboard */}
+                  <ProfilePage />
                 </div>
               </div>
             )}
@@ -316,7 +340,7 @@ export default function UserPage() {
                           onClick={(e) => {
                             e.stopPropagation();
                             localStorage.setItem("editUserId", user.id.toString());
-                            router.replace("/admin/user/edit");
+                            setShowProfilePage(true);
                           }}
                         >
                           <Pencil size={16} /> Sửa
