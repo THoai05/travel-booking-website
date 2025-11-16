@@ -19,7 +19,7 @@ export default class HotelImageSeeder implements Seeder {
         PHẦN 1: SEED ẢNH CHO HOTEL (giữ nguyên logic cũ)
     ===================================================== */
 
-    const cityIds = [1, 2, 3, 4, 5, 6];
+    const cityIds = [1, 2, 3, 4, 5, 6,7,8,9,10,11,12,13,14,15];
     const hotelBaseDir = path.resolve(__dirname, '../../../../bookinghotel-fe/public/hotels');
     const baseHotelUrl = '/hotels';
 
