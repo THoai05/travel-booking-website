@@ -106,14 +106,21 @@ export class HotelsService {
     })
 
       const imageResults = await Promise.all(imagesPromises);
+
+      function getRandomIndices(max: number, count: number) {
+  const indices = new Set<number>();
+  while(indices.size < count && indices.size < max){
+    indices.add(Math.floor(Math.random() * max));
+  }
+  return Array.from(indices);
+}
       
       const finalResults = paginated.map((item,index) => {
         const hotelImages = imageResults[index].data;
 
-        let imageUrl:string[] = [];
-        for (let i = 0; i <= 3; i++){
-          imageUrl.push(hotelImages[i].url)
-        }
+       const indices = getRandomIndices(hotelImages.length, 4);
+      const imageUrl = indices.map(i => hotelImages[i].url);
+
         
       
         return {
