@@ -12,7 +12,7 @@ import ResetPasswordPage from "./reset-password/page"; // import trực tiếp R
 import api from "@/axios/axios";
 
 import {
-  Activity, Monitor, Pencil, Trash2, History,
+  Activity, Monitor, Pencil, Trash2, History, Key
 } from "lucide-react";
 
 interface User {
@@ -436,7 +436,7 @@ export default function UserPage() {
                             setShowResetPasswordPage(true);
                           }}
                         >
-                          <Trash2 size={16} />Password
+                          <Key size={16} />Password
                         </button>
                       </div>
 
@@ -505,6 +505,36 @@ export default function UserPage() {
                   }}
                 >
                   🗑️ Xóa
+                </button>
+
+                <button
+                  className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-red-100 transition"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    const res = await api.post("/reset-password/reset-password", {
+                      userId: user.id,      // bạn phải truyền userId vào
+                      expireMinutes: 5         // có thể bỏ nếu dùng default
+                    });
+
+                    const token = res.data.token;
+                    localStorage.setItem("token-reset-password", token.toString());
+
+                    setShowResetPasswordPage(true);
+                  }}
+                >
+                  <Key size={16} />Password
+                </button>
+
+                {/* Nút xem lịch sử đặt phòng */}
+                <button
+                  className="flex items-center gap-1 px-3 py-1 bg-blue-50 text-black rounded hover:bg-blue-100 transition"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    localStorage.setItem("editUserId", user.id.toString());
+                    setShowBookingHistory(true);
+                  }}
+                >
+                  <History size={16} /> Booking history
                 </button>
 
               </div>
