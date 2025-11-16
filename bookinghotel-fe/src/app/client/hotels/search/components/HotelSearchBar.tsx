@@ -230,7 +230,8 @@ export default function HotelSearchBar({ onSearch, className = '' }: HotelSearch
 
   // --- CHANGED: Cập nhật handleSearch để dùng state 'range' mới ---
  const handleSearch = () => {
-    router.push(`/hotels/search?cityTitle=${location}`)
+    router.refresh();
+    router.push(`/hotels/search?cityTitle=${location}`);
   }
 
   const handleDestinationSelect = (location: string) => {

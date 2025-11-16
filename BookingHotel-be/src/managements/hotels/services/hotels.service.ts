@@ -25,7 +25,6 @@ export class HotelsService {
 
   async getAllDataHotel(queryParam: GetAllHotelRequest): Promise<any> {
     try {
-      console.log(queryParam)
       const page = Number(queryParam.page) || 1;
       const limit = Number(queryParam.limit) || 10;
       const star = Number(queryParam.star);
@@ -52,7 +51,6 @@ export class HotelsService {
         .addGroupBy('city.id');
     
 
-      // (Các filter cũ...)
       if (minPrice) {
         queryBuilder.andWhere(`hotels.avgPrice >= :minPrice`, { minPrice });
       }
@@ -61,17 +59,11 @@ export class HotelsService {
         queryBuilder.andWhere(`hotels.avgPrice <= :maxPrice`, { maxPrice });
       }
 
-      // ✅ --- THÊM FILTER CITY TITLE ---
-      // (Giả sử bro truyền 'cityTitle' từ DTO)
       if (cityTitle) {
         queryBuilder.andWhere('city.title = :cityTitle', { cityTitle });
       }
 
-      // ✅ --- THÊM FILTER HOTEL NAME ---
-      // (Giả sử bro truyền 'hotelName' từ DTO, dùng ILIKE để tìm kiếm không phân biệt hoa thường)
       if (hotelName) {
-        // MySQL không có ILIKE, dùng LIKE
-        // Dùng LOWER() để đảm bảo tìm kiếm không phân biệt hoa thường
         queryBuilder.andWhere('LOWER(hotels.name) LIKE LOWER(:hotelName)', { hotelName: `%${hotelName}%` });
       }
 
@@ -109,10 +101,23 @@ export class HotelsService {
       const total = allRecords.length;
 
       const paginated = allRecords.slice(skip, skip + limit);
+      const imagesPromises = paginated.map(item => {
+      return this.imageService.getImagesByTypeAndId('hotel', item.hotels_id)
+    })
 
-      return {
-        data: paginated.map(item => ({
-          id: item.hotels_id,
+      const imageResults = await Promise.all(imagesPromises);
+      
+      const finalResults = paginated.map((item,index) => {
+        const hotelImages = imageResults[index].data;
+
+        let imageUrl:string[] = [];
+        for (let i = 0; i <= 3; i++){
+          imageUrl.push(hotelImages[i].url)
+        }
+        
+      
+        return {
+           id: item.hotels_id,
           name: item.hotels_name,
           avgPrice: item.hotels_avgPrice,
           city: {
@@ -121,8 +126,14 @@ export class HotelsService {
           },
           avgRating: item.avgRating ? Number(item.avgRating).toFixed(1) : null,
           reviewCount: Number(item.reviewCount),
-          amenities: item.amenityList
-        })),
+          amenities: item.amenityList,
+          images:imageUrl
+        }
+      })
+
+
+      return {
+        data: finalResults,
         total,
         page,
         limit,
