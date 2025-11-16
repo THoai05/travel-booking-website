@@ -81,7 +81,7 @@ export const HotelCard: React.FC<HotelCardProps> = ({ hotel: backendHotel, onSel
     amenities: backendHotel.amenities ? backendHotel.amenities.split(',') : ["(Chưa có tiện ích)"], // Chuyển string "a,b,c" -> mảng ["a", "b", "c"]
     
     // --- Data CHƯA CÓ (Text cứng) ---
-    images: HARDCODED_IMAGES,
+    images: backendHotel.images,
     ratingLabel: "Tuyệt vời", // <-- Text cứng
     category: backendHotel.name.includes("Khách") ? "Khách sạn" : "Resort",
     stars: 4, // <-- Text cứng (Bro có thể dùng Math.round(Number(backendHotel.avgRating)) nếu muốn)
