@@ -78,4 +78,35 @@ export class ResetPasswordService {
 
         return { message: 'Password reset successfully' };
     }
+
+    //📌 Hàm tạo reset token theo userId
+    async createResetTokenByUserId(userId: number, expireMinutes = 5): Promise<string> {
+        const user = await this.userRepo.findOne({ where: { id: userId } });
+
+        if (!user) {
+            throw new NotFoundException(`User with ID ${userId} not found`);
+        }
+
+        const token = uuidv4();
+        const expiresAt = new Date(Date.now() + expireMinutes * 60 * 1000);
+
+        const reset = this.resetRepo.create({
+            user: user,
+            token,
+            expires_at: expiresAt,
+        });
+
+        await this.resetRepo.save(reset);
+
+        return token;
+    }
+
+    async deleteToken(token: string) {
+        //  Xác thực token
+        //const user = await this.validateToken(token);
+        // 1️⃣ Xoá token reset
+        await this.resetRepo.delete({ token });
+
+        return { message: 'Delete token successfully' };
+    }
 }
