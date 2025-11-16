@@ -8,6 +8,8 @@ import BookingHistoryPage from "./booking-history/page"; // import trực tiếp
 import ProfilePage from "./edit/page"; // import trực tiếp component
 import Register from "./add/page"; // import trực tiếp component
 import { toast } from "react-hot-toast";
+import ResetPasswordPage from "./reset-password/page"; // import trực tiếp ResetPasswordPage component
+import api from "@/axios/axios";
 
 import {
   Activity, Monitor, Pencil, Trash2, History,
@@ -47,6 +49,7 @@ export default function UserPage() {
   const [showBookingHistory, setShowBookingHistory] = useState(false);
   const [showProfilePage, setShowProfilePage] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+  const [showResetPasswordPage, setShowResetPasswordPage] = useState(false);
 
   // 🕒 Lấy danh sách và so sánh với cũ
   useEffect(() => {
@@ -284,7 +287,42 @@ export default function UserPage() {
                   </div>
 
                   {/* Nội dung dashboard */}
-                  <Register />
+                  <Register setShowRegister={setShowRegister} />
+                </div>
+              </div>
+            )}
+
+            {showResetPasswordPage && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+                <div className="bg-white max-w-xl rounded-lg shadow-lg overflow-auto p-4 relative">
+                  {/* Header với nút đóng */}
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-bold">Đổi mật khẩu</h2>
+                    <button
+                      onClick={async () => {
+                        const token = localStorage.getItem("token-reset-password");
+
+                        if (token) {
+                          try {
+                            await api.post("/reset-password/delete-token", { token });
+                            localStorage.removeItem("token-reset-password"); // xóa token khỏi localStorage
+                            setShowResetPasswordPage(false);
+                          } catch (error) {
+                            console.error("Failed to delete reset token:", error);
+                          }
+                        } else {
+                          setShowResetPasswordPage(false); // nếu không có token, chỉ tắt popup
+                        }
+                      }}
+                      className="text-gray-500 hover:text-gray-800 text-xl font-bold"
+                    >
+                      ×
+                    </button>
+
+                  </div>
+
+                  {/* Nội dung dashboard */}
+                  <ResetPasswordPage setShowResetPasswordPage={setShowResetPasswordPage} />
                 </div>
               </div>
             )}
@@ -381,6 +419,24 @@ export default function UserPage() {
                           }}
                         >
                           <Trash2 size={16} /> Xóa
+                        </button>
+
+                        <button
+                          className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-red-100 transition"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            const res = await api.post("/reset-password/reset-password", {
+                              userId: user.id,      // bạn phải truyền userId vào
+                              expireMinutes: 5         // có thể bỏ nếu dùng default
+                            });
+
+                            const token = res.data.token;
+                            localStorage.setItem("token-reset-password", token.toString());
+
+                            setShowResetPasswordPage(true);
+                          }}
+                        >
+                          <Trash2 size={16} />Password
                         </button>
                       </div>
 
