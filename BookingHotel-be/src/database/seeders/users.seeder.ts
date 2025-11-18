@@ -26,6 +26,8 @@ export default class UserSeeder implements Seeder {
     const users: Partial<User>[] = [];
 
     // 👉 Admin (record đầu tiên)
+    const adminLastLogin = new Date();
+    adminLastLogin.setDate(adminLastLogin.getDate() + Math.floor(Math.random() * 2));
     users.push({
       username: 'admin',
       password: adminPassword,
@@ -36,6 +38,7 @@ export default class UserSeeder implements Seeder {
       gender: Gender.MALE,
       loyaltyPoints: 1000,
       membershipLevel: MembershipLevel.PLATINUM,
+      lastLogin: adminLastLogin,
     });
 
     // 👉 20 users ngẫu nhiên với createdAt & updatedAt nằm trong 10 ngày gần đây
@@ -73,6 +76,9 @@ export default class UserSeeder implements Seeder {
       const updatedAt = new Date(createdAt);
       updatedAt.setDate(createdAt.getDate() + Math.floor(Math.random() * 3)); // updated >= created, lệch tối đa 2 ngày
 
+      const lastLogin = new Date(createdAt);
+      lastLogin.setDate(createdAt.getDate() + Math.floor(Math.random() * 3)); // lastLogin >= createdAt, lệch tối đa 2 ngày
+
       users.push({
         username,
         password: customerPassword,
@@ -85,6 +91,7 @@ export default class UserSeeder implements Seeder {
         membershipLevel: membership,
         createdAt,
         updatedAt,
+        lastLogin,
       });
     }
 
@@ -105,6 +112,9 @@ export default class UserSeeder implements Seeder {
       const updatedAt = new Date(createdAt);
       updatedAt.setDate(createdAt.getDate() + Math.floor(Math.random() * 3));
 
+      const lastLogin = new Date(createdAt);
+      lastLogin.setDate(createdAt.getDate() + Math.floor(Math.random() * 3));
+
       recentUsers.push({
         username,
         password: customerPassword,
@@ -117,6 +127,7 @@ export default class UserSeeder implements Seeder {
         membershipLevel: membership,
         createdAt,
         updatedAt,
+        lastLogin,
       });
     }
 

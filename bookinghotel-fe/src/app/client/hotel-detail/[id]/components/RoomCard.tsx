@@ -23,6 +23,11 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { setPendingBooking } from '@/reduxTK/features/bookingSlice'
 import { differenceInCalendarDays, parseISO } from 'date-fns';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import { Navigation } from 'swiper/modules';
+
 
 
 // --- Helper Functions ---
@@ -157,13 +162,31 @@ const router = useRouter()
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* LEFT: Image + Amenities */}
           <div className="lg:col-span-3 space-y-4">
-            <div className="relative rounded-lg overflow-hidden group">
-              <ImageWithFallback
-                src={safeRoom.image || '/placeholder-room.jpg'}
-                alt={roomTypeName.get(safeRoom.name) || 'Room Image'}
-                className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
+          <div className="relative rounded-lg overflow-hidden group">
+            <Swiper
+              modules={[Navigation]}
+              navigation
+              spaceBetween={10}
+              slidesPerView={1}
+              className="group rounded-lg overflow-hidden"
+              // --- BẮT ĐẦU THÊM VÀO ---
+              style={{
+                '--swiper-navigation-color': '#fff', // 1. Đổi màu mũi tên sang trắng
+                '--swiper-navigation-size': '25px', // 2. Đổi size (mặc định là 44px)
+              }}
+              // --- KẾT THÚC ---
+            >
+              {safeRoom.images.map((image) => (
+                <SwiperSlide key={image.url}>
+                  <ImageWithFallback
+                    src={image?.url || '/placeholder-room.jpg'}
+                    alt={roomTypeName.get(safeRoom.name) || 'Room Image'}
+                    className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
 
             <div className="space-y-3 text-sm text-gray-600">
               <div className="flex items-center gap-2">

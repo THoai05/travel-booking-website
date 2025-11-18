@@ -40,14 +40,12 @@ export class ImagesService {
             .getRawMany<{ url: string | null; description: string | null ;isMain:boolean}>();
     }
 
-    // *** BRO CHECK KỸ LOG NÀY ***
-    // TUI CÁ LÀ NÓ SẼ RA (8 cái null) VÀ 8
-    console.log("Dữ liệu thô và tổng:", rawData, total); 
+   
 
     const mappedData = rawData.map(d => ({
         url: d.url || "", // Xử lý nếu url cũng có thể null
         description: d.description || "",
-        isMain:d.isMain
+        isMain:!!d.isMain
     }));
 
     return {

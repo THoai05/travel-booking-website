@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation"; // ✅ thêm dòng này
 import api from "@/axios/axios";
+import { toast } from "react-hot-toast";
 
 interface User {
   id: number;
@@ -185,16 +186,17 @@ export default function ProfilePage() {
           return;
         }
       }
-      
+
       setLoadingMessage("Đang cập nhật thông tin...");
       const res = await api.patch(`/users/${userId}`, form);
       const data = res.data;
 
-      alert(data.message || "Cập nhật thành công");
+      toast.success(data.message || "✅ Cập nhật thành công!");
       setUser((prev) => (prev ? { ...prev, ...form } : prev));
     } catch (err: any) {
-      console.error(err);
-      setError(err.response?.data?.message || "Có lỗi xảy ra khi cập nhật");
+      //console.error(err);
+      //setError(err.response?.data?.message || "Có lỗi xảy ra khi cập nhật");
+      toast.error(err.response?.data?.message || "❌ Có lỗi xảy ra khi cập nhật!");
     } finally {
       setLoading(false);
     }

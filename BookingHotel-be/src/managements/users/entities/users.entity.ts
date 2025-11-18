@@ -139,6 +139,9 @@ export class User {
   })
   provider: ProviderLogin
 
+  @Column({ name: 'last_login', type: 'datetime', nullable: true })
+  lastLogin?: Date;
+
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
 

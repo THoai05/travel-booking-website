@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Query } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Hotel } from '../entities/hotel.entity';
 import { Repository } from 'typeorm';
@@ -20,12 +20,11 @@ export class HotelsService {
     private readonly hotelRepo: Repository<Hotel>,
     private readonly reviewsService: ReviewsService,
     private readonly cityService: CityService,
-    private readonly imageService:ImagesService
+    private readonly imageService: ImagesService
   ) { }
 
   async getAllDataHotel(queryParam: GetAllHotelRequest): Promise<any> {
     try {
-      console.log(queryParam)
       const page = Number(queryParam.page) || 1;
       const limit = Number(queryParam.limit) || 10;
       const star = Number(queryParam.star);
@@ -52,7 +51,6 @@ export class HotelsService {
         .addGroupBy('city.id');
     
 
-      // (Các filter cũ...)
       if (minPrice) {
         queryBuilder.andWhere(`hotels.avgPrice >= :minPrice`, { minPrice });
       }
@@ -61,17 +59,11 @@ export class HotelsService {
         queryBuilder.andWhere(`hotels.avgPrice <= :maxPrice`, { maxPrice });
       }
 
-      // ✅ --- THÊM FILTER CITY TITLE ---
-      // (Giả sử bro truyền 'cityTitle' từ DTO)
       if (cityTitle) {
         queryBuilder.andWhere('city.title = :cityTitle', { cityTitle });
       }
 
-      // ✅ --- THÊM FILTER HOTEL NAME ---
-      // (Giả sử bro truyền 'hotelName' từ DTO, dùng ILIKE để tìm kiếm không phân biệt hoa thường)
       if (hotelName) {
-        // MySQL không có ILIKE, dùng LIKE
-        // Dùng LOWER() để đảm bảo tìm kiếm không phân biệt hoa thường
         queryBuilder.andWhere('LOWER(hotels.name) LIKE LOWER(:hotelName)', { hotelName: `%${hotelName}%` });
       }
 
@@ -83,25 +75,25 @@ export class HotelsService {
       }
 
       if (star) {
-      let minStar: number;
-      let maxStar: number;
+        let minStar: number;
+        let maxStar: number;
 
-      if (star === 1) {
-        minStar = 0;
-        maxStar = 1.49;
-      } else if (star === 5) {
-        minStar = 4.5;
-        maxStar = 5.0;
-      } else {
-        minStar = star - 0.5;
-        maxStar = star + 0.49;
-      }
+        if (star === 1) {
+          minStar = 0;
+          maxStar = 1.49;
+        } else if (star === 5) {
+          minStar = 4.5;
+          maxStar = 5.0;
+        } else {
+          minStar = star - 0.5;
+          maxStar = star + 0.49;
+        }
       
-      queryBuilder.andHaving('AVG(reviews.rating) BETWEEN :minStar AND :maxStar', {
-        minStar: minStar,
-        maxStar: maxStar,
-      });
-    }
+        queryBuilder.andHaving('AVG(reviews.rating) BETWEEN :minStar AND :maxStar', {
+          minStar: minStar,
+          maxStar: maxStar,
+        });
+      }
 
       const countQuery = queryBuilder.clone();
       countQuery.skip(undefined).take(undefined);
@@ -109,10 +101,30 @@ export class HotelsService {
       const total = allRecords.length;
 
       const paginated = allRecords.slice(skip, skip + limit);
+      const imagesPromises = paginated.map(item => {
+      return this.imageService.getImagesByTypeAndId('hotel', item.hotels_id)
+    })
 
-      return {
-        data: paginated.map(item => ({
-          id: item.hotels_id,
+      const imageResults = await Promise.all(imagesPromises);
+
+      function getRandomIndices(max: number, count: number) {
+  const indices = new Set<number>();
+  while(indices.size < count && indices.size < max){
+    indices.add(Math.floor(Math.random() * max));
+  }
+  return Array.from(indices);
+}
+      
+      const finalResults = paginated.map((item,index) => {
+        const hotelImages = imageResults[index].data;
+
+       const indices = getRandomIndices(hotelImages.length, 4);
+      const imageUrl = indices.map(i => hotelImages[i].url);
+
+        
+      
+        return {
+           id: item.hotels_id,
           name: item.hotels_name,
           avgPrice: item.hotels_avgPrice,
           city: {
@@ -121,8 +133,14 @@ export class HotelsService {
           },
           avgRating: item.avgRating ? Number(item.avgRating).toFixed(1) : null,
           reviewCount: Number(item.reviewCount),
-          amenities: item.amenityList
-        })),
+          amenities: item.amenityList,
+          images:imageUrl
+        }
+      })
+
+
+      return {
+        data: finalResults,
         total,
         page,
         limit,
@@ -134,13 +152,13 @@ export class HotelsService {
     }
   }
 
-  async getHotelDataById(hotelId:number) {
-      const [hotel, summaryReview,images] = await Promise.all([
-        this.findBasicInfoHotel(hotelId),
-        this.reviewsService.getSummaryReviewByHotelId(hotelId),
-        this.imageService.getImagesByTypeAndId("hotel",hotelId)
-      ]);
-      const nearSpot = await this.cityService.findNearSpotByCityId(hotel.city.id)
+  async getHotelDataById(hotelId: number) {
+    const [hotel, summaryReview, images] = await Promise.all([
+      this.findBasicInfoHotel(hotelId),
+      this.reviewsService.getSummaryReviewByHotelId(hotelId),
+      this.imageService.getImagesByTypeAndId("hotel", hotelId)
+    ]);
+    const nearSpot = await this.cityService.findNearSpotByCityId(hotel.city.id)
     return {
       ...hotel,
       summaryReview,
@@ -149,61 +167,66 @@ export class HotelsService {
     };
   }
 
- // service của bro
-async findRoomTypeAndRatePlanByHotelId(hotelId: number): Promise<any> {
-    const hotel = await this.hotelRepo.findOne({
-      where: {
-        id: hotelId
-      },
-      relations: [
-        'roomTypes',
-        'roomTypes.ratePlans'
-      ]
-    });
+  // service của bro
+  async findRoomTypeAndRatePlanByHotelId(hotelId: number): Promise<any> {
+  // 1. Lấy hotel, roomTypes, và ratePlans trong 1 query duy nhất
+  const hotel = await this.hotelRepo.findOne({
+    where: {
+      id: hotelId,
+    },
+    relations: [
+      'roomTypes',
+      'roomTypes.ratePlans', // Đảm bảo relation này đúng
+    ],
+  });
 
-    if (!hotel) {
-      throw new NotFoundException("Khong tim thay khach san");
-    }
+  if (!hotel) {
+    throw new NotFoundException('Không tìm thấy khách sạn');
+  }
 
-    // --- [BƯỚC BIẾN ĐỔI DATA] ---
-    // Đừng return hotel, hãy map nó
-    const roomOptions = hotel.roomTypes.map(roomType => {
-      
-      // 1. Map các RatePlan (con) trước
-      const ratePlans = roomType.ratePlans.map(plan => {
-        return {
-          id: plan.id,
-          name: plan.name,
-          originalPrice: plan.original_price, // Frontend thường thích camelCase
-          salePrice: plan.sale_price,
-          includesBreakfast: plan.includes_breakfast,
-          paymentPolicy: plan.payment_policy,
-          cancellationPolicy: plan.cancellation_policy,
-          cancellationDeadlineDays: plan.cancellation_deadline_days
-          // --- ĐÃ BỎ `roomTypeId` THỪA ---
-        };
-      });
-
-      // 2. Map RoomType (cha)
+  // 2. Dùng Promise.all để map và fetch ảnh cho TỪNG roomType MỘT CÁCH SONG SONG
+  const roomOptionsPromises = hotel.roomTypes.map(async (roomType) => {
+    
+    // 2a. Map RatePlans (xử lý đồng bộ, nằm bên trong)
+    const ratePlans = roomType.ratePlans.map((plan) => {
       return {
-        id: roomType.id,
-        name: roomType.name,
-        description: roomType.description,
-        maxGuests: roomType.max_guests,
-        area: roomType.area,
-        bedType: roomType.bed_type,
-        totalInventory: roomType.total_inventory, // Giữ lại cái này, QUAN TRỌNG
-        // --- ĐÃ BỎ `hotelId` THỪA ---
-        
-        ratePlans: ratePlans // Gán mảng con đã được map
+        id: plan.id,
+        name: plan.name,
+        originalPrice: plan.original_price,
+        salePrice: plan.sale_price,
+        includesBreakfast: plan.includes_breakfast,
+        paymentPolicy: plan.payment_policy,
+        cancellationPolicy: plan.cancellation_policy,
+        cancellationDeadlineDays: plan.cancellation_deadline_days,
       };
     });
 
-    // 3. Trả về MẢNG roomOptions, không phải object hotel
-    return roomOptions; 
-    // Nếu bro có interceptor tự bọc { "data": ... } thì nó sẽ thành
-    // { "data": [ ...roomOptions... ] }
-    // Như vậy là CHUẨN!
+    // 2b. Lấy ảnh cho roomType này (xử lý bất đồng bộ)
+    const imageResult = await this.imageService.getImagesByTypeAndId(
+      'room',
+      roomType.id,
+    );
+    // Giả định imageResult.data là mảng chứa URL hoặc đối tượng ảnh
+    const images = imageResult.data; 
+
+    // 2c. Trả về đối tượng DTO hoàn chỉnh cho roomType
+    return {
+      id: roomType.id,
+      name: roomType.name,
+      description: roomType.description,
+      maxGuests: roomType.max_guests,
+      area: roomType.area,
+      bedType: roomType.bed_type,
+      totalInventory: roomType.total_inventory,
+      images: images, // Gán mảng ảnh đã fetch
+      ratePlans: ratePlans, // Gán mảng ratePlan đã map
+    };
+  });
+
+  // 3. Chờ cho TẤT CẢ các promise (việc lấy ảnh) hoàn thành
+  const roomOptions = await Promise.all(roomOptionsPromises);
+
+  return roomOptions;
 }
 
     
@@ -232,46 +255,72 @@ async findRoomTypeAndRatePlanByHotelId(hotelId: number): Promise<any> {
     return hotel
   }
 
- async getSimilarHotelByCityId(cityId: number): Promise<any[]> {
-  const hotels = await this.hotelRepo
-    .createQueryBuilder('hotels')
-    .leftJoin('hotels.city', 'city')
-    .leftJoin('reviews', 'reviews', 'reviews.hotelId = hotels.id')
-    .select([
-      'hotels.id AS id',
-      'hotels.name AS name',
-      'hotels.address AS address',
-      'hotels.avgPrice AS avgPrice',
-      'hotels.phone AS phone',
-      'city.id AS cityId',
-      'city.title AS cityName',
-      'AVG(reviews.rating) AS avgRating',
-      'COUNT(reviews.id) AS reviewCount',
-    ])
-    .where('city.id = :cityId', { cityId })
-    .groupBy('hotels.id')
-    .addGroupBy('city.id')
-    .addGroupBy('city.title')
-    .limit(15) 
-    .getRawMany();
-  return hotels.map(h => ({
-    id: h.id,
-    name: h.name,
-    address: h.address,
-    avgPrice: h.avgPrice,
-    phone:h.phone,
-    city: { id: h.cityId, title: h.cityName },
-    avgRating: Number(Number(h.avgRating || 0).toFixed(2)),
-    reviewCount: Number(h.reviewCount || 0)
-  }));
-}
-async getDataCitiesHotelForAccByRegionId(regionId: number): Promise<any> {
-const hotels = await this.hotelRepo // <-- BẮT ĐẦU TỪ HOTEL
-    .createQueryBuilder('hotel') // Alias là 'hotel'
-    .leftJoin('hotel.city', 'city') // Join vào city
-    .leftJoin('hotel.reviews', 'reviews') // Join vào reviews
+  async getSimilarHotelByCityId(cityId: number): Promise<any[]> {
+    const hotels = await this.hotelRepo
+      .createQueryBuilder('hotels')
+      .leftJoin('hotels.city', 'city')
+      .leftJoin('reviews', 'reviews', 'reviews.hotelId = hotels.id')
+      .select([
+        'hotels.id AS id',
+        'hotels.name AS name',
+        'hotels.address AS address',
+        'hotels.avgPrice AS avgPrice',
+        'hotels.phone AS phone',
+        'city.id AS cityId',
+        'city.title AS cityName',
+        'AVG(reviews.rating) AS avgRating',
+        'COUNT(reviews.id) AS reviewCount',
+      ])
+      .where('city.id = :cityId', { cityId })
+      .groupBy('hotels.id')
+      .addGroupBy('city.id')
+      .addGroupBy('city.title')
+      .limit(15)
+      .getRawMany();
+    
+    
+    const imagesPromises = hotels.map(hotel => {
+      return this.imageService.getImagesByTypeAndId('hotel', hotel.id)
+    })
 
-    .select([
+    const imageResults = await Promise.all(imagesPromises);
+    const finalResults = hotels.map((h, index) => {
+      const hotelImages = imageResults[index].data;
+
+      let imageUrl = "";
+        
+      if (hotelImages && hotelImages.length > 0) {
+        const mainImage = hotelImages.find(img => img.isMain === true);
+            
+        if (mainImage) {
+          imageUrl = mainImage.url;
+        } else {
+          imageUrl = hotelImages[0].url;
+        }
+      }
+
+      // Phần map vẫn y hệt
+      return{
+        id: h.id,
+        name: h.name,
+        address: h.address,
+        avgPrice: h.avgPrice,
+        phone: h.phone,
+        city: { id: h.cityId, title: h.cityName },
+        avgRating: Number(Number(h.avgRating || 0).toFixed(2)),
+        reviewCount: Number(h.reviewCount || 0),
+        images:imageUrl
+      };
+    })
+    return finalResults
+  }
+  async getDataCitiesHotelForAccByRegionId(regionId: number): Promise<any> {
+    const hotels = await this.hotelRepo // <-- BẮT ĐẦU TỪ HOTEL
+      .createQueryBuilder('hotel') // Alias là 'hotel'
+      .leftJoin('hotel.city', 'city') // Join vào city
+      .leftJoin('hotel.reviews', 'reviews') // Join vào reviews
+
+      .select([
         'hotel.id AS id', // Dùng alias 'hotel'
         'hotel.name AS name',
         'hotel.address AS address',
@@ -281,31 +330,129 @@ const hotels = await this.hotelRepo // <-- BẮT ĐẦU TỪ HOTEL
         'city.title AS cityName',
         'AVG(reviews.rating) AS avgRating',
         'COUNT(DISTINCT reviews.id) AS reviewCount',
-    ])
-    .where('city.regionId = :regionId', { regionId }) // Lọc trên city đã join
+      ])
+      .where('city.regionId = :regionId', { regionId }) // Lọc trên city đã join
 
-    // Group by tất cả các cột không phải aggregate
-    .groupBy('hotel.id')
-    .addGroupBy('hotel.name')
-    .addGroupBy('hotel.address')
-    .addGroupBy('hotel.avgPrice')
-    .addGroupBy('hotel.phone')
-    .addGroupBy('city.id')
-    .addGroupBy('city.title')
+      // Group by tất cả các cột không phải aggregate
+      .groupBy('hotel.id')
+      .addGroupBy('hotel.name')
+      .addGroupBy('hotel.address')
+      .addGroupBy('hotel.avgPrice')
+      .addGroupBy('hotel.phone')
+      .addGroupBy('city.id')
+      .addGroupBy('city.title')
 
-    .getRawMany();
+      .getRawMany();
+  
+    if (!hotels || hotels.length === 0) {
+      return [];
+    }
+       
+    const imagesPromises = hotels.map(hotel => {
+      return this.imageService.getImagesByTypeAndId('hotel', hotel.id)
+    })
 
-// Phần map vẫn y hệt
-return hotels.map(h => ({
-    id: h.id,
-    name: h.name,
-    address: h.address,
-    avgPrice: h.avgPrice,
-    phone: h.phone,
-    city: { id: h.cityId, title: h.cityName },
-    avgRating: Number(Number(h.avgRating || 0).toFixed(2)),
-    reviewCount: Number(h.reviewCount || 0)
-}));
-}
+    const imageResults = await Promise.all(imagesPromises);
+
+    const finalResults = hotels.map((h, index) => {
+      const hotelImages = imageResults[index].data;
+
+      let imageUrl = "";
+        
+      if (hotelImages && hotelImages.length > 0) {
+        const mainImage = hotelImages.find(img => img.isMain === true);
+            
+        if (mainImage) {
+          imageUrl = mainImage.url;
+        } else {
+          imageUrl = hotelImages[0].url;
+        }
+      }
+
+      // Phần map vẫn y hệt
+      return hotels.map(h => ({
+        id: h.id,
+        name: h.name,
+        address: h.address,
+        avgPrice: h.avgPrice,
+        phone: h.phone,
+        city: { id: h.cityId, title: h.cityName },
+        avgRating: Number(Number(h.avgRating || 0).toFixed(2)),
+        reviewCount: Number(h.reviewCount || 0),
+        images:imageUrl
+      }));
+    })
  
+  }
+
+  async getRandom6Hotels() {  
+    const hotels = await this.hotelRepo // <-- BẮT ĐẦU TỪ HOTEL
+      .createQueryBuilder('hotel') // Alias là 'hotel'
+      .leftJoin('hotel.city', 'city') // Join vào city
+      .leftJoin('hotel.reviews', 'reviews') // Join vào reviews
+      .orderBy('RAND()', 'ASC')
+      .limit(6)
+      .select([
+        'hotel.id AS id', // Dùng alias 'hotel'
+        'hotel.name AS name',
+        'hotel.address AS address',
+        'hotel.avgPrice AS avgPrice',
+        'hotel.phone AS phone',
+        'city.id AS cityId', // Dùng alias 'city'
+        'city.title AS cityName',
+        'AVG(reviews.rating) AS avgRating',
+        'COUNT(DISTINCT reviews.id) AS reviewCount',
+      ])
+
+      .groupBy('hotel.id')
+      .addGroupBy('hotel.name')
+      .addGroupBy('hotel.address')
+      .addGroupBy('hotel.avgPrice')
+      .addGroupBy('hotel.phone')
+      .addGroupBy('city.id')
+      .addGroupBy('city.title')
+      .getRawMany();
+    
+          
+    const imagesPromises = hotels.map(hotel => {
+      return this.imageService.getImagesByTypeAndId('hotel', hotel.id)
+    })
+
+    const imageResults = await Promise.all(imagesPromises);
+
+    const finalResults = hotels.map((h, index) => {
+      const hotelImages = imageResults[index].data;
+
+      let imageUrl = "";
+        
+      if (hotelImages && hotelImages.length > 0) {
+        const mainImage = hotelImages.find(img => img.isMain === true);
+            
+        if (mainImage) {
+          imageUrl = mainImage.url;
+        } else {
+          imageUrl = hotelImages[0].url;
+        }
+      }
+
+      // Phần map vẫn y hệt
+      return {
+        id: h.id,
+        name: h.name,
+        address: h.address,
+        avgPrice: h.avgPrice,
+        phone: h.phone,
+        city: { id: h.cityId, title: h.cityName },
+        avgRating: Number(Number(h.avgRating || 0).toFixed(2)),
+        reviewCount: Number(h.reviewCount || 0),
+        images:imageUrl
+      };
+    })
+ 
+    
+    return finalResults
+  }
 }
+
+
+

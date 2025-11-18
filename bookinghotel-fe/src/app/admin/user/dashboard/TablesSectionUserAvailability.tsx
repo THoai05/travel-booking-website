@@ -12,11 +12,20 @@ export interface UserData {
   provider: "local" | "google" | "github";
   createdAt: string;
   updatedAt: string;
+  lastLogin: string;
+  email: string;
 }
 
 export function TablesSectionUser() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<keyof UserData | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   useEffect(() => {
     fetchUsers();
@@ -26,7 +35,7 @@ export function TablesSectionUser() {
     try {
       setLoading(true);
       const res = await api.get("/users");
-      setUsers(res.data.users); // <-- sửa ở đây
+      setUsers(res.data.users);
     } catch (error) {
       console.error("Error fetching users:", error);
       setUsers([]);
@@ -49,25 +58,20 @@ export function TablesSectionUser() {
     if (!users.length) return;
 
     const ws = XLSX.utils.aoa_to_sheet([]);
-
-    // --- Title ---
     XLSX.utils.sheet_add_aoa(ws, [["User Report"]], { origin: "A1" });
     ws["A1"].s = {
       font: { bold: true, sz: 14, color: { rgb: "1F4E78" } },
       alignment: { horizontal: "center", vertical: "center" },
     };
-    ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
-
-    // --- Generated at ---
+    ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
     XLSX.utils.sheet_add_aoa(ws, [[`Generated at: ${new Date().toLocaleString()}`]], { origin: "A2" });
     ws["A2"].s = {
       font: { italic: true, sz: 11, color: { rgb: "1F4E78" } },
       alignment: { horizontal: "center", vertical: "center" },
     };
-    ws["!merges"].push({ s: { r: 1, c: 0 }, e: { r: 1, c: 4 } });
+    ws["!merges"].push({ s: { r: 1, c: 0 }, e: { r: 1, c: 5 } });
 
-    // --- Header ---
-    const header = ["User ID", "Username", "Provider", "Created At", "Updated At"];
+    const header = ["User ID", "Username", "Email", "Provider", "Created At", "Updated At", "Last Login"];
     XLSX.utils.sheet_add_aoa(ws, [header], { origin: "A3" });
     for (let c = 0; c < header.length; c++) {
       const cell = XLSX.utils.encode_cell({ r: 2, c });
@@ -79,33 +83,41 @@ export function TablesSectionUser() {
       };
     }
 
-    // --- Data ---
     users.forEach((u, i) => {
-      const row = [u.id, u.username, u.provider, formatDateUTC(u.createdAt), formatDateUTC(u.updatedAt)];
+      const row = [u.id, u.username, u.email, u.provider, formatDateUTC(u.createdAt), formatDateUTC(u.updatedAt), formatDateUTC(u.lastLogin)];
       XLSX.utils.sheet_add_aoa(ws, [row], { origin: `A${i + 4}` });
-
       for (let c = 0; c < row.length; c++) {
         const cellAddr = XLSX.utils.encode_cell({ r: i + 3, c });
-        ws[cellAddr].s = {
-          alignment: { horizontal: "center", vertical: "center" },
-        };
+        ws[cellAddr].s = { alignment: { horizontal: "center", vertical: "center" } };
       }
     });
 
-    ws["!cols"] = [
-      { wch: 10 },
-      { wch: 20 },
-      { wch: 12 },
-      { wch: 20 },
-      { wch: 20 },
-    ];
+    ws["!cols"] = [{ wch: 10 }, { wch: 20 }, { wch: 25 }, { wch: 12 }, { wch: 20 }, { wch: 20 }, { wch: 20 }];
 
-    // --- Workbook ---
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "User Stats");
-
     const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
     saveAs(new Blob([buf], { type: "application/octet-stream" }), `UserReport_${new Date().toISOString()}.xlsx`);
+  };
+
+  // Filter + sort + paginate
+  const filteredUsers = users
+    .filter(u => u.username.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      if (!sortKey) return 0;
+      const valA = a[sortKey] ?? "";
+      const valB = b[sortKey] ?? "";
+      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
+      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+
+  const totalPages = Math.ceil(filteredUsers.length / pageSize);
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const handleSort = (key: keyof UserData) => {
+    if (sortKey === key) setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortOrder("asc"); }
   };
 
   return (
@@ -113,42 +125,70 @@ export function TablesSectionUser() {
       <Card className="bg-white border-2 border-dashed border-blue-300 rounded-xl p-4">
         <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <CardTitle>User Dashboard</CardTitle>
-          <button
-            onClick={exportExcel}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          >
-            Export Excel
-          </button>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Search username/email"
+              className="px-2 py-1 border rounded"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            <button
+              onClick={exportExcel}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            >
+              Export Excel
+            </button>
+          </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div>Loading...</div>
-          ) : !users.length ? (
-            <div>No user data available.</div>
-          ) : (
+          {loading ? <div>Loading...</div> : !users.length ? <div>No user data available.</div> : (
             <div className="overflow-x-auto">
               <table className="min-w-full border border-gray-200 text-center">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="border p-2">User ID</th>
-                    <th className="border p-2">Username</th>
-                    <th className="border p-2">Provider</th>
-                    <th className="border p-2">Created At</th>
-                    <th className="border p-2">Updated At</th>
+                    <th className="border p-2 cursor-pointer" onClick={() => handleSort("id")}>User ID</th>
+                    <th className="border p-2 cursor-pointer" onClick={() => handleSort("username")}>Username</th>
+                    <th className="border p-2 cursor-pointer" onClick={() => handleSort("email")}>Email</th>
+                    <th className="border p-2 cursor-pointer" onClick={() => handleSort("provider")}>Provider</th>
+                    <th className="border p-2 cursor-pointer" onClick={() => handleSort("createdAt")}>Created At</th>
+                    <th className="border p-2 cursor-pointer" onClick={() => handleSort("updatedAt")}>Updated At</th>
+                    <th className="border p-2 cursor-pointer" onClick={() => handleSort("lastLogin")}>Last Login</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((u) => (
+                  {paginatedUsers.map(u => (
                     <tr key={u.id} className="hover:bg-gray-50 transition-colors">
                       <td className="border p-2">{u.id}</td>
                       <td className="border p-2">{u.username}</td>
+                      <td className="border p-2">{u.email}</td>
                       <td className="border p-2">{u.provider}</td>
                       <td className="border p-2">{formatDateUTC(u.createdAt)}</td>
                       <td className="border p-2">{formatDateUTC(u.updatedAt)}</td>
+                      <td className="border p-2">{formatDateUTC(u.lastLogin)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+
+              {/* Pagination */}
+              <div className="flex justify-between mt-2">
+                <button
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                >
+                  Previous
+                </button>
+                <span>Page {currentPage} / {totalPages}</span>
+                <button
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                >
+                  Next
+                </button>
+              </div>
             </div>
           )}
         </CardContent>

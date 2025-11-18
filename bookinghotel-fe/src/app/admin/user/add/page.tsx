@@ -2,8 +2,13 @@
 import React, { useState } from "react";
 import { FiUser, FiLock, FiMail, FiPhone, FiEye, FiEyeOff } from "react-icons/fi";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
-const Register = () => {
+interface RegisterPageProps {
+  setShowRegister: (value: boolean) => void;
+}
+
+const Register = ({ setShowRegister }: RegisterPageProps) => {
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -165,11 +170,13 @@ const Register = () => {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Đăng ký thất bại!");
-
-      alert("Đăng ký thành công! Vui lòng đăng nhập.");
+      toast.success("✅ Đăng ký thành công!");
+      setShowRegister(false);
       router.replace("/admin/user");
+      
     } catch (err: any) {
       setError(err.message || "Đăng ký thất bại!");
+      toast.error(err.message || "❌ Đăng ký thất bại!");
     } finally {
       setLoading(false);
     }

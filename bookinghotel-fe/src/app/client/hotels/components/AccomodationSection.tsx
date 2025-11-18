@@ -70,6 +70,9 @@ export default function AccommodationSection({
     isLoading: isLoadingHotelsByCity, 
     isError: isErrorHotelsByCity 
   } = useHandleSimilarHotelByCityId(isDisplayNavbar ? activeCity?.id : undefined);
+
+
+  console.log(dataHotelsByCity)
   
   // 3. Hook cho hotel theo region (chỉ chạy khi isDisplayNavbar = false và regionId có)
   const { 
@@ -175,16 +178,16 @@ export default function AccommodationSection({
               <p className="text-red-500">Lỗi tải danh sách khách sạn.</p>
             ) : (
               // Hiển thị data thật
-              hotelsToShow?.map((hotel) => (
+             hotelsToShow?.map((hotel, index) => (
                 <div
-                  key={hotel.id}
+                  key={`${hotel.id}-${index}`}
                   className="flex-shrink-0 snap-center"
                   style={{ scrollSnapAlign: 'start' }}
                 >
                   <AccommodationCard accommodation={hotel} />
                 </div>
               ))
-            )}
+                          )}
 
             {/* Báo rỗng nếu không loading, không lỗi, mà không có data */}
             {!isLoadingCarousel && !isErrorCarousel && hotelsToShow?.length === 0 && (

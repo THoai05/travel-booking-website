@@ -46,24 +46,11 @@ export default function Hotel() {
         
         {/* Layer 1: Image Slider (Nằm nền) */}
         <ImageSlider images={IMAGES} />
-
-        {/* Layer 2: Search Box (Nổi lên) */}
-        {/* 'absolute': Treo nó lên
-            'bottom-0': Gắn nó vào đáy của 'div cha'
-            'left-1/2 -translate-x-1/2': Căn giữa theo chiều ngang
-            'translate-y-1/2': Kéo nó XUỐNG 50% CHIỀU CAO CỦA CHÍNH NÓ
-                               (-> 1/2 ở trên, 1/2 ở dưới đáy)
-            'w-full max-w-4xl px-4': Cho nó full-width nhưng tối đa là 'max-w-4xl'
-        */}
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-10/11 w-full max-w-4xl px-4">
           <HeroSearch />
         </div>
       </div>
 
-      {/* --- MAIN CONTENT (Phần bên dưới) --- */}
-      {/* 2. Cần 1 khoảng padding-top LỚN (vd: pt-40)
-             Để chừa chỗ cho NỬA DƯỚI của cái HeroSearch đã đè lên.
-      */}
       <main className="container mx-auto max-w-7xl px-4 py-6 pt-100">
               <CouponSection />
              <AccommodationSection 

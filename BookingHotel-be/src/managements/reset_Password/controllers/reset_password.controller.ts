@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, ParseIntPipe, Param } from '@nestjs/common';
 import { ResetPasswordService } from '../services/reset_password.service';
 import { User } from 'src/managements/users/entities/users.entity';
 
@@ -44,4 +44,23 @@ export class ResetPasswordController {
     }
   }
 
+  // 📌 API tạo token reset password theo user id
+  @Post('reset-password')
+  async createResetToken(@Body() body: { userId: number; expireMinutes?: number }) {
+    const token = await this.resetService.createResetTokenByUserId(
+      body.userId,
+      body.expireMinutes,
+    );
+
+    return {
+      message: 'Reset token created successfully',
+      token,
+    };
+  }
+
+  // Reset password
+  @Post('delete-token')
+  async deleteToken(@Body() body: { token: string }) {
+    return this.resetService.deleteToken(body.token);
+  }
 }
