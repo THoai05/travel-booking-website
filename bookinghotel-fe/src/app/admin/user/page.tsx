@@ -13,7 +13,7 @@ import TripHistoryPage from "./trip-history/page"; // import trực tiếp compo
 import api from "@/axios/axios";
 
 import {
-  Activity, Monitor, Pencil, Trash2, History, Key
+  Activity, Monitor, Pencil, Trash2, History, Key, X, Maximize2
 } from "lucide-react";
 
 interface User {
@@ -52,6 +52,7 @@ export default function UserPage() {
   const [showRegister, setShowRegister] = useState(false);
   const [showResetPasswordPage, setShowResetPasswordPage] = useState(false);
   const [showTripHistoryPage, setShowTripHistoryPage] = useState(false);
+  const [showFull, setShowFull] = useState(false);
 
   // 🕒 Lấy danh sách và so sánh với cũ
   useEffect(() => {
@@ -169,9 +170,33 @@ export default function UserPage() {
     return d.toLocaleDateString("vi-VN", { timeZone: "UTC" });
   };
 
+  // 1. Định nghĩa class cho trạng thái BÌNH THƯỜNG (False)
+  const containerNormal = "flex flex-col sm:flex-row min-h-screen bg-[#f5f7fa] p-2 sm:p-6 overflow-x-hidden";
+  const boxNormal = "flex-1 w-full max-w-6xl mx-auto bg-white rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-6 relative transition-all";
+
+  // 2. Định nghĩa class cho trạng thái FULL MÀN HÌNH (True)
+  const containerFull = "fixed inset-0 z-50 overflow-y-auto bg-[#f5f7fa] animate-in fade-in duration-200";
+  const boxFull = "relative w-full max-w-7xl mx-auto bg-white min-h-screen sm:min-h-fit sm:mt-6 sm:mb-6 sm:rounded-2xl shadow-2xl p-4 sm:p-8";
+
   return (
-    <div className="flex flex-col sm:flex-row min-h-screen bg-[#f5f7fa] p-4 sm:p-6 overflow-x-hidden">
-      <div className="flex-1 w-full max-w-6xl mx-auto bg-white rounded-2xl shadow-xl p-6">
+    // Dùng toán tử 3 ngôi: showFull ? classFull : classNormal
+    <div className={showFull ? containerFull : containerNormal}>
+
+      <div className={showFull ? boxFull : boxNormal}>
+
+        {/* --- NÚT ĐIỀU KHIỂN (Góc phải) --- */}
+        <button
+          onClick={() => setShowFull(!showFull)} // Đảo ngược trạng thái
+          className={`absolute top-4 right-4 p-2 rounded-full transition shadow-sm z-10 ${showFull
+              ? "bg-red-50 text-red-500 hover:bg-red-100"  // Style nút X
+              : "bg-blue-50 text-blue-500 hover:bg-blue-100" // Style nút Mở rộng
+            }`}
+          title={showFull ? "Thu nhỏ" : "Mở rộng"}
+        >
+          {/* Nếu showFull = true thì hiện icon X, ngược lại hiện icon Mở rộng */}
+          {showFull ? <X size={24} /> : <Maximize2 size={24} />}
+        </button>
+
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-gray-800">👥 Quản lý người dùng</h1>
@@ -510,92 +535,108 @@ export default function UserPage() {
           {currentUsers.map((user) => (
             <motion.div
               key={user.id}
-              whileHover={{ scale: 1.03 }}
-              className="bg-gray-50 rounded-xl shadow-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-lg transition w-full"
+              whileHover={{ scale: 1.02 }}
+              // SỬA 1: flex-col để tách phần thông tin và phần nút thành 2 tầng
+              className="bg-gray-50 rounded-xl shadow-md p-4 flex flex-col gap-4 cursor-pointer hover:shadow-lg transition w-full overflow-hidden"
               onClick={() => openModal(user)}
             >
-              <motion.img
-                src={user.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
-                alt="avatar"
-                className="w-16 h-16 rounded-full border border-gray-300"
-              />
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-lg truncate">{user.fullName}</h3>
-                <p className="text-sm text-gray-600 truncate">{user.email}</p>
-                <p className="text-sm text-gray-600 truncate">{user.phone}</p>
-                <p
-                  className={`text-sm font-medium truncate ${user.role === "admin" ? "text-red-500" : "text-blue-500"
-                    }`}
-                >
-                  {user.role}
-                </p>
+              {/* PHẦN 1: THÔNG TIN + AVATAR */}
+              <div className="flex items-start gap-4 w-full">
+                <motion.img
+                  src={user.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                  alt="avatar"
+                  // Giữ kích thước avatar cố định, không bị co
+                  className="w-14 h-14 rounded-full border border-gray-300 flex-shrink-0"
+                />
+
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-lg truncate leading-tight">{user.fullName}</h3>
+                  <p className="text-sm text-gray-600 truncate">{user.email}</p>
+                  <p className="text-sm text-gray-600 truncate">{user.phone}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${user.role === "admin"
+                      ? "bg-red-100 text-red-600 border-red-200"
+                      : "bg-blue-100 text-blue-600 border-blue-200"
+                      }`}>
+                      {user.role}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-2 mt-2">
-                <button
-                  className="px-2 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 transition"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    localStorage.setItem("editUserId", user.id.toString());
-                    router.push("/admin/user/edit");
-                  }}
-                >
-                  ✏️ Sửa
-                </button>
-                <button
-                  className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(user.id);
-                  }}
-                >
-                  🗑️ Xóa
-                </button>
 
-                <button
-                  className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-red-100 transition"
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    const res = await api.post("/reset-password/reset-password", {
-                      userId: user.id,      // bạn phải truyền userId vào
-                      expireMinutes: 5         // có thể bỏ nếu dùng default
-                    });
+              {/* PHẦN 2: CÁC NÚT BẤM (Đưa ra khỏi hàng ngang của Avatar) */}
+              {/* Border top nhẹ để ngăn cách */}
+              <div className="pt-3 border-t border-gray-200 w-full">
+                <div className="flex flex-wrap gap-2 w-full">
 
-                    const token = res.data.token;
-                    localStorage.setItem("token-reset-password", token.toString());
+                  {/* Nút Sửa */}
+                  <button
+                    className="flex-1 min-w-[80px] flex items-center justify-center gap-1 px-3 py-1.5 bg-yellow-50 text-black rounded border border-yellow-200 hover:bg-yellow-100 transition text-xs font-medium"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      localStorage.setItem("editUserId", user.id.toString());
+                      setShowProfilePage(true);
+                    }}
+                  >
+                    <Pencil size={14} /> Sửa
+                  </button>
 
-                    setShowResetPasswordPage(true);
-                  }}
-                >
-                  <Key size={16} />Password
-                </button>
+                  {/* Nút Xóa */}
+                  {user.role !== "admin" && (
+                    <button
+                      className="flex-1 min-w-[80px] flex items-center justify-center gap-1 px-3 py-1.5 bg-red-50 text-black rounded border border-red-200 hover:bg-red-100 transition text-xs font-medium"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(user.id);
+                      }}
+                    >
+                      <Trash2 size={14} /> Xóa
+                    </button>
+                  )}
 
+                  {/* Nút Password */}
+                  <button
+                    className="flex-1 min-w-[100px] flex items-center justify-center gap-1 px-3 py-1.5 bg-gray-100 text-black rounded border border-gray-200 hover:bg-gray-200 transition text-xs font-medium"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      const res = await api.post("/reset-password/reset-password", {
+                        userId: user.id,
+                        expireMinutes: 5,
+                      });
+                      const token = res.data.token;
+                      localStorage.setItem("token-reset-password", token.toString());
+                      setShowResetPasswordPage(true);
+                    }}
+                  >
+                    <Key size={14} /> Reset Pass
+                  </button>
 
-                <button
-                  className="flex items-center gap-1 px-3 py-1 bg-blue-50 text-black rounded hover:bg-blue-100 transition"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    localStorage.setItem("editUserId", user.id.toString());
-                    setShowBookingHistory(true);
-                  }}
-                >
-                  <History size={16} /> Booking history
-                </button>
+                  {/* Nút Booking History */}
+                  <button
+                    className="flex-grow flex items-center justify-center gap-1 px-3 py-1.5 bg-blue-50 text-black rounded border border-blue-200 hover:bg-blue-100 transition text-xs font-medium"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      localStorage.setItem("editUserId", user.id.toString());
+                      setShowBookingHistory(true);
+                    }}
+                  >
+                    <History size={14} /> Booking
+                  </button>
 
-                <button
-                  className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-blue-100 transition"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    localStorage.setItem("editUserId", user.id.toString());
-                    setShowTripHistoryPage(true);
-                  }}
-                >
-                  <History size={16} /> Trip History
-                </button>
-
-
-
-
+                  {/* Nút Trip History */}
+                  <button
+                    className="flex-grow flex items-center justify-center gap-1 px-3 py-1.5 bg-purple-50 text-black rounded border border-purple-200 hover:bg-purple-100 transition text-xs font-medium"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      localStorage.setItem("editUserId", user.id.toString());
+                      setShowTripHistoryPage(true);
+                    }}
+                  >
+                    <History size={14} /> Trip
+                  </button>
+                </div>
               </div>
+
             </motion.div>
           ))}
         </div>
