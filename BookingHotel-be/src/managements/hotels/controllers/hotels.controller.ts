@@ -11,6 +11,13 @@ export class HotelsController {
   async handleGetAllDataHotel(@Query() queryParam: GetAllHotelRequest) {
     return await this.hotelsService.getAllDataHotel(queryParam)
   }
+  @Get('random-hotels')
+  async handleGetRandom6Hotels(){
+    const data = await this.hotelsService.getRandom6Hotels()
+    return {
+      data
+    }
+  }
 
   @Get(':id')
   async handleGetDataHotelById(@Param('id',ParseIntPipe) id:number) {
@@ -32,6 +39,8 @@ export class HotelsController {
     return {
       data
     }
+
   }
+  
 
 }

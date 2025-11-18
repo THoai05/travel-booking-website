@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Query } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Hotel } from '../entities/hotel.entity';
 import { Repository } from 'typeorm';
@@ -384,4 +384,75 @@ export class HotelsService {
     })
  
   }
+
+  async getRandom6Hotels() {  
+    const hotels = await this.hotelRepo // <-- BẮT ĐẦU TỪ HOTEL
+      .createQueryBuilder('hotel') // Alias là 'hotel'
+      .leftJoin('hotel.city', 'city') // Join vào city
+      .leftJoin('hotel.reviews', 'reviews') // Join vào reviews
+      .orderBy('RAND()', 'ASC')
+      .limit(6)
+      .select([
+        'hotel.id AS id', // Dùng alias 'hotel'
+        'hotel.name AS name',
+        'hotel.address AS address',
+        'hotel.avgPrice AS avgPrice',
+        'hotel.phone AS phone',
+        'city.id AS cityId', // Dùng alias 'city'
+        'city.title AS cityName',
+        'AVG(reviews.rating) AS avgRating',
+        'COUNT(DISTINCT reviews.id) AS reviewCount',
+      ])
+
+      .groupBy('hotel.id')
+      .addGroupBy('hotel.name')
+      .addGroupBy('hotel.address')
+      .addGroupBy('hotel.avgPrice')
+      .addGroupBy('hotel.phone')
+      .addGroupBy('city.id')
+      .addGroupBy('city.title')
+      .getRawMany();
+    
+          
+    const imagesPromises = hotels.map(hotel => {
+      return this.imageService.getImagesByTypeAndId('hotel', hotel.id)
+    })
+
+    const imageResults = await Promise.all(imagesPromises);
+
+    const finalResults = hotels.map((h, index) => {
+      const hotelImages = imageResults[index].data;
+
+      let imageUrl = "";
+        
+      if (hotelImages && hotelImages.length > 0) {
+        const mainImage = hotelImages.find(img => img.isMain === true);
+            
+        if (mainImage) {
+          imageUrl = mainImage.url;
+        } else {
+          imageUrl = hotelImages[0].url;
+        }
+      }
+
+      // Phần map vẫn y hệt
+      return {
+        id: h.id,
+        name: h.name,
+        address: h.address,
+        avgPrice: h.avgPrice,
+        phone: h.phone,
+        city: { id: h.cityId, title: h.cityName },
+        avgRating: Number(Number(h.avgRating || 0).toFixed(2)),
+        reviewCount: Number(h.reviewCount || 0),
+        images:imageUrl
+      };
+    })
+ 
+    
+    return finalResults
+  }
 }
+
+
+
