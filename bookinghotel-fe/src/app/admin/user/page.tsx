@@ -9,6 +9,7 @@ import ProfilePage from "./edit/page"; // import trực tiếp component
 import Register from "./add/page"; // import trực tiếp component
 import { toast } from "react-hot-toast";
 import ResetPasswordPage from "./reset-password/page"; // import trực tiếp ResetPasswordPage component
+import TripHistoryPage from "./trip-history/page"; // import trực tiếp component
 import api from "@/axios/axios";
 
 import {
@@ -50,6 +51,7 @@ export default function UserPage() {
   const [showProfilePage, setShowProfilePage] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [showResetPasswordPage, setShowResetPasswordPage] = useState(false);
+  const [showTripHistoryPage, setShowTripHistoryPage] = useState(false);
 
   // 🕒 Lấy danh sách và so sánh với cũ
   useEffect(() => {
@@ -247,7 +249,27 @@ export default function UserPage() {
                   </div>
 
                   {/* Nội dung dashboard */}
-                  <BookingHistoryPage />
+                  <BookingHistoryPage setShowTripHistoryPage={setShowTripHistoryPage}/>
+                </div>
+              </div>
+            )}
+
+            {showTripHistoryPage && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+                <div className="bg-white w-full max-w-7xl h-full max-h-[90vh] rounded-lg shadow-lg overflow-auto p-4 relative">
+                  {/* Header với nút đóng */}
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-bold">Lịch sử đặt phòng</h2>
+                    <button
+                      onClick={() => setShowTripHistoryPage(false)}
+                      className="text-gray-500 hover:text-gray-800 text-xl font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  {/* Nội dung dashboard */}
+                  <TripHistoryPage />
                 </div>
               </div>
             )}
@@ -451,6 +473,17 @@ export default function UserPage() {
                       >
                         <History size={16} /> Booking history
                       </button>
+
+                      <button
+                        className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-blue-100 transition"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          localStorage.setItem("editUserId", user.id.toString());
+                          setShowTripHistoryPage(true);
+                        }}
+                      >
+                        <History size={16} /> Trip History
+                      </button>
                     </div>
                   </td>
 
@@ -525,7 +558,7 @@ export default function UserPage() {
                   <Key size={16} />Password
                 </button>
 
-                {/* Nút xem lịch sử đặt phòng */}
+
                 <button
                   className="flex items-center gap-1 px-3 py-1 bg-blue-50 text-black rounded hover:bg-blue-100 transition"
                   onClick={(e) => {
@@ -536,6 +569,9 @@ export default function UserPage() {
                 >
                   <History size={16} /> Booking history
                 </button>
+
+
+
 
               </div>
             </motion.div>
