@@ -41,20 +41,29 @@ const VideoGallery = () => {
           </div>
 
           {/* Column 2 */}
-          <div className="col-span-3 flex flex-col gap-4">
-            {[1, 2].map((i) => (
-              <div key={i} className={`flex-[${i === 1 ? 0.4 : 0.6}] relative`}>
-                <video
-                  src={videos[i].src}
-                  className="object-cover w-full h-full rounded-2xl"
-                  muted
-                  autoPlay
-                  loop
-                  onClick={() => setPlayVideo(videos[i].src)}
-                />
-              </div>
-            ))}
+         <div className="col-span-3 flex flex-col gap-4 h-full">
+          <div className="flex-2 relative">
+            <video
+              src={videos[1].src}
+              className="object-cover w-full h-full rounded-2xl"
+              muted
+              autoPlay
+              loop
+              onClick={() => setPlayVideo(videos[1].src)}
+            />
           </div>
+          <div className="flex-3 relative">
+            <video
+              src={videos[2].src}
+              className="object-cover w-full h-full rounded-2xl"
+              muted
+              autoPlay
+              loop
+              onClick={() => setPlayVideo(videos[2].src)}
+            />
+          </div>
+        </div>
+
 
           {/* Column 3 */}
           <div className="col-span-4 flex flex-col gap-4">
@@ -91,15 +100,7 @@ const VideoGallery = () => {
           </div>
         )}
 
-        {/* Load More Button */}
-        <div className="flex justify-center mt-10">
-          <Button
-            type="button"
-            title="Load More Tours"
-            icon="/menu.png"
-            variant="flex items-center gap-2 px-8 py-3 bg-[#FEFA17] text-black rounded-full font-bold transition"
-          />
-        </div>
+      
       </div>
     </section>
   );
