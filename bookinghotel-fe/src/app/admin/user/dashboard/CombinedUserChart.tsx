@@ -34,6 +34,9 @@ export function CombinedUserChart() {
   const [hoveredUsers, setHoveredUsers] = useState<UserData[]>([]);
   const [showPopup, setShowPopup] = useState(false);
 
+  // State mới: Lưu ngày đang hover để filter chính xác (tương tự biến "now" bạn muốn)
+  const [hoveredDate, setHoveredDate] = useState<string>("");
+
   const colors = {
     lastLogin: "#3B82F6",
     createdAt: "#10B981",
@@ -87,6 +90,7 @@ export function CombinedUserChart() {
   const handleBarMouseEnter = (data: KPIItem | null) => {
     if (!data) return;
     setHoveredUsers(data.usersInDate);
+    setHoveredDate(data.date); // LƯU GIÁ TRỊ NGÀY HIỆN TẠI (NOW)
     setShowPopup(true);
   };
 
@@ -142,9 +146,11 @@ export function CombinedUserChart() {
 
           {/* Popup fixed trên màn hình, không đè layout, nổi trên mọi thứ */}
           {showPopup && hoveredUsers.length > 0 && (
-            <div className="fixed top-5 right-5 z-50 w-80 max-h-[100vh] overflow-auto bg-white border border-gray-300 rounded shadow-lg p-4">
+            <div className="fixed top-5 right-5 z-50 w-150 max-h-[100vh] overflow-auto bg-white border border-gray-300 rounded shadow-lg p-4">
               <div className="flex justify-between items-center mb-2">
-                <span className="font-medium">Users on this day</span>
+                {/* Hiển thị thêm ngày cho rõ ràng */}
+                <span className="font-medium">Users on {hoveredDate}</span>
+                {/* <span className="font-medium">Users on this day</span> */}
                 <button
                   onClick={handlePopupClose}
                   className="text-red-500 font-bold text-xl leading-none"
@@ -153,31 +159,74 @@ export function CombinedUserChart() {
                 </button>
               </div>
               <div className="overflow-auto max-h-72">
-                <table className="w-full text-sm table-fixed border-collapse">
-                  <thead>
+                <table className="w-full text-sm border-collapse">
+                  {/* Header: Thêm px-4 py-2 để tiêu đề thoáng hơn */}
+                  <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
                     <tr>
-                      <th className="text-left p-1">Username</th>
-                      <th className="p-1 text-green-700">Created</th>
-                      <th className="p-1 text-yellow-700">Updated</th>
-                      <th className="p-1 text-blue-700">Last Login</th>
+                      <th className="text-left px-4 py-2 font-semibold text-gray-600">Username</th>
+                      <th className="px-4 py-2 text-green-700 font-semibold whitespace-nowrap">Created</th>
+                      <th className="px-4 py-2 text-yellow-700 font-semibold whitespace-nowrap">Updated</th>
+                      <th className="px-4 py-2 text-blue-700 font-semibold whitespace-nowrap">Last Login</th>
                     </tr>
                   </thead>
+
                   <tbody>
-                    {hoveredUsers.map(user => (
-                      <tr key={user.id} className="border-t">
-                        <td className="p-1">{user.username}</td>
-                        <td className="p-1 text-green-700">{new Date(user.createdAt).toLocaleString()}</td>
-                        <td className="p-1 text-yellow-700">{new Date(user.updatedAt).toLocaleString()}</td>
-                        <td className="p-1 text-blue-700">{new Date(user.lastLogin).toLocaleString()}</td>
-                      </tr>
-                    ))}
-                    <tr className="font-bold border-t bg-gray-100">
-                      <td className="p-1">Total</td>
-                      <td className="p-1 text-green-700">{hoveredUsers.filter(u => u.createdAt).length}</td>
-                      <td className="p-1 text-yellow-700">{hoveredUsers.filter(u => u.updatedAt).length}</td>
-                      <td className="p-1 text-blue-700">{hoveredUsers.filter(u => u.lastLogin).length}</td>
-                    </tr>
+                    {hoveredUsers.map((user) => {
+                      const isCreatedMatch = user.createdAt?.slice(0, 10) === hoveredDate;
+                      const isUpdatedMatch = user.updatedAt?.slice(0, 10) === hoveredDate;
+                      const isLoginMatch = user.lastLogin?.slice(0, 10) === hoveredDate;
+
+                      return (
+                        <tr key={user.id} className="border-t hover:bg-gray-50 transition-colors">
+                          {/* Username */}
+                          <td className="px-4 py-2 text-gray-700 font-medium">
+                            {user.username}
+                          </td>
+
+                          {/* Created: Thêm whitespace-nowrap để ngày không bị xuống dòng */}
+                          <td
+                            className={`px-4 py-2 whitespace-nowrap ${isCreatedMatch ? "text-green-700 font-bold bg-green-50" : "text-black"
+                              }`}
+                          >
+                            {new Date(user.createdAt).toLocaleString()}
+                          </td>
+
+                          {/* Updated */}
+                          <td
+                            className={`px-4 py-2 whitespace-nowrap ${isUpdatedMatch ? "text-yellow-700 font-bold bg-yellow-50" : "text-black"
+                              }`}
+                          >
+                            {new Date(user.updatedAt).toLocaleString()}
+                          </td>
+
+                          {/* Last Login */}
+                          <td
+                            className={`px-4 py-2 whitespace-nowrap ${isLoginMatch ? "text-blue-700 font-bold bg-blue-50" : "text-black"
+                              }`}
+                          >
+                            {new Date(user.lastLogin).toLocaleString()}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
+
+                  {/* Footer Total: Căn chỉnh padding giống hệt body để thẳng hàng */}
+                  <tfoot className="bg-gray-100 border-t sticky bottom-0 font-bold">
+                    <tr>
+                      <td className="px-4 py-2">Total Match</td>
+                      <td className="px-4 py-2 text-green-700">
+                        {hoveredUsers.filter((u) => u.createdAt?.slice(0, 10) === hoveredDate).length}
+                      </td>
+                      <td className="px-4 py-2 text-yellow-700">
+                        {hoveredUsers.filter((u) => u.updatedAt?.slice(0, 10) === hoveredDate).length}
+                      </td>
+                      <td className="px-4 py-2 text-blue-700">
+                        {hoveredUsers.filter((u) => u.lastLogin?.slice(0, 10) === hoveredDate).length}
+                      </td>
+                    </tr>
+                  </tfoot>
+
                 </table>
               </div>
             </div>
