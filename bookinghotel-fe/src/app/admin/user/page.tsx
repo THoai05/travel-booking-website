@@ -249,7 +249,7 @@ export default function UserPage() {
                   </div>
 
                   {/* Nội dung dashboard */}
-                  <BookingHistoryPage setShowTripHistoryPage={setShowTripHistoryPage}/>
+                  <BookingHistoryPage setShowTripHistoryPage={setShowTripHistoryPage} />
                 </div>
               </div>
             )}
@@ -433,15 +433,20 @@ export default function UserPage() {
                         >
                           <Pencil size={16} /> Sửa
                         </button>
-                        <button
-                          className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-red-100 transition"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(user.id);
-                          }}
-                        >
-                          <Trash2 size={16} /> Xóa
-                        </button>
+
+                        {user.role !== "admin" && (
+                          <>
+                            <button
+                              className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-red-100 transition"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(user.id);
+                              }}
+                            >
+                              <Trash2 size={16} /> Xóa
+                            </button>
+                          </>
+                        )}
 
                         <button
                           className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-red-100 transition"
@@ -462,28 +467,34 @@ export default function UserPage() {
                         </button>
                       </div>
 
-                      {/* Nút xem lịch sử đặt phòng */}
-                      <button
-                        className="flex items-center gap-1 px-3 py-1 bg-blue-50 text-black rounded hover:bg-blue-100 transition"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          localStorage.setItem("editUserId", user.id.toString());
-                          setShowBookingHistory(true);
-                        }}
-                      >
-                        <History size={16} /> Booking history
-                      </button>
+                      {/* Chỉ hiển thị nếu user KHÔNG PHẢI là admin */}
+                      {user.role !== "admin" && (
+                        <>
+                          {/* Nút xem lịch sử đặt phòng */}
+                          <button
+                            className="flex items-center gap-1 px-3 py-1 bg-blue-50 text-black rounded hover:bg-blue-100 transition"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              localStorage.setItem("editUserId", user.id.toString());
+                              setShowBookingHistory(true);
+                            }}
+                          >
+                            <History size={16} /> Booking history
+                          </button>
 
-                      <button
-                        className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-blue-100 transition"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          localStorage.setItem("editUserId", user.id.toString());
-                          setShowTripHistoryPage(true);
-                        }}
-                      >
-                        <History size={16} /> Trip History
-                      </button>
+                          {/* Nút xem lịch sử chuyến đi */}
+                          <button
+                            className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-blue-100 transition"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              localStorage.setItem("editUserId", user.id.toString());
+                              setShowTripHistoryPage(true);
+                            }}
+                          >
+                            <History size={16} /> Trip History
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
 
@@ -568,6 +579,17 @@ export default function UserPage() {
                   }}
                 >
                   <History size={16} /> Booking history
+                </button>
+
+                <button
+                  className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-blue-100 transition"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    localStorage.setItem("editUserId", user.id.toString());
+                    setShowTripHistoryPage(true);
+                  }}
+                >
+                  <History size={16} /> Trip History
                 </button>
 
 
