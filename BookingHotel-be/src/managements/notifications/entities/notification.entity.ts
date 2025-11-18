@@ -45,5 +45,4 @@ export class Notification {
 
   @OneToMany(() => ZaloChat, chat => chat.notification)
   zalo_chats: ZaloChat[];
-
 }

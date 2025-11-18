@@ -24,12 +24,11 @@ export class NotificationsService {
         const user = await this.usersRepo.findOne({ where: { id: data.user_id } });
         if (!user) throw new NotFoundException('User not found');
 
-        // 1️⃣ Lưu notification vào DB
         const noti = this.notificationsRepo.create({
             title: data.title,
             message: data.message,
             type: data.type ?? 'system',
-            user: user,
+            user: user, // phải gán entity user, không gán user_id
         });
 
         const savedNoti = await this.notificationsRepo.save(noti);
@@ -70,9 +69,12 @@ export class NotificationsService {
         const notification = await this.notificationsRepo.findOne({ where: { id: notificationId } });
         if (!notification) throw new NotFoundException('Notification not found');
 
-        await this.notificationsRepo.remove(notification);
+        await this.notificationsRepo.delete(notificationId); // CASCADE sẽ xóa zalo_chats
         return { message: 'Notification deleted successfully' };
     }
+
+
+
 
     async getNotificationDetail(notificationId: number) {
         const notification = await this.notificationsRepo.findOne({
@@ -91,6 +93,55 @@ export class NotificationsService {
         return this.notificationsRepo.count({
             where: { user: { id: userId }, isRead: false },
         });
+    }
+
+    // ==========================
+    // Lấy toàn bộ notifications (admin)
+    // ==========================
+    async getAllNotificationsWithPagination(skip: number, take: number) {
+        const [data, total] = await this.notificationsRepo.findAndCount({
+            relations: ['user'],
+            order: { createdAt: 'DESC' },
+            skip,
+            take,
+        });
+        return [data, total];
+    }
+
+    // ==========================
+    // Update notification
+    // ==========================
+    async updateNotification(id: number, updateData: any) {
+        const noti = await this.notificationsRepo.findOne({ where: { id } });
+        if (!noti) throw new NotFoundException('Notification not found');
+
+        // Cập nhật trường cho phép
+        noti.title = updateData.title ?? noti.title;
+        noti.message = updateData.message ?? noti.message;
+        noti.type = updateData.type ?? noti.type;
+
+        // Nếu muốn update luôn is_read:
+        if (updateData.isRead !== undefined) {
+            noti.isRead = updateData.isRead;
+        }
+
+        return this.notificationsRepo.save(noti);
+    }
+
+    async markAllAsRead(userId: number) {
+        try {
+            const result = await this.notificationsRepo
+                .createQueryBuilder()
+                .update(Notification)
+                .set({ isRead: true })
+                .where('user_id = :userId AND is_read = false', { userId })
+                .execute();
+
+            return { message: `${result.affected} notifications marked as read` };
+        } catch (error) {
+            console.error('markAllAsRead error:', error);
+            throw error;
+        }
     }
 
 

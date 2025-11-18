@@ -1,40 +1,71 @@
-import { Controller, Get, Param, Patch, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Get, Query, Body, Param, Patch, Delete, ParseIntPipe } from '@nestjs/common';
 import { NotificationsService } from '../services/notifications.service';
 
 @Controller('notifications')
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) { }
 
-  // Lấy danh sách thông báo theo userId
+  // ==========================
+  // CLIENT ROUTES
+  // ==========================
+
   @Get('user/:userId')
   getNotifications(@Param('userId', ParseIntPipe) userId: number) {
     return this.notificationsService.getNotificationsByUserId(userId);
   }
+  // POST /notifications
+  @Post()
+  create(@Body() data: any) {
+    return this.notificationsService.createNotification(data);
+  }
 
 
+  @Get('user/:userId/unread-count')
+  getUnreadCount(@Param('userId', ParseIntPipe) userId: number) {
+    return this.notificationsService.countUnreadNotifications(userId);
+  }
 
-  // Đánh dấu thông báo là đã đọc
   @Patch(':id/read')
   markAsRead(@Param('id', ParseIntPipe) id: number) {
     return this.notificationsService.markAsRead(id);
   }
 
-  // Xóa thông báo
   @Delete(':id')
   deleteNotification(@Param('id', ParseIntPipe) id: number) {
     return this.notificationsService.deleteNotification(id);
   }
 
-  // Lấy chi tiết thông báo theo notificationId
-  @Get(':id')
-  async getNotificationDetail(@Param('id', ParseIntPipe) id: number) {
+  // ==========================
+  // ADMIN ROUTES
+  // ==========================
+
+  @Get()
+  async getAllNotifications(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10
+  ) {
+    const skip = (page - 1) * limit;
+    const [data, total] = await this.notificationsService.getAllNotificationsWithPagination(skip, limit);
+    return { data, total };
+  }
+
+  @Patch(':id')
+  updateNotification(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: any,
+  ) {
+    return this.notificationsService.updateNotification(id, body);
+  }
+
+  // Để tránh conflict đặt /detail/:id
+  @Get('detail/:id')
+  getNotificationDetail(@Param('id', ParseIntPipe) id: number) {
     return this.notificationsService.getNotificationDetail(id);
   }
 
-  // GET /notifications/user/:userId/unread-count
-  @Get('user/:userId/unread-count')
-  async getUnreadCount(@Param('userId') userId: string) {
-    const count = await this.notificationsService.countUnreadNotifications(+userId);
-    return { userId: +userId, unreadCount: count };
+  @Patch('mark-notifications-read/:userId')
+  async markNotificationsRead(@Param('userId', ParseIntPipe) userId: number) {
+    return this.notificationsService.markAllAsRead(userId);
   }
+
 }

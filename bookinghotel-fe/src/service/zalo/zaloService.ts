@@ -9,6 +9,7 @@ export interface User {
     name?: string;
     avatar?: string;
 }
+
 export interface ZaloMessage {
     id?: string | number;
     sender_id: number;
@@ -19,7 +20,8 @@ export interface ZaloMessage {
     booking_id?: number;
     notification_id?: number;
     createdAt?: string;
-    sender?: User
+    sender?: User;
+    status: string;
 
     // Booking details
     check_in_date?: string;
@@ -54,6 +56,19 @@ export const ZaloChatService = {
         if (!socket) return;
         socket.on('newMessage', callback);
     },
+    offNewMessage(callback: (msg: ZaloMessage) => void) {
+        if (!socket) return;
+        socket.off('newMessage', callback);
+    },
+    onNewNotification(callback: (noti: ZaloMessage) => void) {
+        if (!socket) return;
+        socket.on('newNotification', callback);
+    },
+    offNewNotification(callback: (noti: ZaloMessage) => void) {
+        if (!socket) return;
+        socket.off('newNotification', callback);
+    },
+
 
     sendMessage(messageData: {
         sender_id: number;
@@ -91,6 +106,28 @@ export const ZaloChatService = {
             contact_phone: msg.type === 'booking' ? msg.contact_phone ?? undefined : undefined,
             total_price: msg.type === 'booking' ? msg.total_price ?? undefined : undefined,
             special_requests: msg.type === 'booking' ? msg.special_requests ?? undefined : undefined,
+            status: msg.status ?? 'sent',
         }));
+    },
+    /**
+    * Đánh dấu các message / notification là đã đọc
+    * @param messageIds mảng id của message / notification
+    */
+    markAsSeen: async (messageIds: (string | number)[]) => {
+        if (!messageIds.length) return;
+
+        try {
+            const res = await fetch(`${BASE_URL}/zalo/mark-as-seen`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messageIds }),
+            });
+
+            if (!res.ok) throw new Error('Failed to mark messages as seen');
+
+            return await res.json(); // trả về kết quả server nếu cần
+        } catch (err) {
+            console.error('markAsSeen error:', err);
+        }
     },
 };
