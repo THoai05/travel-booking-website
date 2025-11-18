@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, X, Image } from 'lucide-react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-import { ZaloChatService, ZaloMessage } from '@/service/zalo/zalo.service';
+import { ZaloChatService, ZaloMessage } from '@/service/zalo/zaloService';
 
 export interface User {
     id: number;
@@ -27,37 +27,56 @@ export default function ZaloChatPopup({ user }: Props) {
     useEffect(() => {
         if (!user) return;
 
+
         // Kết nối socket
         ZaloChatService.connect(user.id);
 
         // Nhận tin nhắn mới realtime
-        ZaloChatService.onNewMessage((msg: ZaloMessage) => {
-            console.log('Tin nhắn nhận được:', msg);
-            setMessages(prev => [...prev, msg]);
-        });
+        const handleMessage = (msg: ZaloMessage) => setMessages(prev => [...prev, msg]);
+        const handleNoti = (noti: ZaloMessage) => {
+            if (!noti.id || !noti.message) return; // bỏ qua object trống
+            setMessages(prev => {
+                const exists = prev.some(m => m.id === noti.id);
+                if (exists) return prev;
+                return [...prev, noti];
+            });
+        };
 
-        // Nhận trạng thái typing
-        ZaloChatService.onTyping((data: any) => {
-            if (data.receiver_id === user.id) setIsTyping(data.isTyping);
-        });
-
+        ZaloChatService.onNewMessage(handleMessage);
+        ZaloChatService.onNewNotification(handleNoti);
         // Fetch lịch sử chat
         const fetchHistory = async () => {
-            try {
-                const history = await ZaloChatService.fetchChatHistory(user.id, 1);
-                console.log('Lịch sử chat:', history);
-                setMessages(history);
-            } catch (err) {
-                console.error('Failed to fetch chat history:', err);
-            }
+            const history = await ZaloChatService.fetchChatHistory(user.id, 1);
+            const filtered = history.filter(msg => !(msg.type === 'notification' && (!msg.title && !msg.message)));
+            setMessages(filtered);
         };
+
         fetchHistory();
 
         // Cleanup khi unmount
         return () => {
+            ZaloChatService.offNewMessage(handleMessage); // cần thêm hàm này trong service
+            ZaloChatService.offNewNotification(handleNoti);
             ZaloChatService.disconnect();
         };
     }, [user]);
+
+    useEffect(() => {
+        if (!open || !user) return;
+
+        const markRead = async () => {
+            try {
+                await fetch(`http://localhost:3636/notifications/mark-notifications-read/${user.id}`, {
+                    method: 'PATCH',
+                });
+                console.log('Notifications marked as read');
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        markRead();
+    }, [open, user]);
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -76,6 +95,7 @@ export default function ZaloChatPopup({ user }: Props) {
             type,
             sender: user,
             file_url: fileUrl || undefined,
+            status: 'sent'
         };
 
         ZaloChatService.sendMessage({

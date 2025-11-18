@@ -63,4 +63,12 @@ export class ZaloChatGateway implements OnGatewayConnection, OnGatewayDisconnect
         this.server.to(senderRoom).emit('newMessage', msg);
         this.server.to(receiverRoom).emit('newMessage', msg);
     }
+
+    // Hàm emit notification
+    async emitNotification(noti: any) {
+        const receiverRoom = `zalo_${noti.receiver_id}`;
+        console.log(`📤 Emit notification to room: ${receiverRoom}`);
+        this.server.to(receiverRoom).emit('newNotification', noti);
+    }
+
 }

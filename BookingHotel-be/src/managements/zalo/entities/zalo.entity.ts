@@ -45,8 +45,7 @@ export class ZaloChat {
     @JoinColumn({ name: 'booking_id' })
     booking: Booking;
 
-    @ManyToOne(() => Notification, notification => notification.zalo_chats, { nullable: true })
+    @ManyToOne(() => Notification, notification => notification.zalo_chats, { nullable: true, onDelete: 'CASCADE' })
     @JoinColumn({ name: 'notification_id' })
     notification: Notification;
-
 }

@@ -46,7 +46,7 @@ export class ZaloChatController {
             receiver_id: Number(body.receiver_id),
             message: '', // không cần message text
             type: 'image',
-            file_url: `/uploads/zalo/${file.filename}`, // ✅ trùng interface
+            file_url: `/uploads/zalo/${file.filename}`,
         });
 
         this.zaloChatGateway.emitMessage(msg);
