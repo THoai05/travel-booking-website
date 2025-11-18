@@ -188,8 +188,8 @@ export default function UserPage() {
         <button
           onClick={() => setShowFull(!showFull)} // Đảo ngược trạng thái
           className={`absolute top-4 right-4 p-2 rounded-full transition shadow-sm z-10 ${showFull
-              ? "bg-red-50 text-red-500 hover:bg-red-100"  // Style nút X
-              : "bg-blue-50 text-blue-500 hover:bg-blue-100" // Style nút Mở rộng
+            ? "bg-red-50 text-red-500 hover:bg-red-100"  // Style nút X
+            : "bg-blue-50 text-blue-500 hover:bg-blue-100" // Style nút Mở rộng
             }`}
           title={showFull ? "Thu nhỏ" : "Mở rộng"}
         >
@@ -610,30 +610,33 @@ export default function UserPage() {
                   >
                     <Key size={14} /> Reset Pass
                   </button>
+                  {user.role !== "admin" && (
+                    <>
+                      {/* Nút Booking History */}
+                      <button
+                        className="flex-grow flex items-center justify-center gap-1 px-3 py-1.5 bg-blue-50 text-black rounded border border-blue-200 hover:bg-blue-100 transition text-xs font-medium"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          localStorage.setItem("editUserId", user.id.toString());
+                          setShowBookingHistory(true);
+                        }}
+                      >
+                        <History size={14} /> Booking
+                      </button>
 
-                  {/* Nút Booking History */}
-                  <button
-                    className="flex-grow flex items-center justify-center gap-1 px-3 py-1.5 bg-blue-50 text-black rounded border border-blue-200 hover:bg-blue-100 transition text-xs font-medium"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      localStorage.setItem("editUserId", user.id.toString());
-                      setShowBookingHistory(true);
-                    }}
-                  >
-                    <History size={14} /> Booking
-                  </button>
-
-                  {/* Nút Trip History */}
-                  <button
-                    className="flex-grow flex items-center justify-center gap-1 px-3 py-1.5 bg-purple-50 text-black rounded border border-purple-200 hover:bg-purple-100 transition text-xs font-medium"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      localStorage.setItem("editUserId", user.id.toString());
-                      setShowTripHistoryPage(true);
-                    }}
-                  >
-                    <History size={14} /> Trip
-                  </button>
+                      {/* Nút Trip History */}
+                      <button
+                        className="flex-grow flex items-center justify-center gap-1 px-3 py-1.5 bg-purple-50 text-black rounded border border-purple-200 hover:bg-purple-100 transition text-xs font-medium"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          localStorage.setItem("editUserId", user.id.toString());
+                          setShowTripHistoryPage(true);
+                        }}
+                      >
+                        <History size={14} /> Trip
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
