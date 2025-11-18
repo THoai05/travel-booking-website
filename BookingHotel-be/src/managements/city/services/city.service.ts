@@ -88,7 +88,8 @@ export class CityService {
         const hotels = await this.cityRepo.find({
             select: {
                 id: true,
-                title:true
+                title: true,
+                image:true
             }
         })
         return hotels

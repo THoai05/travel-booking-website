@@ -27,10 +27,22 @@ const PromotionsProgram = () => {
             />
           </div>
           <div className="rounded-2xl overflow-hidden shadow-lg bg-gray-100 flex items-center justify-center">
-            <span className="text-gray-400">Promotion 2</span>
+           <Image 
+              src="/promotion/promotion2.jpg"
+                alt="Background"
+                width={541}
+                height={260}
+                className=""
+            />
           </div>
           <div className="rounded-2xl overflow-hidden shadow-lg bg-gray-100 flex items-center justify-center">
-            <span className="text-gray-400">Promotion 3</span>
+            <Image 
+              src="/promotion/promotion3.jpg"
+                alt="Background"
+                width={541}
+                height={260}
+                className=""
+            />
           </div>
         </div>
 
