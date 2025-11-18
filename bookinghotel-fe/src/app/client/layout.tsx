@@ -20,7 +20,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
-  const currentUserId = 2;
 
   // Hiển thị Splash Loader mỗi lần route thay đổi
   useEffect(() => {

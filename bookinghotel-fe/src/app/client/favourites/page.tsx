@@ -1,28 +1,44 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getFavouritesByUser } from "@/service/favourite/favouriteService";
+import { getFavouritesByUser, deleteFavourite } from "@/service/favourite/favouriteService";
 import AccommodationCard, { Accommodation } from "./card";
 import { v4 as uuidv4 } from "uuid";
 import { Heart } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
 
 export default function FavouritePage() {
+    const { user, isAuthenticated, isLoading } = useAuth();
     const [favourites, setFavourites] = useState<Accommodation[]>([]);
     const [loading, setLoading] = useState(true);
-    const userId = 3;
 
+    // Xóa favourite
+    const removeFavourite = async (favouriteId: number) => {
+        try {
+            await deleteFavourite(favouriteId);
+            setFavourites(prev => prev.filter(f => f.favouriteId !== favouriteId));
+        } catch (error) {
+            console.error("Xóa favourite thất bại:", error);
+        }
+    };
+
+    // Load favourites khi user đã có
     useEffect(() => {
+        if (!user) return;
+
         const fetchFavourites = async () => {
+            setLoading(true);
             try {
-                const data = await getFavouritesByUser(userId);
+                const data = await getFavouritesByUser(user.id);
                 const formatted = data.map((fav: any) => {
-                    const item = fav.hotel || fav.room?.hotel;
+                    const item = fav.hotel || fav.room?.hotel || fav;
                     return {
+                        favouriteId: fav.id, // id của favourite để DELETE
                         id: item.id,
                         name: item.name,
                         address: item.address,
-                        avgPrice: Number(item.avgPrice),
-                        phone: item.phone,
+                        avgPrice: Number(item.avgPrice || 0),
+                        phone: item.phone || "",
                         city: {
                             id: item.city?.id || 0,
                             title: item.city?.title || "Không rõ",
@@ -32,7 +48,6 @@ export default function FavouritePage() {
                         imageUrl: item.imageUrl || null,
                     } as Accommodation;
                 });
-
                 setFavourites(formatted);
             } catch (error) {
                 console.error("Lỗi khi load favourites:", error);
@@ -42,7 +57,28 @@ export default function FavouritePage() {
         };
 
         fetchFavourites();
-    }, []);
+    }, [user]);
+
+    if (isLoading)
+        return (
+            <div className="flex flex-col items-center justify-center h-screen">
+                <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                >
+                    <Heart className="w-10 h-10 text-sky-500" />
+                </motion.div>
+                <p className="text-gray-600 mt-4">Đang kiểm tra đăng nhập...</p>
+            </div>
+        );
+
+    if (!isAuthenticated)
+        return (
+            <div className="flex flex-col items-center justify-center h-screen text-gray-600">
+                <Heart className="w-10 h-10 text-gray-400 mb-2" />
+                <p>Vui lòng đăng nhập để xem danh sách yêu thích.</p>
+            </div>
+        );
 
     if (loading)
         return (
@@ -85,18 +121,15 @@ export default function FavouritePage() {
                     <p>Bạn chưa có khách sạn nào trong danh sách yêu thích.</p>
                 </motion.div>
             ) : (
-                <motion.div
-                    layout
-                    className="grid grid-cols-1 gap-6 place-items-center"
-                >
-                    {favourites.map((item) => (
+                <motion.div layout className="grid grid-cols-1 gap-6 place-items-center">
+                    {favourites.map(item => (
                         <motion.div
                             key={uuidv4()}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.4 }}
                         >
-                            <AccommodationCard accommodation={item} />
+                            <AccommodationCard accommodation={item} onRemove={removeFavourite} />
                         </motion.div>
                     ))}
                 </motion.div>

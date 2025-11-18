@@ -1,8 +1,10 @@
+"use client";
 import { Star, MapPin, Check } from "lucide-react";
 import Image from "next/image";
 
 export interface Accommodation {
-    id: number;
+    favouriteId: number; // id của favourite để xóa
+    id: number;          // id của hotel/room
     name: string;
     address: string;
     avgPrice: number;
@@ -18,9 +20,10 @@ export interface Accommodation {
 
 interface AccommodationCardProps {
     accommodation: Accommodation;
+    onRemove?: (favouriteId: number) => void;
 }
 
-export default function AccommodationCard({ accommodation }: AccommodationCardProps) {
+export default function AccommodationCard({ accommodation, onRemove }: AccommodationCardProps) {
     const rating = Number((accommodation.avgRating * 2).toFixed(1));
     const defaultImage =
         "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBob3RlbCUyMHJvb218ZW58MXx8fHwxNzYxMTg3NTI1fDA&ixlib=rb-4.1.0&q=80&w=1080";
@@ -51,8 +54,7 @@ export default function AccommodationCard({ accommodation }: AccommodationCardPr
                         {[...Array(5)].map((_, i) => (
                             <Star
                                 key={i}
-                                className={`w-4 h-4 ${i < 4 ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
-                                    }`}
+                                className={`w-4 h-4 ${i < 4 ? "text-yellow-500 fill-yellow-500" : "text-gray-300"}`}
                             />
                         ))}
                     </div>
@@ -76,8 +78,11 @@ export default function AccommodationCard({ accommodation }: AccommodationCardPr
                 </div>
             </div>
 
-            {/* Check icon (góc trên bên phải) */}
-            <div className="absolute top-3 right-3 bg-sky-500 p-1.5 rounded-md">
+            {/* Check icon (click để xóa favourite) */}
+            <div
+                className="absolute top-3 right-3 bg-sky-500 p-1.5 rounded-md cursor-pointer"
+                onClick={() => onRemove && onRemove(accommodation.favouriteId)}
+            >
                 <Check className="w-4 h-4 text-white" />
             </div>
         </div>

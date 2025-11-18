@@ -2,7 +2,6 @@
 
 import React from "react"; // Bỏ useEffect, useState vì hook đã lo
 import Image from "next/image";
-// 1. Import thư viện Marquee
 import Marquee from "react-fast-marquee";
 import useHandleCity from "@/service/hotels/hotelService";
 import { useHandleGetTitleCities } from "@/service/city/cityService";

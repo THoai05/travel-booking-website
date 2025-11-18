@@ -8,7 +8,7 @@ export const getFavourites = async () => {
 
 // Lấy favourites theo user
 export const getFavouritesByUser = async (userId: number) => {
-    const res = await api.get(`/favourites?userId=${userId}`);
+    const res = await api.get(`/favourites`, { params: { userId } });
     return res.data;
 };
 
