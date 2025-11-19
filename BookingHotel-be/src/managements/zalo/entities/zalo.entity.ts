@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Booking } from 'src/managements/bookings/entities/bookings.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Notification } from '../../notifications/entities/notification.entity';
 
 @Entity('zalo_chats')
 export class ZaloChat {
@@ -37,4 +39,13 @@ export class ZaloChat {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+
+    @ManyToOne(() => Booking, booking => booking.zalo_chats, { nullable: true })
+    @JoinColumn({ name: 'booking_id' })
+    booking: Booking;
+
+    @ManyToOne(() => Notification, notification => notification.zalo_chats, { nullable: true, onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'notification_id' })
+    notification: Notification;
 }

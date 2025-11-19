@@ -4,9 +4,11 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { User } from 'src/managements/users/entities/users.entity';
+import { ZaloChat } from 'src/managements/zalo/entities/zalo.entity';
 
 export enum NotificationType {
   BOOKING = 'booking',
@@ -40,4 +42,7 @@ export class Notification {
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
+
+  @OneToMany(() => ZaloChat, chat => chat.notification)
+  zalo_chats: ZaloChat[];
 }

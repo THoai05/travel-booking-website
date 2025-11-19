@@ -101,7 +101,7 @@ export default function SearchResultPage() {
   const allHotels = data?.pages.flatMap(page => page.data) || [];
 
   return (
-    <div className='min-h-screen bg-white'>
+    <div className='min-h-screen mt-15 bg-white'>
       <HotelSearchBar onSearch={handleSearch} />
       
       <main className="w-full max-w-7xl px-4 pb-6 pt-10 mx-auto">

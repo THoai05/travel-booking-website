@@ -58,7 +58,7 @@ const HotelSummaryCard: React.FC<{ hotel: HotelSummaryProps | null; }> = ({ hote
           <MapPin size={20} />
         </div>
         <div>
-          <h3 className="font-semibold text-gray-800 text-sm">Tóm tắt khách sạn</h3>
+          <h3 className="font-semibold text-gray-800 text-sm">Thông tin đơn hàng</h3>
           <p className="text-xs text-gray-600">Mã đặt phòng: {hotel.bookingId}</p>
         </div>
       </div>

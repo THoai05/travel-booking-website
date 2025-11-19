@@ -130,5 +130,16 @@ export const useHandleGetRoomTypeAndRatePlan = (id: number) => {
   })
 }
 
+export const useHandleGet6Hotels = () => {
+  return useQuery({
+    queryKey: ['6hotels'],
+    queryFn: async () => {
+      const response = await api.get(`hotels/random-hotels`)
+      return response.data.data
+    },
+    staleTime:1000 * 60 * 60
+  })
+}
+
    
 

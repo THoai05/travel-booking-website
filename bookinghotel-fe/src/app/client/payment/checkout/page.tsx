@@ -38,7 +38,6 @@ useEffect(() => {
             `bookings/${pendingBooking.bookingId}`,
             {
               couponId: selectedCouponId,
-              couponCode: selectedCouponCode,
             }
           );
           
@@ -55,14 +54,41 @@ useEffect(() => {
       };
       applyCoupon();
     }
-  }, 3000);
+  }, 1000);
 
 
   return () => {
     clearTimeout(handler);
   };
 
-}, [selectedCouponId, selectedCouponCode, pendingBooking?.bookingId]); 
+}, [selectedCouponId, pendingBooking?.bookingId]); 
+
+
+  const handleCouponCode = async () => {
+    console.log(selectedCouponCode)
+    if (selectedCouponCode === "") {
+      return null
+    }
+      try {
+          const response = await api.patch(
+            `bookings/${pendingBooking.bookingId}`,
+            {
+              couponCode: selectedCouponCode,
+            }
+          );
+          
+          if (response.data.message === "success") {
+             
+            const bookingData = response.data.updateData
+            
+            dispatch(setPendingBooking(bookingData))
+              }
+
+        } catch (error) {
+          console.error('Lỗi áp dụng coupon:', error);
+        }
+
+}
 
 
 
@@ -246,23 +272,34 @@ const formatDiscount = (coupon) => {
   {showCoupon && (
     <div className="mt-4 space-y-3">
       {/* 1. Ô input đã được thêm onFocus */}
-      <div>
-        <input
-          type="text"
-          placeholder="Nhập mã giảm giá khác"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-          // --- THAY ĐỔI 1: Thêm vào đây ---
-          onChange={(e) => setSelectedCouponeCode(e.target.value)}
-          // ---------------------------------
-        />
-      </div>
+     <div className="flex gap-2">
+    <input
+        type="text"
+        placeholder="Nhập mã giảm giá khác"
+        // --- THAY ĐỔI 2: Thay 'w-full' bằng 'flex-1' ---
+        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+        onChange={(e) => setSelectedCouponeCode(e.target.value)}
+    />
+    
+    {/* --- THAY ĐỔI 3: Thêm nút "Áp dụng" --- */}
+    <button
+        type="button"
+        onClick={handleCouponCode}
+        className="px-4 py-2 text-white bg-sky-500 rounded-lg hover:bg-sky-600"
+    >
+        Áp dụng
+    </button>
+    {/* ------------------------------------- */}
+</div>
 
-      <div className="relative text-center">
+                    {couponData ? (
+                       <div className="relative text-center">
         <hr className="border-gray-200" />
         <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-2 text-sm text-gray-500">
           HOẶC
         </span>
       </div>
+     ):null}
 
       {/* 2. Hiển thị loading, error hoặc danh sách coupon */}
       {couponIsLoading && (
@@ -346,24 +383,7 @@ const formatDiscount = (coupon) => {
   )}
 </div>
 
-              {/* Points Section (Đã dịch) */}
-              <div className="mt-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Info size={1} className="text-yellow-600" />
-                  <span className="font-semibold text-gray-800">Đổi điểm Bluevera</span>
-                  <Info size={16} className="text-gray-400" />
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={usePoints}
-                    onChange={(e) => setUsePoints(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
-                </label>
-              </div>
-              <p className="text-sm text-gray-600 mt-1 ml-7">Điểm của bạn: 300</p>
+  
 
               {/* Total Price (Đã dịch) */}
               <div className="mt-6 pt-6 border-t">
@@ -388,17 +408,7 @@ const formatDiscount = (coupon) => {
                 </p>
               </div>
 
-              {/* Rewards (Đã dịch) */}
-              <div className="mt-4 flex gap-4 text-sm">
-                <div className="flex items-center gap-1 text-yellow-600">
-                  <Info size={16} />
-                  <span>Cộng thêm 1,336 điểm Bluevera</span>
-                </div>
-                <div className="flex items-center gap-1 text-sky-600">
-                  <Info size={16} />
-                  <span>Nhận 497.623 Sao Ưu Tiên</span>
-                </div>
-              </div>
+              
             </div>
           </div>
 

@@ -59,8 +59,7 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     // ...
 
     const menuItems = [
-        { icon: Home, label: "Dashboard", path: '/admin' },
-        { icon: ChartArea, label: "Dashboard API", path: '/admin/dashboardKPI' },
+        { icon: ChartArea, label: "Dashboard", path: '/admin' },
         { icon: Hotel, label: "Hotels", path: '/admin/hotel' },
         { icon: Activity, label: "Room Monitor", path: '/admin/rooms/room-monitor' },
         { icon: Calendar, label: "Bookings", path: '/admin/booking' },
@@ -68,6 +67,7 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
         { icon: Tag, label: "Promotions", path: '/admin/promotion' },
         { icon: FileText, label: "Blog", path: '/admin/blog', hasSub: true },
         { icon: Heart, label: "Favorites", path: '/admin/favourite' },
+        { icon: Home, label: "Notifications", path: '/admin/notification' },
         { icon: Edit3, label: "About Management", path: '/admin/about' },
         { icon: HelpCircle, label: "FAQ", path: '/admin/faq' },
         { icon: Users, label: "Users", path: '/admin/user' },

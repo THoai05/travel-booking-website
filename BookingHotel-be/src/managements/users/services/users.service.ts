@@ -53,6 +53,7 @@ export class UsersService {
         'createdAt',
         'updatedAt',
         'provider',
+        'lastLogin',
       ], // chỉ lấy các field cần thiết
     });
   }
