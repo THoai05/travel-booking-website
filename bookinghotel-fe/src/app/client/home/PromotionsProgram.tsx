@@ -1,62 +1,111 @@
 "use client";
 
 import React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
+import { motion } from "framer-motion"; // Import thư viện
 
 const PromotionsProgram = () => {
+  // 1. Container để quản lý việc xuất hiện lần lượt
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2, // Mỗi thẻ hiện cách nhau 0.2s
+      },
+    },
+  };
+
+  // 2. Hiệu ứng từng thẻ trượt từ dưới lên
+  const cardVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" }
+    },
+  };
+
   return (
-    <section className="relative w-full h-[550px] bg-white flex flex-col items-center justify-center">
+    <section className="relative w-full h-auto py-16 bg-white flex flex-col items-center justify-center overflow-hidden">
       {/* Title */}
-      <div className="text-center mb-10">
+      <motion.div 
+        className="text-center mb-10"
+        initial={{ opacity: 0, y: -20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+      >
         <h2 className="text-[45px] font-bold mb-2">Chương trình khuyến mãi chỗ ở</h2>
         <p className="text-gray-500">Ưu đãi dành riêng cho bạn</p>
-      </div>
+      </motion.div>
 
       {/* Content container */}
-      <div className="relative w-[1200px]">
+      <motion.div 
+        className="relative w-[1200px]"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+      >
         {/* Grid of promotions */}
-        <div className="grid grid-cols-3 gap-6">
-          <div className="overflow-hidden shadow-lg bg-gray-100 flex items-center justify-center">
-            <Image 
-              src="/promotion.png"
-                alt="Background"
+        <div className="grid grid-cols-3 gap-8"> {/* Tăng gap lên 8 cho thoáng */}
+          
+          {/* Card 1 */}
+          <motion.div 
+            className="rounded-2xl overflow-hidden shadow-lg bg-gray-100 relative cursor-pointer group"
+            variants={cardVariants}
+            whileHover={{ y: -10, shadow: "0px 20px 25px -5px rgba(0, 0, 0, 0.1)" }} // Hover nhấc lên
+          >
+            <div className="overflow-hidden"> {/* Wrapper để zoom ảnh bên trong */}
+              <Image 
+                src="/promotion/promotion1.jpg"
+                alt="Promotion 1"
                 width={541}
                 height={260}
-                className=""
-            />
-          </div>
-          <div className="rounded-2xl overflow-hidden shadow-lg bg-gray-100 flex items-center justify-center">
-           <Image 
-              src="/promotion/promotion2.jpg"
-                alt="Background"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" // Hover zoom ảnh
+              />
+            </div>
+          </motion.div>
+
+          {/* Card 2 */}
+          <motion.div 
+            className="rounded-2xl overflow-hidden shadow-lg bg-gray-100 relative cursor-pointer group"
+            variants={cardVariants}
+            whileHover={{ y: -10, shadow: "0px 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
+          >
+            <div className="overflow-hidden">
+              <Image 
+                src="/promotion/promotion2.jpg"
+                alt="Promotion 2"
                 width={541}
                 height={260}
-                className=""
-            />
-          </div>
-          <div className="rounded-2xl overflow-hidden shadow-lg bg-gray-100 flex items-center justify-center">
-            <Image 
-              src="/promotion/promotion3.jpg"
-                alt="Background"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+            </div>
+          </motion.div>
+
+          {/* Card 3 */}
+          <motion.div 
+            className="rounded-2xl overflow-hidden shadow-lg bg-gray-100 relative cursor-pointer group"
+            variants={cardVariants}
+            whileHover={{ y: -10, shadow: "0px 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
+          >
+            <div className="overflow-hidden">
+              <Image 
+                src="/promotion/promotion3.jpg"
+                alt="Promotion 3"
                 width={541}
                 height={260}
-                className=""
-            />
-          </div>
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+            </div>
+          </motion.div>
+
         </div>
-
-        {/* Prev Button */}
-        <button className="absolute left-[-20px] top-1/2 -translate-y-1/2 bg-yellow-400 w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:bg-yellow-500 transition">
-          <ChevronLeft className="text-black w-5 h-5" />
-        </button>
-
-        {/* Next Button */}
-        <button className="absolute right-[-20px] top-1/2 -translate-y-1/2 bg-yellow-400 w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:bg-yellow-500 transition">
-          <ChevronRight className="text-black w-5 h-5" />
-        </button>
-      </div>
+      </motion.div>
     </section>
   );
 };
-export default PromotionsProgram
+
+export default PromotionsProgram;
