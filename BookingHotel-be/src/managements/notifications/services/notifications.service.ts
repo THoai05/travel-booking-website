@@ -143,7 +143,4 @@ export class NotificationsService {
             throw error;
         }
     }
-
-
-
 }
