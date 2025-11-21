@@ -45,7 +45,7 @@ import { useRouter } from "next/navigation";
 
 import { format, differenceInCalendarDays, parseISO } from "date-fns";
 import api from "@/axios/axios";
-import { setPendingBooking } from '@/reduxTK/features/bookingSlice'
+import { setPendingBooking ,fetchBookingById } from '@/reduxTK/features/bookingSlice'
 
 // --- (Các types của bro giữ nguyên) ---
 
@@ -197,6 +197,16 @@ const Section: React.FC<{
 // Main Component
 
 const TravelokaBookingPage: React.FC = () => {
+
+  const dispatch = useAppDispatch();
+
+   useEffect(() => {
+  const bookingIdStr = sessionStorage.getItem("activeBookingId");
+  if (bookingIdStr) {
+    const bookingId = Number(bookingIdStr);
+    dispatch(fetchBookingById(bookingId));
+  }
+}, [dispatch]);
   // --- 2. LẤY DATA TỪ CÁC NGUỒN ---
   const [errors, setErrors] = useState<FormErrors>({});
   
@@ -228,7 +238,6 @@ const TravelokaBookingPage: React.FC = () => {
     // Trả về true nếu không có lỗi (Object.keys(newErrors).length === 0)
     return Object.keys(newErrors).length === 0;
   };
-  const dispatch = useAppDispatch();
 
   const router = useRouter();
 
@@ -344,6 +353,8 @@ const TravelokaBookingPage: React.FC = () => {
   // Props cho HotelSummaryCard
 
   const hotelDetailsProps = useMemo(() => {
+
+   
     if (!pendingBooking) return null;
 
     // Đảm bảo tính toán nights > 0
@@ -384,6 +395,8 @@ const TravelokaBookingPage: React.FC = () => {
       wifi: true, // <-- Bro nói text cứng
     };
   }, [pendingBooking]);
+
+
 
   // Props cho GuestDetails (trong HotelSummaryCard)
 

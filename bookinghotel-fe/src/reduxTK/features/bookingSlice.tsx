@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from '../store'
+import api from '@/axios/axios'
 // Giả sử bro có 1 file api service
 // import { bookingApi } from '@/service/booking/bookingService' 
 
@@ -41,19 +42,19 @@ const initialState: BookingState = {
   error: null,
 }
 
-// 3. Tạo Async Thunk (để "hỏi lại" khi F5)
-// export const fetchBookingById = createAsyncThunk(
-//   'booking/fetchById',
-//   async (bookingId: number, { rejectWithValue }) => {
-//     try {
-//       // Gọi API GET /api/bookings/{bookingId}
-//       const response = await bookingApi.getBookingDetails(bookingId) 
-//       return response.data as PendingBooking
-//     } catch (err: any) {
-//       return rejectWithValue(err.response.data.message || 'Failed to fetch booking')
-//     }
-//   }
-// )
+
+export const fetchBookingById = createAsyncThunk(
+  'booking/fetchById',
+  async (bookingId: number, { rejectWithValue }) => {
+    try {
+      // Gọi API GET /api/bookings/{bookingId}
+      const response = await api.get(`bookings/${bookingId}`)
+      return response.data.data as PendingBooking
+    } catch (err: any) {
+      return rejectWithValue(err.response.data.message || 'Failed to fetch booking')
+    }
+  }
+)
 
 // 4. Tạo Slice
 export const bookingSlice = createSlice({
@@ -73,21 +74,21 @@ export const bookingSlice = createSlice({
     },
   },
   // Reducers bất đồng bộ (cho thunk)
-  // extraReducers: (builder) => {
-  //   builder
-  //     .addCase(fetchBookingById.pending, (state) => {
-  //       state.isLoading = true
-  //       state.error = null
-  //     })
-  //     .addCase(fetchBookingById.fulfilled, (state, action: PayloadDAction<PendingBooking>) => {
-  //       state.isLoading = false
-  //       state.pendingBooking = action.payload // Nạp data vào Redux
-  //     })
-  //     .addCase(fetchBookingById.rejected, (state, action) => {
-  //       state.isLoading = false
-  //       state.error = action.payload as string
-  //     })
-  // },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchBookingById.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(fetchBookingById.fulfilled, (state, action: PayloadDAction<PendingBooking>) => {
+        state.isLoading = false
+        state.pendingBooking = action.payload // Nạp data vào Redux
+      })
+      .addCase(fetchBookingById.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload as string
+      })
+  },
 })
 
 // 5. Export actions và selectors

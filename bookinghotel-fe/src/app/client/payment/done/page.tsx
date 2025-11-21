@@ -1,11 +1,13 @@
 'use client'
 
+import { useEffect } from 'react';
 import { CheckCircle, Download, Calendar, Mail, Phone, MapPin, Clock, Users, Sparkles, Award, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from './components/ui/separator';
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
-import { useAppSelector } from '@/reduxTK/hook';
+import { useAppSelector,useAppDispatch } from '@/reduxTK/hook';
+import { fetchBookingById } from '@/reduxTK/features/bookingSlice';
 import { selectBooking } from "@/reduxTK/features/bookingSlice";
 
 const ROOM_TYPE_NAMES = new Map([
@@ -27,6 +29,15 @@ const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
 };
 
 const PaymentDone = () => {
+
+    const dispatch = useAppDispatch();
+    useEffect(() => {
+        const bookingIdStr = sessionStorage.getItem("activeBookingId");
+        if (bookingIdStr) {
+          const bookingId = Number(bookingIdStr);
+          dispatch(fetchBookingById(bookingId));
+        }
+      }, [dispatch]);
   const { pendingBooking } = useAppSelector(selectBooking);
 
   if (!pendingBooking) {
