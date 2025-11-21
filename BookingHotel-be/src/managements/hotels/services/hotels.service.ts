@@ -12,6 +12,8 @@ import { ReviewsService } from 'src/managements/reviews/services/reviews.service
 import { CityService } from 'src/managements/city/services/city.service';
 import { ImagesService } from 'src/managements/images/services/images.service';
 
+
+
 @Injectable()
 export class HotelsService {
 

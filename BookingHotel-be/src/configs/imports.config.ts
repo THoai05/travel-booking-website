@@ -18,6 +18,7 @@ import { BookingModuleAbout } from "src/managements/about/module/booking.module"
 import { RevenueModule } from "src/managements/about/module/revenue.module";
 import { StatsModule } from "src/managements/bookings_ manage/modules/StatsModule";
 
+
 export const ManagementsImports = [
     AmenitiesModule,
     AuthModule,
