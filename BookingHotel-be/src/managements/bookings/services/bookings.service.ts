@@ -203,16 +203,38 @@ export class BookingsService {
         }
     }
 
-    async getFullDataBookingById(id: number): Promise<Booking> {
-        const booking = await this.bookingRepo.findOne({
-            where: {
-                id
-            }
-        })
+    async getFullDataBookingById(id: number):Promise<BookingResponseManagement>  {
+        const booking = await this.bookingRepo
+            .createQueryBuilder('booking')
+            .leftJoinAndSelect('booking.user', 'user')
+            .leftJoinAndSelect('booking.roomType', 'roomType')
+            .leftJoinAndSelect('roomType.hotel', 'hotel')
+            .where('booking.id = :id', { id })
+            .getOne()
         if (!booking) {
-            throw new NotFoundException("Khong tim thay don hang")
+            throw new NotFoundException("Không tìm thấy đơn hàng này")
         }
-        return booking
+          return {
+            bookingId: booking.id,
+            userId: booking.user.id,
+            hotelName: booking.roomType.hotel.name,
+            hotelAddress: booking.roomType.hotel.name,
+            hotelPhone: booking.roomType.hotel.phone,
+            roomTypeId: booking.roomType.id,
+            roomTypeName: booking.roomType.name,
+            checkinDate: booking.checkInDate,
+            checkoutDate: booking.checkOutDate,
+            guestsCount: booking.guestsCount,
+            bedType: booking.roomType.bed_type,
+            roomName: booking.roomType.name,
+            totalPrice: booking.totalPrice,
+            contactFullName: booking.contactFullName,
+            contactEmail: booking.contactEmail,
+            contactPhone: booking.contactPhone,
+            guestsFullName: booking.guestFullName,
+            status: booking.status,
+            totalPriceUpdate: booking.totalPriceUpdate
+        }
     }
 
     //Thống kê KPI

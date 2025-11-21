@@ -30,6 +30,16 @@ export class BookingsController {
     }
   }
 
+  @Get(':id')
+  async handleGetFullDataBooking(
+    @Param('id',ParseIntPipe) id:number
+  ) {
+    const data = await this.bookingsService.getFullDataBookingById(id)
+    return {
+      data
+    }
+  }
+
 
   @Get('kpi')
   async handleGetKPI(@Query('type') type: 'week' | 'month' | 'year' = 'week') {

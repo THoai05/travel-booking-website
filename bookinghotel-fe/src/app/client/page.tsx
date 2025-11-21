@@ -1,3 +1,5 @@
+'use client'
+
 import Hero from "./home/Hero";
 import FeaturedDestinations from "./home/FeaturedDestinations";
 import RecommendedTours from "./home/RecommendedTours";
@@ -28,8 +30,8 @@ export default function Home() {
             <BackgroundSub />
             <PromotionsProgram />
             <Support />
-            <WhyChooseUs />
             <ExploreTours />
+            <WhyChooseUs />
             <VideoGallery />
             <FaqSection />
             <TravelTips />
