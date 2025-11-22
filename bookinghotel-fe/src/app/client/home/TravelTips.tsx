@@ -14,7 +14,6 @@ export default function TravelTips() {
   const { blogs, isLoading, error } = useSelector((state: RootState) => state.blogs);
 
   useEffect(() => {
-    // Lấy 3 bài viết đầu tiên cho homepage
     dispatch(fetchPublicBlogs({ page: 1, limit: 3 }));
   }, [dispatch]);
 
@@ -28,13 +27,13 @@ export default function TravelTips() {
   // }, [blogs]);
 
   // Lấy ảnh đầu tiên trong mảng images + fallback
-  const getPostImageUrl = (images?: string[]) => {
+  function getPostImageUrl(images?: string[]) {
     if (!images || images.length === 0) return "/post1.png"; // fallback
     const firstImage = images[0];
     if (!firstImage) return "/post1.png";
     if (firstImage.startsWith("http")) return firstImage;
     return `http://localhost:3636${firstImage}`;
-  };
+  }
 
   if (isLoading)
     return <p className="text-center py-10 text-gray-500">Đang tải bài viết...</p>;
