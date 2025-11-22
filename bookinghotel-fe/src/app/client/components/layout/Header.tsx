@@ -151,10 +151,8 @@ const Header = () => {
 
   const handleLogout = () => {
     logout();
-    localStorage.removeItem('token');
-    router.replace("/client");
+    router.refresh()
   };
-  console.log(user);
 
   return (
     <>
@@ -201,21 +199,7 @@ const Header = () => {
           {/* Actions */}
           <div className="flex-1 flex justify-end gap-4 items-center">
             {/* Language & Currency */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 px-1 py-0.5 text-sm">
-                <Image src="/global.png" alt="Global" width={16} height={16} />
-                <select className="bg-transparent outline-none text-sm p-0 cursor-pointer">
-                  <option value="en">EN</option>
-                  <option value="vi">VI</option>
-                </select>
-              </div>
-              <div className="px-1 py-0.5 text-sm">
-                <select className="bg-transparent outline-none text-sm p-0 cursor-pointer">
-                  <option value="usd">USD</option>
-                  <option value="vnd">VND</option>
-                </select>
-              </div>
-            </div>
+           
 
             {/* Nếu chưa đăng nhập */}
             {!loading && !user && (
@@ -383,15 +367,8 @@ const Header = () => {
 
             {/* 1. Nếu CHƯA login, hiển thị icon menu (cho mobile) */}
             {!loading && !user && (
-              <div className="menu-icon cursor-pointer">
-                <Image
-                  src="/menu.png"
-                  alt="menu icon"
-                  width={32}
-                  height={32}
-                />
-              </div>
-            )}
+              null
+)}
 
             {/* 2. Nếu ĐÃ login, biến icon menu thành trigger cho dropdown */}
             {!loading && user && (
