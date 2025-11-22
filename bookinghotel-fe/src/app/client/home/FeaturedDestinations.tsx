@@ -66,12 +66,13 @@ const FeaturedDestinations = () => {
             >
               {/* Card Image */}
               <div 
-                className="w-[160px] h-[240px] rounded-[80px] overflow-hidden mx-auto relative shadow-md group-hover:shadow-xl transition-shadow duration-300 border-4 border-transparent group-hover:border-white"
+                className="w-[160px] h-[240px] rounded-[80px] overflow-hidden mx-auto relative
+                shadow-md group-hover:shadow-xl transition-shadow duration-300 border-4 border-transparent group-hover:border-white"
               >
                 <Image
                   src={city?.image}
                   alt={city?.name || city.title}
-                  width={300} // Giảm size chút cho tối ưu, 1000 hơi thừa
+                  width={300}
                   height={450}
                   className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
                 />
