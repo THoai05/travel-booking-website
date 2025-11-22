@@ -8,7 +8,7 @@ import { useAppSelector, useAppDispatch } from "@/reduxTK/hook";
 import { format, differenceInCalendarDays, parseISO } from "date-fns";
 import api from '@/axios/axios';
 import { useHandleRandomCouponByTitle } from '@/service/coupon/couponService';
-import { setPendingBooking } from '@/reduxTK/features/bookingSlice';
+import { setPendingBooking , fetchBookingById} from '@/reduxTK/features/bookingSlice';
 
 
 // Main Component
@@ -17,6 +17,15 @@ const TravelokaPaymentPage: React.FC = () => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
   }
+  const dispatch = useAppDispatch()
+  
+     useEffect(() => {
+    const bookingIdStr = sessionStorage.getItem("activeBookingId");
+    if (bookingIdStr) {
+      const bookingId = Number(bookingIdStr);
+      dispatch(fetchBookingById(bookingId));
+    }
+  }, [dispatch]);
   const { pendingBooking } = useAppSelector(selectBooking);
 
   const [selectedPayment, setSelectedPayment] = useState('');
@@ -26,7 +35,6 @@ const TravelokaPaymentPage: React.FC = () => {
   
   const [selectedCouponId, setSelectedCouponId] = useState(null);
   const [selectedCouponCode, setSelectedCouponeCode] = useState<string>('')
-  const dispatch = useAppDispatch()
 
 useEffect(() => {
   const handler = setTimeout(() => {

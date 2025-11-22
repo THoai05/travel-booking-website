@@ -1,4 +1,5 @@
 // hooks/useWebPush.ts
+'use client'
 import { useEffect } from "react";
 
 export default function useWebPush(userId?: number) {

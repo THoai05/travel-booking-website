@@ -21,7 +21,7 @@ const ExploreTours = () => {
           // 'h-full': Lấp đầy chiều cao 100% của 'div' cha (cái div 'calc' ở trên)
           // 'object-contain': Hiển thị TOÀN BỘ video, không cắt xén,
           // tự động thêm viền đen (letterbox) nếu tỷ lệ video không khớp.
-          className="w-full h-full object-cover pointer-events-none"
+          className="w-full h-full object-contain pointer-events-none"
         >
           <source
             src="/video/Video_Booking_Khách_Sạn_Bluevera.mp4"
