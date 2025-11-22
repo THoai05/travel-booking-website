@@ -49,6 +49,9 @@ export class RoomType {
     @Column()
     bed_type: string // VD: "1 double bed" (Cái này RẤT QUAN TRỌNG)
 
+    @Column({default:10})
+    quantity: number
+
     @OneToMany(() => RatePlan, (rateplan) => rateplan.roomType)
     ratePlans: RatePlan[]
 

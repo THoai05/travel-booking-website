@@ -29,6 +29,7 @@ import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
 import Login from "@/app/auth/login/page";
 import Register from "@/app/auth/register/page";
+import toast from 'react-hot-toast';
 
 
 
@@ -172,7 +173,6 @@ const router = useRouter()
     ratePlanId
   )=> {
     try {
-      console.log(nights)
       const response = await api.post('bookings', {
       checkinDate,
       checkoutDate,
@@ -193,7 +193,7 @@ const router = useRouter()
       router.push('/payment/review')
     }
     } catch (error) {
-      console.log(error)
+      toast.error(error.response.data.message)
     }
   }
 
@@ -360,7 +360,21 @@ const router = useRouter()
                       </p>
 
                      <Button
-                        onClick={handleClick}
+                        onClick={() => {
+                          if (!user) {
+                              openLogin(); // hoặc showLogin = true
+                              return;
+                            }
+                            handleCreateBooking(
+                              checkIn,
+                              checkOut,
+                              totalGuests,
+                              Number(option?.salePrice) * nights,
+                              user?.id,
+                              room?.id,
+                              option?.id
+                            );
+                        }}
                         className="w-full md:w-24 bg-sky-500 hover:bg-sky-700 text-white mt-2"
                       >
                         Chọn phòng
