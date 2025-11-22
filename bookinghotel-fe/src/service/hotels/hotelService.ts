@@ -126,7 +126,7 @@ export const useHandleGetRoomTypeAndRatePlan = (id: number) => {
       return response.data.data
     },
     enabled: !!id,
-    staleTime: 1000 * 60 * 10
+    staleTime: 0
   })
 }
 

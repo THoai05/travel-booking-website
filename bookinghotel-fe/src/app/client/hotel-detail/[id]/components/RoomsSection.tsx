@@ -9,7 +9,8 @@ interface RoomSectionProps {
 export default function RoomsSection({id}:RoomSectionProps) {
    
 
-  const {data,isLoading,isError} = useHandleGetRoomTypeAndRatePlan(id)
+  const { data, isLoading, isError } = useHandleGetRoomTypeAndRatePlan(id)
+  console.log(data)
   return (
     <div className="min-h-screen bg-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -18,9 +19,9 @@ export default function RoomsSection({id}:RoomSectionProps) {
           <p className="text-gray-600">Lựa chọn kiểu phòng yêu thích của bạn</p>
         </div>
 
-        {data?.map(item => (
+        {data?.map(item => item.quantity > 0 ? (
           <RoomCard key={item.id} room={item}/>
-        ))}
+        ):null)}
       </div>
     </div>
   );

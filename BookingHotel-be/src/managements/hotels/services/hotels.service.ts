@@ -221,7 +221,8 @@ export class HotelsService {
       bedType: roomType.bed_type,
       totalInventory: roomType.total_inventory,
       images: images, // Gán mảng ảnh đã fetch
-      ratePlans: ratePlans, // Gán mảng ratePlan đã map
+      ratePlans: ratePlans, // Gán mảng ratePlan đã map,
+      quantity:roomType.quantity
     };
   });
 
