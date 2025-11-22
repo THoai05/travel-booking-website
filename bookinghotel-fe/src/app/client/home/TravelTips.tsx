@@ -1,4 +1,5 @@
 "use client";
+
 import Image from "next/image";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,14 +14,26 @@ export default function TravelTips() {
   const { blogs, isLoading, error } = useSelector((state: RootState) => state.blogs);
 
   useEffect(() => {
-    // Lấy 3 bài viết đầu tiên (phần homepage)
+    // Lấy 3 bài viết đầu tiên cho homepage
     dispatch(fetchPublicBlogs({ page: 1, limit: 3 }));
   }, [dispatch]);
 
-  const getPostImageUrl = (image: string) => {
-    if (!image) return "/post1.png";
-    if (image.startsWith("http")) return image;
-    return `http://localhost:3636${image}`;
+  // useEffect(() => {
+  //   if (blogs && blogs.length > 0) {
+  //     blogs.forEach((blog: any, index: number) => {
+  //       console.log(`Blog #${index + 1}:`, blog.title);
+  //       console.log("Images array:", blog.images);
+  //     });
+  //   }
+  // }, [blogs]);
+
+  // Lấy ảnh đầu tiên trong mảng images + fallback
+  const getPostImageUrl = (images?: string[]) => {
+    if (!images || images.length === 0) return "/post1.png"; // fallback
+    const firstImage = images[0];
+    if (!firstImage) return "/post1.png";
+    if (firstImage.startsWith("http")) return firstImage;
+    return `http://localhost:3636${firstImage}`;
   };
 
   if (isLoading)
@@ -57,68 +70,67 @@ export default function TravelTips() {
 
         {/* Blog Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {blogs.map((blog: any) => {
-            return (
-              <div
-                key={blog.id}
-                className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition"
-              >
-                {/* Image */}
-                <div className="relative w-full h-[250px]">
-                  <Image
-                    src={getPostImageUrl(blog.image)}
-                    alt={blog.title}
-                    fill
-                    className="object-cover"
-                  />
-
-                  <div className="absolute top-4 left-4 bg-white text-sm font-medium px-3 py-1 rounded-full">
-                    {blog.city?.title || "Du lịch"}
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-6">
-                  <div className="flex items-center text-gray-500 text-sm gap-4 mb-3">
-                    <span className="flex items-center gap-1">
-                      <Calendar size={14} />{" "}
-                      {new Date(blog.created_at).toLocaleDateString("vi-VN")}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock size={14} /> 6 phút đọc
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MessageSquare size={14} /> 0 bình luận
-                    </span>
-                  </div>
-
-                  <h3 className="text-lg font-semibold mb-4 leading-snug">
-                    {blog.title}
-                  </h3>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Image
-                        src="/author.png"
-                        alt={blog.author?.fullName || "Tác giả"}
-                        width={30}
-                        height={30}
-                        className="rounded-full"
-                      />
-                      <span className="text-sm font-medium">
-                        {blog.author?.fullName || "Ẩn danh"}
-                      </span>
-                    </div>
-                    <button className="text-sm bg-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-200 transition">
-                      Keep Reading
-                    </button>
-                  </div>
+          {blogs.map((blog: any) => (
+            <div
+              key={blog.id}
+              className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition"
+            >
+              {/* Image */}
+              <div className="relative w-full h-[250px]">
+                <Image
+                  src={getPostImageUrl(blog.images)}
+                  alt={blog.title}
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute top-4 left-4 bg-white text-sm font-medium px-3 py-1 rounded-full">
+                  {blog.city?.title || "Du lịch"}
                 </div>
               </div>
-            );
-          })}
-        </div>
 
+              {/* Content */}
+              <div className="p-6">
+                <div className="flex items-center text-gray-500 text-sm gap-4 mb-3">
+                  <span className="flex items-center gap-1">
+                    <Calendar size={14} />{" "}
+                    {new Date(blog.created_at).toLocaleDateString("vi-VN")}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock size={14} /> 6 phút đọc
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <MessageSquare size={14} /> 0 bình luận
+                  </span>
+                </div>
+
+                <h3 className="text-lg font-semibold mb-4 leading-snug">
+                  {blog.title}
+                </h3>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Image
+                      src="/author.png"
+                      alt={blog.author?.fullName || "Tác giả"}
+                      width={30}
+                      height={30}
+                      className="rounded-full"
+                    />
+                    <span className="text-sm font-medium">
+                      {blog.author?.fullName || "Ẩn danh"}
+                    </span>
+                  </div>
+                  <Link
+                    href={`/blog/${blog.slug}`}
+                    className="text-sm bg-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-200 transition inline-block"
+                  >
+                    Keep Reading
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
