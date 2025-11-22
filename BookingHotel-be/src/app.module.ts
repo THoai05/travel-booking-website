@@ -17,6 +17,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { InvoiceModule } from './managements/invoice/invoice.module';
 import { ZaloChatModule } from './managements/zalo/zalo.module'
 import { join } from 'path';
+import { PaymentsModule } from './managements/payments/modules/payments.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { join } from 'path';
     ResetPasswordModule,
     FaqModule,
     ContactModule,
+    PaymentsModule,
     ChatModule,
     InvoiceModule,
     ZaloChatModule
