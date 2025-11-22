@@ -78,11 +78,7 @@ const VideoGallery = () => {
               playsInline // Quan trọng cho mobile
             />
             {/* Lớp phủ khi hover */}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
-               <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 scale-50 group-hover:scale-100 transition-all duration-300">
-                  <Play className="fill-white text-white ml-1" />
-               </div>
-            </div>
+           
           </motion.div>
 
           {/* Column 2 */}
@@ -97,11 +93,7 @@ const VideoGallery = () => {
                 className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
                 muted autoPlay loop playsInline
               />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
-                <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 scale-50 group-hover:scale-100 transition-all duration-300">
-                    <Play className="fill-white text-white ml-1" size={20} />
-                </div>
-              </div>
+             
             </motion.div>
 
             <motion.div 
@@ -114,11 +106,7 @@ const VideoGallery = () => {
                 className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
                 muted autoPlay loop playsInline
               />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
-                 <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 scale-50 group-hover:scale-100 transition-all duration-300">
-                    <Play className="fill-white text-white ml-1" size={20} />
-                </div>
-              </div>
+              
             </motion.div>
           </div>
 
@@ -136,11 +124,7 @@ const VideoGallery = () => {
                   className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
                   muted autoPlay loop playsInline
                 />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
-                   <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 scale-50 group-hover:scale-100 transition-all duration-300">
-                      <Play className="fill-white text-white ml-1" size={20} />
-                   </div>
-                </div>
+                
               </motion.div>
             ))}
           </div>

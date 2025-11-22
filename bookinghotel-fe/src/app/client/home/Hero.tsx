@@ -39,6 +39,24 @@ const Hero = () => {
                 </h1>
               </div>
 
+              <div className="flex items-center gap-4 mt-6">
+  <Image 
+    src="/gg_play.png"
+    width={150}
+    height={45}
+    alt="Google Play"
+    className="cursor-pointer hover:scale-105 transition"
+  />
+
+  <Image 
+    src="/appstore.png"
+    width={150}
+    height={45}
+    alt="App Store"
+    className="cursor-pointer hover:scale-105 transition"
+  />
+</div>
+
             </div>
           </div>
         </div>

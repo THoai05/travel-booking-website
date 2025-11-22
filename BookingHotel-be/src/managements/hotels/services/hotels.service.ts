@@ -285,19 +285,16 @@ export class HotelsService {
 
     const imageResults = await Promise.all(imagesPromises);
     const finalResults = hotels.map((h, index) => {
-      const hotelImages = imageResults[index].data;
+   const hotelImages = imageResults[index].data;
 
-      let imageUrl = "";
-        
-      if (hotelImages && hotelImages.length > 0) {
-        const mainImage = hotelImages.find(img => img.isMain === true);
-            
-        if (mainImage) {
-          imageUrl = mainImage.url;
-        } else {
-          imageUrl = hotelImages[0].url;
-        }
-      }
+let imageUrl = "";
+
+if (hotelImages && hotelImages.length > 0) {
+  // random index từ 0 → hotelImages.length - 1
+  const randomIndex = Math.floor(Math.random() * hotelImages.length);
+
+  imageUrl = hotelImages[randomIndex].url;
+}
 
       // Phần map vẫn y hệt
       return{

@@ -7,6 +7,7 @@ import { motion } from "framer-motion"; // Import motion
 import useHandleCity from "@/service/hotels/hotelService";
 import { useHandleGetTitleCities } from "@/service/city/cityService";
 import { MapPin } from "lucide-react"; // Thêm icon cho sinh động (tùy chọn)
+import { useRouter } from "next/navigation";
 
 interface Destination {
   id: string | number;
@@ -17,6 +18,7 @@ interface Destination {
 }
 
 const FeaturedDestinations = () => {
+  const router = useRouter()
   const { data: cities, isLoading, isError } = useHandleGetTitleCities();
 
   // --- COMPONENTS CON CHO GỌN CODE ---
@@ -66,6 +68,9 @@ const FeaturedDestinations = () => {
             >
               {/* Card Image */}
               <div 
+                onClick={() => {
+                  router.push(`hotels/search?cityTitle=${city.title}`)
+                }}
                 className="w-[160px] h-[240px] rounded-[80px] overflow-hidden mx-auto relative shadow-md group-hover:shadow-xl transition-shadow duration-300 border-4 border-transparent group-hover:border-white"
               >
                 <Image
@@ -81,13 +86,11 @@ const FeaturedDestinations = () => {
               </div>
 
               {/* Text Info */}
-              <div className="pt-[20px] transition-colors duration-300 group-hover:text-yellow-600">
+              <div className="pt-[20px] transition-colors duration-300 group-hover:text-sky-500">
                 <h4 className="font-bold text-[18px] flex items-center justify-center gap-1">
                    {city.title}
                 </h4>
-                <p className="text-gray-500 text-[14px] pt-1 group-hover:text-gray-700">
-                  {city.subtitle || "Khám phá ngay"}
-                </p>
+                
               </div>
             </motion.div>
           ))}
