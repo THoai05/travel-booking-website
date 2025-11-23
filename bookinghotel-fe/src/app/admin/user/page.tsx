@@ -109,7 +109,7 @@ export default function UserPage() {
 
           setShowResetPasswordPage(prev => {
             if (prev) {
-              setTimeout(() => toast.error("Hệ thống cập nhật: Đã hủy thao tác Đổi mật khẩu.", {
+              setTimeout(() => toast.error("Hệ thống cập nhật: Đã đóng form Đổi mật khẩu.", {
                 icon: "⚠️",
                 id: "reset-pass-error"
               }), 0);
