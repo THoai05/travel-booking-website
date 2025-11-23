@@ -115,11 +115,6 @@ const SuggestionBox = ({
   hasQuery 
 }: SuggestionBoxProps) => (
   <div className="absolute top-full left-0 w-full bg-white rounded-lg shadow-xl mt-2 border border-gray-200 z-50 max-h-96 overflow-y-auto">
-    
-    {/* Sử dụng logic có điều kiện:
-      - Nếu user đã gõ (hasQuery = true) -> Hiển thị kết quả API.
-      - Nếu user chưa gõ (hasQuery = false) -> Hiển thị mock data cũ.
-    */}
 
     {hasQuery ? (
       // --- PHẦN 1: HIỂN THỊ KHI USER ĐÃ GÕ TÌM KIẾM ---
@@ -304,7 +299,6 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
   // ---
   
   const { data,isError,isLoading } = useHandleFilterTitleCity(destination)
-  console.log(data)
 
   const apiSuggestions: Suggestion[] = useMemo(() => {
     // Kiểm tra xem data và data.data có tồn tại không
@@ -379,7 +373,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
        {isDestinationFocused && (
             <SuggestionBox
               onSelect={handleDestinationSelect}
-              // Props mới:
+              
               apiSuggestions={apiSuggestions}
               isLoading={isLoading}
               hasQuery={destination.length > 0} // Báo cho SuggestionBox biết là user đã gõ gì đó

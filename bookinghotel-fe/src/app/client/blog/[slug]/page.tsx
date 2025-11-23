@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxTK/store";
 import { fetchDetailBlogBySlug } from "@/reduxTK/features/blog/blogThunk";
@@ -9,16 +9,18 @@ import Gallery from "./Gallery";
 import InspirationStories from "./InspirationStories";
 import TravelTipsSection from "./TravelTipsSection";
 
-export default function DetailBlog({ params }: { params: { slug: string } }) {
+export default function DetailBlog({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
+
   const dispatch = useDispatch<AppDispatch>();
   const post = useSelector((state: RootState) => state.blogs.blog);
   const isLoading = useSelector((state: RootState) => state.blogs.isLoading);
 
   useEffect(() => {
-    if (params.slug) {
-      dispatch(fetchDetailBlogBySlug(params.slug));
+    if (slug) {
+      dispatch(fetchDetailBlogBySlug(slug));
     }
-  }, [params.slug, dispatch]);
+  }, [slug, dispatch]);
 
   // Log debug khi post cập nhật
   useEffect(() => {
@@ -37,8 +39,6 @@ export default function DetailBlog({ params }: { params: { slug: string } }) {
 
   return (
     <section className="w-full mx-auto py-16">
-      {/* <h1 className="text-3xl font-bold mb-6 capitalize">{post.title}</h1> */}
-
       <Gallery images={post.images} />
       <DetailDescription
         title={post.title}
@@ -50,7 +50,6 @@ export default function DetailBlog({ params }: { params: { slug: string } }) {
         excludeSlug={post?.slug}
         cityName={post?.city?.title}
       />
-
       <div className="w-full bg-[#1C2930]">
         <TravelTipsSection />
       </div>

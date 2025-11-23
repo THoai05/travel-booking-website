@@ -135,8 +135,7 @@ const Register = ({
         <FiX size={24} />
       </button>
 
-      <h1 className="text-2xl font-bold text-[#0068ff] mb-2 text-center">Travel Booking</h1>
-      <p className="text-sm text-gray-500 text-center mb-6">Welcome back, please register to your account</p>
+      <h1 className="text-2xl font-bold text-sky-500 mb-2 text-center">Bluevera</h1>
 
       {error && <p className="text-red-500 text-sm mb-3 text-center">{error}</p>}
 
@@ -197,14 +196,14 @@ const Register = ({
           </span>
         </div>
 
-        <button type="submit" disabled={loading} className="w-full bg-[#0068ff] text-white font-semibold py-2 rounded-lg hover:bg-[#0053cc] transition">
+        <button type="submit" disabled={loading} className="w-full bg-sky-500 text-white font-semibold py-2 rounded-lg hover:bg-sky-700 transition">
           {loading ? "Đang đăng ký..." : "Đăng ký tài khoản"}
         </button>
       </form>
 
       <div className="mt-4 text-sm text-center">
         <span>Bạn đã có tài khoản? </span>
-        <button type="button" onClick={onSwitchToLogin} className="text-[#0068ff] hover:underline">Đăng nhập ngay</button>
+        <button type="button" onClick={onSwitchToLogin} className="text-sky-500 hover:underline">Đăng nhập ngay</button>
       </div>
 
       {/* Loading overlay */}

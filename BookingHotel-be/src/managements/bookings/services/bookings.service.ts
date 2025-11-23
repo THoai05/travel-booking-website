@@ -13,6 +13,8 @@ import { BookingStatus } from '../entities/bookings.entity';
 import { PaymentStatus, PaymentMethod } from 'src/managements/payments/entities/payments.entity';
 import { RatePlan } from 'src/managements/rooms/entities/ratePlans.entity';
 import { Coupon } from 'src/managements/coupons/entities/coupons.entity';
+import { LessThan, MoreThan } from 'typeorm';
+
 
 @Injectable()
 export class BookingsService {
@@ -29,6 +31,32 @@ export class BookingsService {
         private readonly couponRepo: Repository<Coupon>
     ) { }
 
+    async checkAvailability(roomTypeId: number, checkIn: Date, checkOut: Date) {
+        const roomType = await this.roomTypeRepo.findOne({
+            where: {
+                id:roomTypeId
+            }
+        })
+        if (!roomType) {
+            throw new NotFoundException("Khong tim thay loai phong nay")
+        }
+        const bookedCount = await this.bookingRepo.count({
+        where: {
+            roomType: { id: roomTypeId }, 
+            status: In([BookingStatus.CONFIRMED, BookingStatus.PENDING]), 
+            checkInDate: LessThan(checkOut), 
+            checkOutDate: MoreThan(checkIn),
+        }
+        });
+        
+        const remaining = roomType.quantity - bookedCount;
+
+    return {
+        isAvailable: remaining > 0,
+        remainingRooms: remaining 
+    };
+    }
+
     async createBooking(body: CreateBookingRequest): Promise<BookingResponseManagement> {
         const {
             checkinDate,
@@ -39,6 +67,20 @@ export class BookingsService {
             roomTypeId,
             ratePlanId
         } = body
+
+        if (!roomTypeId || !checkinDate || !checkoutDate) {
+            throw new BadRequestException('Thieu du lieu can thiet');
+        }
+
+        const newCheckInDate = new Date(checkinDate);
+        const newCheckOutDate = new Date(checkoutDate);
+
+        const availability = await this.checkAvailability(roomTypeId, newCheckInDate, newCheckOutDate);
+    
+        if (!availability.isAvailable) {
+            throw new BadRequestException('Hết phòng rồi bro ơi!');
+        }
+
 
 
         const user = await this.userRepo.findOne({
@@ -203,7 +245,7 @@ export class BookingsService {
         }
     }
 
-    async getFullDataBookingById(id: number):Promise<BookingResponseManagement>  {
+    async getFullDataBookingById(id: number): Promise<BookingResponseManagement> {
         const booking = await this.bookingRepo
             .createQueryBuilder('booking')
             .leftJoinAndSelect('booking.user', 'user')
@@ -214,7 +256,7 @@ export class BookingsService {
         if (!booking) {
             throw new NotFoundException("Không tìm thấy đơn hàng này")
         }
-          return {
+        return {
             bookingId: booking.id,
             userId: booking.user.id,
             hotelName: booking.roomType.hotel.name,
@@ -236,6 +278,10 @@ export class BookingsService {
             totalPriceUpdate: booking.totalPriceUpdate
         }
     }
+
+
+    //------------------===-----------------------//
+    
 
     //Thống kê KPI
     //✅ 1. Thống kê theo tuần: đủ ngày 7 trong tuần

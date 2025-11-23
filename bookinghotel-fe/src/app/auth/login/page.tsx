@@ -82,27 +82,23 @@ const Login = ({
         usernameOrEmail: formData.emailOrUsername,
         password:formData.password
       })
-      console.log(res)
       if (res?.data.message === 'success') {
         setUser(res?.data.userWithoutPassword)
         toast.success("Đăng nhập thành công")
         onClose(); // Gọi prop onClose để đóng component
         localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
       }
-      else  throw new Error(res.data.message || "Đăng nhập thất bại!");
-
       const user = res.data.userWithoutPassword
 
       const isAdmin = user.role === "admin"
-      console.log(isAdmin)
       if (isAdmin) {
         router.push('/admin')
       } else {
-        router.replace('/')
+        router.refresh()
       }
       
     } catch (err: any) {
-      setError(err.message || "Đăng nhập thất bại!");
+      setError(err.response?.data?.message || "Đăng nhập thất bại!");
       setLoading(false);
     } finally{
       setLoading(false)
@@ -139,8 +135,8 @@ const Login = ({
           </button>
 
           {/* Logo + tiêu đề */}
-          <h1 className="text-2xl font-bold text-[#0068ff] mb-2 text-center">
-            Travel Booking
+          <h1 className="text-2xl font-bold text-sky-500 mb-2 text-center">
+            Bluevera
           </h1>
           <p className="text-sm text-gray-500 mb-5 text-center">
             Đăng nhập để tiếp tục
@@ -158,7 +154,7 @@ const Login = ({
               <input
                 type="text"
                 name="emailOrUsername"
-                placeholder="Username hoặc email"
+                placeholder="Tên đăng nhập hoặc Email"
                 value={formData.emailOrUsername}
                 onChange={handleChange}
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#0068ff]"
@@ -177,7 +173,7 @@ const Login = ({
               />
               <span
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-[#0068ff]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-sky-500"
               >
                 {showPassword ? <FiEyeOff /> : <FiEye />}
               </span>
@@ -193,7 +189,7 @@ const Login = ({
                 />
                 Ghi nhớ đăng nhập
               </label>
-              <a href="/auth/forgot-password" className="text-[#0068ff] hover:underline">
+              <a href="/auth/forgot-password" className="text-sky-500 hover:underline">
                 Quên mật khẩu
               </a>
             </div>
@@ -201,47 +197,78 @@ const Login = ({
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#0068ff] text-white font-semibold py-2 rounded-lg mt-2 hover:bg-[#0053cc] transition"
+              className="w-full bg-sky-500 text-white font-semibold py-2 rounded-lg mt-2 hover:bg-sky-700 transition"
             >
               {loading ? loadingMessage : "Đăng nhập"}
             </button>
           </form>
 
-          <div className="flex flex-row items-center gap-4 mt-8 justify-center">
-                              <div onClick={()=>handleOauthGoogle()} className="
-                            w-10
-                            h-10
-                            bg-gray-300
-                            rounded-full
-                            flex
-                            items-center
-                            justify-center
-                            cursor-pointer
-                            hover:opacity-80
-                            transition">
-                            <FcGoogle size={30} />
-                            </div>
-                            <div onClick={handleOauthGithub} className="
-                            w-10
-                            h-10
-                            bg-gray-300
-                            rounded-full
-                            flex
-                            items-center
-                            justify-center
-                            cursor-pointer
-                            hover:opacity-80
-                            transition">
-                            <FaGithub size={30} />
-                            </div>
-                      </div>
+          <div className="flex flex-col items-center gap-3 mt-8 w-full">
+
+  {/* Google */}
+  {/* Divider */}
+<div className="flex items-center w-full max-w-sm my-4">
+  <div className="flex-grow h-px bg-gray-300"></div>
+  <span className="px-3 text-gray-500 text-sm font-medium">Hoặc</span>
+  <div className="flex-grow h-px bg-gray-300"></div>
+</div>
+
+{/* Google */}
+<div
+  onClick={() => handleOauthGoogle()}
+  className="
+    w-full
+    max-w-sm
+    bg-white
+    border
+    rounded-xl
+    px-4
+    py-2
+    flex
+    items-center
+    justify-between
+    cursor-pointer
+    hover:bg-gray-100
+    transition
+  "
+>
+  <span className="text-black font-medium">Đăng nhập bằng Google</span>
+  <FcGoogle size={28} />
+</div>
+
+
+  {/* Github */}
+  <div
+    onClick={handleOauthGithub}
+    className="
+      w-full
+      max-w-sm
+      bg-white
+      border
+      rounded-xl
+      px-4
+      py-2
+      flex
+      items-center
+      justify-between
+      cursor-pointer
+      hover:bg-gray-100
+      transition
+    "
+  >
+    <span className="text-black font-medium">Đăng nhập bằng Github</span>
+    <FaGithub size={26} />
+  </div>
+
+</div>
+
 
           <div className="mt-6 text-sm text-gray-700 border-t pt-3 text-center">
             Bạn chưa có tài khoản?{" "}
             <button
               type="button"
               onClick={onSwitchToRegister}
-              className="text-green-600 hover:underline font-medium"
+              className="text-sky-500 hover:underline font-medium"
             >
               Đăng ký
             </button>

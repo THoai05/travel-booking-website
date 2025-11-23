@@ -3,6 +3,8 @@ import Image from "next/image";
 import Button from "../components/common/Button";
 import { useHandleGet6Hotels } from "@/service/hotels/hotelService";
 import { motion } from "framer-motion"; // 1. Import thư viện animation
+import { MapPin } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // --- 1. Định nghĩa Type ---
 interface City {
@@ -30,9 +32,9 @@ const formatPrice = (price: string) => {
 };
 
 const getLabel = (rating: number) => {
-  if (rating >= 4.5) return "Top Rated";
-  if (rating >= 4.0) return "Bestseller";
-  return "Discount";
+  if (rating >= 3.5) return "Được đặt nhiều nhất";
+  if (rating >= 2.5) return "Được yêu thích nhất";
+  return "Giảm 36%";
 };
 
 const RecommendedTours = () => {
@@ -83,6 +85,8 @@ const RecommendedTours = () => {
     },
   };
 
+  const router = useRouter()
+
   // --- Logic Render ---
   if (isLoading) return <LoadingSkeleton />;
 
@@ -120,9 +124,14 @@ const RecommendedTours = () => {
               className="rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl border border-gray-100 bg-white cursor-pointer group transition-all duration-300"
               variants={cardVariants}
               whileHover={{ y: -10 }} // Bay lên nhẹ
+               onClick={() => {
+                  router.push(`hotel-detail/${hotel.id}`)
+                }}
             >
               {/* Ảnh */}
-              <div className="relative w-full h-[250px] overflow-hidden">
+              <div
+               
+                className="relative w-full h-[250px] overflow-hidden">
                 <Image
                   src={hotel?.images}
                   alt={hotel?.name}
@@ -150,17 +159,17 @@ const RecommendedTours = () => {
               {/* Thông tin */}
               <div className="relative z-10 p-5 bg-white">
                 {/* Rating Bubble */}
-                <div className="absolute -top-5 right-5 flex items-center gap-1 text-yellow-500 text-xs bg-white shadow-lg rounded-2xl px-3 py-1.5 border border-gray-50">
+                <div className="absolute -top-5 right-5 flex items-center gap-1 text-sky-500 text-xs bg-white shadow-lg rounded-2xl px-3 py-1.5 border border-gray-50">
                   ⭐ <span className="text-black font-bold">{hotel.avgRating?.toFixed(1)}</span>
                   <span className="text-gray-400 font-normal">({hotel.reviewCount})</span>
                 </div>
 
                 <div className="mb-2 mt-2">
-                  <h3 className="font-bold text-lg line-clamp-1 group-hover:text-yellow-600 transition-colors">{hotel.name}</h3>
+                  <h3 className="font-bold text-lg line-clamp-1 group-hover:text-sky-600 transition-colors">{hotel.name}</h3>
                 </div>
 
                 <p className="text-gray-500 text-sm flex items-center gap-1 mb-3">
-                   <Image src="/pin.png" alt="pin" width={14} height={14} className="opacity-50" /> {/* Nếu bro có icon pin */}
+                  <MapPin className="w-5 h-5 text-sky-500 mr-3 flex-shrink-0" />
                    {hotel?.city?.title}
                 </p>
 
@@ -186,7 +195,7 @@ const RecommendedTours = () => {
                     </p>
                   </div>
                   
-                  <button className="bg-black text-white text-sm font-medium px-5 py-2.5 rounded-full hover:bg-[#FEFA17] hover:text-black transition-colors duration-300 shadow-lg hover:shadow-yellow-200">
+                  <button className="bg-black text-white text-sm font-medium px-5 py-2.5 rounded-full hover:bg-[#FEFA17] hover:text-black transition-colors duration-300 shadow-lg hover:shadow-sky-200">
                     Đặt phòng
                   </button>
                 </div>
@@ -196,17 +205,7 @@ const RecommendedTours = () => {
         </motion.div>
 
         {/* Load More Button */}
-        <motion.div 
-            className="flex justify-center mt-14"
-            variants={cardVariants}
-        >
-          <Button
-            type="button"
-            title="Xem thêm khách sạn"
-            icon="/more.png"
-            variant="flex items-center gap-2 px-8 py-3 bg-white border border-black text-black rounded-full hover:bg-black hover:text-white transition-all duration-300 shadow-md hover:shadow-xl"
-          />
-        </motion.div>
+       
       </motion.div>
     </section>
   );
