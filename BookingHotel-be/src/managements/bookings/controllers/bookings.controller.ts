@@ -7,40 +7,6 @@ import { UpdateBookingRequest } from '../dtos/req/UpdateBookingRequest.dto';
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) { }
 
-
-  @Post('')
-  async handleCreateBooking(@Body() body: CreateBookingRequest): Promise<any> {
-    const data = await this.bookingsService.createBooking(body)
-    return {
-      message: "success",
-      data
-    }
-  }
-
-  @Patch(':id')
-  async handleUpdateBooking(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: UpdateBookingRequest
-  ) {
-    console.log(id)
-    const updateData = await this.bookingsService.updateBookingForGuests(id, body)
-    return {
-      message: "success",
-      updateData
-    }
-  }
-
-  @Get(':id')
-  async handleGetFullDataBooking(
-    @Param('id',ParseIntPipe) id:number
-  ) {
-    const data = await this.bookingsService.getFullDataBookingById(id)
-    return {
-      data
-    }
-  }
-
-
   @Get('kpi')
   async handleGetKPI(@Query('type') type: 'week' | 'month' | 'year' = 'week') {
     const data = await this.bookingsService.getKPI(type);
@@ -83,9 +49,44 @@ export class BookingsController {
     return await this.bookingsService.getPaymentStatsForExcel(type);
   }
 
-    // 📌 Lây tất cả booking
-    @Get('get-all-booking')
-    async getAllBooking() {
-      return this.bookingsService.getAllBooking();
+  // 📌 Lây tất cả booking
+  @Get('get-all-booking')
+  async getAllBooking() {
+    return this.bookingsService.getAllBooking();
+  }
+
+  @Post('')
+  async handleCreateBooking(@Body() body: CreateBookingRequest): Promise<any> {
+    const data = await this.bookingsService.createBooking(body)
+    return {
+      message: "success",
+      data
     }
+  }
+
+  @Patch(':id')
+  async handleUpdateBooking(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateBookingRequest
+  ) {
+    console.log(id)
+    const updateData = await this.bookingsService.updateBookingForGuests(id, body)
+    return {
+      message: "success",
+      updateData
+    }
+  }
+
+  @Get(':id')
+  async handleGetFullDataBooking(
+    @Param('id', ParseIntPipe) id: number
+  ) {
+    const data = await this.bookingsService.getFullDataBookingById(id)
+    return {
+      data
+    }
+  }
+
+
+
 }
