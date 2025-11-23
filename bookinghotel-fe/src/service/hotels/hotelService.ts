@@ -118,11 +118,15 @@ export const useHandleGetHotelsByRegionId = (id: number) => {
     })
 }
 
-export const useHandleGetRoomTypeAndRatePlan = (id: number) => {
+export const useHandleGetRoomTypeAndRatePlan = (id: number,maxGuests:number) => {
   return useQuery({
-    queryKey: ['roomTypeAndRatePlan', id],
+    queryKey: ['roomTypeAndRatePlan', id,maxGuests],
     queryFn: async () => {
-      const response = await api.get(`hotels/${id}/room-options`)
+      const response = await api.get(`hotels/${id}/room-options`, {
+        params: {
+          maxGuests
+        }
+      })
       return response.data.data
     },
     enabled: !!id,
