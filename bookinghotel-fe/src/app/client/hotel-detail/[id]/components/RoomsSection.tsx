@@ -1,16 +1,27 @@
 import { useHandleGetRoomTypeAndRatePlan } from '@/service/hotels/hotelService';
 import { rooms } from '../data/mockData';
 import RoomCard from './RoomCard';
+import { useAppDispatch, useAppSelector } from '@/reduxTK/hook'
 
 interface RoomSectionProps {
   hotelId:number
 }
 
-export default function RoomsSection({id}:RoomSectionProps) {
+export default function RoomsSection({ id }: RoomSectionProps) {
+  
+  const dispatch = useAppDispatch()
+  const {
+    destination: location,
+    checkIn: checkInString,
+    checkOut: checkOutString,
+    guests,
+  } = useAppSelector((state) => state.search)
+  const { adults, children, rooms } = guests
+
+  const maxGuests = Number(adults + children)
    
 
-  const { data, isLoading, isError } = useHandleGetRoomTypeAndRatePlan(id)
-  console.log(data)
+  const { data, isLoading, isError } = useHandleGetRoomTypeAndRatePlan(id,maxGuests)
   return (
     <div className="min-h-screen bg-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
