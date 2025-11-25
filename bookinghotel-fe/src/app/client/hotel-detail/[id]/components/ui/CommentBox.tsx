@@ -97,7 +97,7 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
         images: uploadedImageUrls,
       };
 
-      const resultAction = await dispatch(createReviewThunk(reviewData));
+      const resultAction = await dispatch(createReviewThunk(reviewData)).unwrap();
       console.log("Kết quả trả về từ API:", resultAction);
 
       setCommentHtml("");
@@ -106,7 +106,7 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
       setWarning(null);
     } catch (error) {
       console.error("Lỗi khi gửi review:", error);
-      setWarning("Gửi đánh giá thất bại. Vui lòng thử lại!");
+      alert("Không thể gửi đánh giá. Kiểm tra kết nối cơ sở dữ liệu hoặc server!");
     }
   };
 

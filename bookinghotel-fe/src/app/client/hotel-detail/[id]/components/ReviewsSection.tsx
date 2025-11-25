@@ -53,7 +53,7 @@ export default function ReviewsSection({ data, hotelId }: ReviewSectionProps) {
         <Tabs defaultValue="Bluevera">
           <TabsList className="mb-6">
             <TabsTrigger value="Bluevera">Bluevera ({data?.reviewCount})</TabsTrigger>
-            <TabsTrigger value="others">Nguồn khác (1)</TabsTrigger>
+            <TabsTrigger value="others">Nguồn khác (0)</TabsTrigger>
           </TabsList>
 
           <TabsContent value="Bluevera">
