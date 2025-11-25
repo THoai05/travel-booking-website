@@ -134,9 +134,41 @@ const Header = () => {
     fetchAll(); // lần đầu
 
     const interval = setInterval(fetchAll, 3000); // lặp 5 giây
-
     return () => clearInterval(interval);
+
   }, []);
+
+  useEffect(() => {
+    if (user?.role === "admin") {
+      router.replace("/admin");
+    }
+
+    if (!user) return;
+
+    const fetchAll = async () => {
+      try {
+        // 1. Fetch profile
+        const profileRes = await api.get("auth/profile");
+        if (profileRes.status !== 401) {
+          setProfile(profileRes.data);
+          setUser(profileRes.data);
+        }
+
+        // 2. Fetch notifications
+        if (profileRes.data?.id) {
+          const notifRes = await api.get(
+            `notifications/user/${profileRes.data.id}/unread-count`
+          );
+          setUnreadCount(notifRes.data);
+        }
+      } catch (err) {
+        console.log("Fetch error:", err);
+        setUser(null);
+      }
+    };
+
+    fetchAll(); // lần đầu
+  }, [user, profile]);
 
 
   // --- Track localStorage changes

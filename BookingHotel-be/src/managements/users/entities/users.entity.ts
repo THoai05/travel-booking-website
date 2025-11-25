@@ -70,7 +70,7 @@ export class User {
   role: UserRole;
 
   @Column({ name: 'avatar', type: 'nvarchar', nullable: true })
-  avatar?: string;
+  avatar: string | null;
 
   @Column({ name: 'dob', type: 'date', nullable: true })
   dob?: Date;
