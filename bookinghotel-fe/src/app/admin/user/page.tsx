@@ -58,6 +58,7 @@ export default function UserPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const res = await api.get("/users/check-avatars");
         const data = await getUsers();
         if (JSON.stringify(data) !== JSON.stringify(oldUsers)) {
           setUsers(data);
