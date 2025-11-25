@@ -75,6 +75,22 @@ const Register = ({ setShowRegister }: RegisterPageProps) => {
       setLoading(false);
       return;
     }
+
+
+    // 2️⃣ Không có khoảng trắng đầu/cuối
+    if (fullName !== fullName.trim()) {
+      setError("Họ và tên không được có khoảng trắng đầu hoặc cuối.");
+      setLoading(false);
+      return;
+    }
+
+    // 3️⃣ Không có 2 khoảng trắng liên tiếp
+    if (/\s{2,}/.test(fullName)) {
+      setError("Họ và tên không được có 2 khoảng trắng liên tiếp.");
+      setLoading(false);
+      return;
+    }
+    
     const fullNameRegex = /^[a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+$/;
     if (!fullNameRegex.test(fullName)) {
       setError("Họ và tên không có số, ký tự đặc biệt.");
@@ -173,7 +189,7 @@ const Register = ({ setShowRegister }: RegisterPageProps) => {
       toast.success("✅ Đăng ký thành công!");
       setShowRegister(false);
       router.replace("/admin/user");
-      
+
     } catch (err: any) {
       setError(err.message || "Đăng ký thất bại!");
       toast.error(err.message || "❌ Đăng ký thất bại!");
