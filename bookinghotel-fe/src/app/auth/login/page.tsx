@@ -85,7 +85,6 @@ const Login = ({
       if (res?.data.message === 'success') {
         setUser(res?.data.userWithoutPassword)
         toast.success("Đăng nhập thành công")
-        window.location.reload();
         onClose(); // Gọi prop onClose để đóng component
         localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
       }
@@ -96,6 +95,7 @@ const Login = ({
         router.push('/admin')
       } else {
         router.refresh()
+        window.location.reload();
       }
       
     } catch (err: any) {
