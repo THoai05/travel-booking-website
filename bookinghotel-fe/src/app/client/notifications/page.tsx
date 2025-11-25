@@ -162,7 +162,7 @@ export default function NotificationsPage() {
     const openDetail = async (id: number) => {
         try {
             setDetailLoading(true);
-            const res = await api.get(`/notifications/${id}`);
+            const res = await api.get(`/notifications/detail/${id}`);
             setDetailData(res.data);
 
             if (!res.data.isRead) {
