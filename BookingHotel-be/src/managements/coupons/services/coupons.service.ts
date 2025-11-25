@@ -12,6 +12,7 @@ export class CouponsService {
 
     //  Lấy coupon ngẫu nhiên theo loại
     async getRandomCouponByCouponType(title?: string): Promise<any[]> {
+        console.log(title)
         const queryBuilder = this.couponRepo
             .createQueryBuilder('coupon')
             .select([
