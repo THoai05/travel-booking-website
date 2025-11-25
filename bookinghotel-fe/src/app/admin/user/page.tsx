@@ -85,16 +85,16 @@ export default function UserPage() {
             return prev;
           });
 
-          setShowProfilePage(prev => {
-            if (prev) {
-              setTimeout(() => toast.error("Thông tin thay đổi: Đã đóng trang Hồ sơ.", {
-                icon: "⚠️",
-                id: "profile-error"
-              }), 0);
-              return false;
-            }
-            return prev;
-          });
+          // setShowProfilePage(prev => {
+          //   if (prev) {
+          //     setTimeout(() => toast.error("Thông tin thay đổi: Đã đóng trang Hồ sơ.", {
+          //       icon: "⚠️",
+          //       id: "profile-error"
+          //     }), 0);
+          //     return false;
+          //   }
+          //   return prev;
+          // });
 
           setShowRegister(prev => {
             if (prev) {

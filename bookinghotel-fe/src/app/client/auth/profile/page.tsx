@@ -144,6 +144,21 @@ export default function ProfilePage() {
         setLoading(false);
         return;
       }
+
+      // 2️⃣ Không có khoảng trắng đầu/cuối
+      if (fullName !== fullName.trim()) {
+        setError("Họ và tên không được có khoảng trắng đầu hoặc cuối.");
+        setLoading(false);
+        return;
+      }
+
+      // 3️⃣ Không có 2 khoảng trắng liên tiếp
+      if (/\s{2,}/.test(fullName)) {
+        setError("Họ và tên không được có 2 khoảng trắng liên tiếp.");
+        setLoading(false);
+        return;
+      }
+
       const fullNameRegex =
         /^[a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+$/;
       if (!fullNameRegex.test(fullName)) {
@@ -257,6 +272,25 @@ export default function ProfilePage() {
     }
   };
 
+  const handleDeleteAvatar = async () => {
+    if (!confirm("Bạn có chắc muốn xóa avatar không?")) return;
+
+    try {
+      setLoading(true);
+      setLoadingMessage("Đang xóa avatar...");
+
+      const res = await api.delete(`/users/${userId}/avatar`);
+      const data = res.data;
+
+      toast.success(data.message || "Đã xóa avatar");
+
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Không thể xóa avatar!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!userProfile) return <p>Đang tải...</p>;
 
   return (
@@ -277,6 +311,15 @@ export default function ProfilePage() {
         <h2 className="text-lg md:text-xl font-semibold text-white mb-4">
           {userProfile.fullName || "Họ và tên"}
         </h2>
+        {userProfile.avatar && (
+          <button
+            onClick={handleDeleteAvatar}
+            className="text-red-600 text-sm underline mb-3"
+          >
+            Xóa avatar
+          </button>
+        )}
+
 
         <div className="w-full max-w-xs md:max-w-sm space-y-2 text-left text-gray-800 bg-white/50 p-3 rounded-lg shadow-inner">
           <InfoItem label="Quyền" value={userProfile.role} />
