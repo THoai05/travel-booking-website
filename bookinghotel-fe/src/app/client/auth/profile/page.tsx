@@ -298,7 +298,7 @@ export default function ProfilePage() {
       {/* ========== giữ nguyên toàn bộ phần UI ========== */}
       <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-gradient-to-b from-blue-400 to-blue-200 shadow-md">
         <img
-          src={userProfile.avatar || "https://via.placeholder.com/150"}
+          src={userProfile.avatar || "https://avatars.githubusercontent.com/u/9919?s=128&v=4"}
           alt="Avatar"
           className="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover border-4 border-white shadow mb-3"
         />
