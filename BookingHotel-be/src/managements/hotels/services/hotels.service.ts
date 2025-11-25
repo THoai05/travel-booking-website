@@ -245,6 +245,8 @@ export class HotelsService {
         'hotel.avgPrice',
         'city.id',
         'city.title',
+        'city.lat',
+        'city.lon',
         'amenities.name',
         'amenities.description'
       ])
