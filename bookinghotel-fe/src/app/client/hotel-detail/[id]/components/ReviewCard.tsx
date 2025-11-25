@@ -55,7 +55,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
         <Star
           key={i}
           className={`w-5 h-5 ${i <= normalizedRating ?
-             "text-yellow-400 fill-yellow-400" : "text-gray-300 fill-gray-200"}`}
+            "text-yellow-400 fill-yellow-400" : "text-gray-300 fill-gray-200"}`}
         />
       );
     }
@@ -74,16 +74,18 @@ export default function ReviewCard({ review }: ReviewCardProps) {
   };
 
   const handleLike = async () => {
-    // --- Optimistic update ngay UI ---
+    // Optimistic update
     setIsLiked(prev => !prev);
     setLikeCount(prev => (isLiked ? prev - 1 : prev + 1));
 
     try {
-      await dispatch(likeReviewThunk(review.id));
+      await dispatch(likeReviewThunk(review.id)).unwrap();
     } catch (err) {
-      // Nếu backend fail, rollback
+      // rollback
       setIsLiked(prev => !prev);
       setLikeCount(prev => (isLiked ? prev + 1 : prev - 1));
+
+      alert("Không thể Like đánh giá. Kiểm tra server hoặc cơ sở dữ liệu!");
     }
   };
 
@@ -137,10 +139,10 @@ export default function ReviewCard({ review }: ReviewCardProps) {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-4">
                   {review?.images?.map((img, idx) => (
                     <div key={idx} className="relative cursor-pointer group"
-                    onClick={() => setSelectedImage(`http://localhost:3636${img}`)}>
+                      onClick={() => setSelectedImage(`http://localhost:3636${img}`)}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={`http://localhost:3636${img}`} alt={`review-${idx}`}
-                      className="w-full h-32 object-cover rounded-lg border border-sky-100 group-hover:opacity-80 transition-all" />
+                        className="w-full h-32 object-cover rounded-lg border border-sky-100 group-hover:opacity-80 transition-all" />
                       <div className="absolute inset-0 bg-black/20 opacity-0
                       group-hover:opacity-100 transition-opacity rounded-lg" />
                     </div>
