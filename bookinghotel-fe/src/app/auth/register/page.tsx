@@ -76,11 +76,23 @@ const Register = ({
       setLoading(false);
       return;
     }
-    if (phone && (!/^(0|\+84)\d{9,10}$/.test(phone) || phone.length > 20)) {
-      setError("Số điện thoại không hợp lệ!");
-      setLoading(false);
-      return;
+    
+    if (phone) {
+      // Chỉ cho phép số 0–9, bắt đầu 0 hoặc +84, tổng 10–11 chữ số
+      const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
+    
+      // Loại bỏ ký tự full-width (０１２３…)
+      const fullWidthCheck = /[０-９]/;
+    
+      if (!phoneRegex.test(phone) || fullWidthCheck.test(phone) || phone.length > 20) {
+        setError(
+          "Số điện thoại phải bắt đầu bằng 0 hoặc +84, chỉ nhập số bình thường, 10–11 chữ số."
+        );
+        setLoading(false);
+        return;
+      }
     }
+    
     if (dob) {
       const today = new Date();
       const birthDate = new Date(dob);
