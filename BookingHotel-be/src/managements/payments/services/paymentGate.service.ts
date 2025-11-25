@@ -105,6 +105,8 @@ export class PaymentGateService {
 
     async createMomoUrl(orderAmount: number, orderCode: string) {
 
+        console.log(orderAmount,orderCode)
+
         
         const orderAmoutString = orderAmount.toString()
 
@@ -121,24 +123,23 @@ export class PaymentGateService {
         const requestType = "captureWallet"
         const extraData = "";
 
-        const rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId + "&requestType=" + requestType
+        const rawSignature ="accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId + "&requestType=" + requestType
         const signature = crypto.createHmac('sha256', secretkey)
             .update(rawSignature)
             .digest('hex');
 
         const requestBody = JSON.stringify({
             partnerCode: partnerCode,
-            accessKey: accessKey,
             requestId: requestId,
             amount: amount,
             orderId: orderId,
             orderInfo: orderInfo,
             redirectUrl: redirectUrl,
             ipnUrl: ipnUrl,
-            extraData: extraData,
             requestType: requestType,
-            signature: signature,
-            lang: 'en'
+            extraData: extraData,
+            lang: 'en',
+            signature: signature
         });
         try {
             const response = await axios.post('https://test-payment.momo.vn/v2/gateway/api/create',
