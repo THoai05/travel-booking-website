@@ -419,7 +419,7 @@ export default function UserPage() {
                   </div>
 
                   {/* Nội dung dashboard */}
-                  <ProfilePage />
+                  <ProfilePage setShowProfilePage={setShowProfilePage}/>
                 </div>
               </div>
             )}

@@ -27,6 +27,10 @@ export enum Gender {
   OTHER = "other",
 }
 
+interface ProfilePageProps {
+  setShowProfilePage: (value: boolean) => void;
+}
+
 interface UpdateUserForm {
   fullName?: string;
   email?: string;
@@ -35,7 +39,7 @@ interface UpdateUserForm {
   gender?: "male" | "female" | "other";
 }
 
-export default function ProfilePage() {
+export default function ProfilePage({ setShowProfilePage }: ProfilePageProps) {
   const [user, setUser] = useState<User | null>(null);
   const [form, setForm] = useState<UpdateUserForm>({});
   const [userId, setUserId] = useState(0);
@@ -90,7 +94,12 @@ export default function ProfilePage() {
           message === "Người dùng không tồn tại" ||
           err.response?.status === 404
         ) {
-          router.replace("/admin/user");
+          //toast.error("Người dùng không tồn tại. Chuyển về trang danh sách người dùng.");
+          setShowProfilePage(false); // Đóng trang Hồ sơ
+          setTimeout(() => toast.error("Người dùng không tồn tại. Chuyển về trang danh sách người dùng.", {
+            icon: "⚠️",
+            id: "profile-error"
+          }), 0);
         }
       }
     };
