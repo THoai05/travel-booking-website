@@ -56,13 +56,22 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
   const removeImage = (idx: number) => setImages(images.filter((_, i) => i !== idx));
 
   const handleSubmit = async () => {
+    // Kiểm tra rating bắt buộc
     if (rating < 1) {
       setWarning("Vui lòng chọn số sao trước khi gửi đánh giá!");
       return;
     }
 
+    // Kiểm tra comment và ảnh (ít nhất 1 trong 2)
     if (!commentHtml.trim() && images.length === 0) {
       setWarning("Vui lòng nhập nhận xét hoặc tải lên ít nhất một hình ảnh!");
+      return;
+    }
+
+    // Kiểm tra dung lượng từng ảnh
+    const tooLarge = images.find(img => img.size > 5 * 1024 * 1024); // 5MB
+    if (tooLarge) {
+      setWarning(`Ảnh "${tooLarge.name}" vượt quá 5MB, vui lòng chọn ảnh nhỏ hơn!`);
       return;
     }
 
