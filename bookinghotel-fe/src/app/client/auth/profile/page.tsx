@@ -74,6 +74,7 @@ export default function ProfilePage() {
         }
         else {
           setUser(null);
+
         }
 
         if (!storedId) return;
@@ -111,8 +112,13 @@ export default function ProfilePage() {
           if (nofications === 0) {
             setNofications(1);
             //toast("Hết thời gian đăng nhập vui lòng đăng nhập để xem thông tin người dùng của bạn!", { icon: "⚠️" });
+            setTimeout(() => toast.error("Hệ thống cập nhật: Có lỗi khi tải thông tin người dùng.", {
+              icon: "⚠️",
+              id: "reset-user-profile"
+            }), 0);
           }
           setUser(null);
+          setUserProfile(null);
         }
       }
     };
@@ -194,10 +200,10 @@ export default function ProfilePage() {
       if (phone) {
         // Chỉ cho phép số 0–9, bắt đầu 0 hoặc +84, tổng 10–11 chữ số
         const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
-      
+
         // Loại bỏ ký tự full-width (０１２３…)
         const fullWidthCheck = /[０-９]/;
-      
+
         if (!phoneRegex.test(phone) || fullWidthCheck.test(phone) || phone.length > 20) {
           setError(
             "Số điện thoại phải bắt đầu bằng 0 hoặc +84, chỉ nhập số bình thường, 10–11 chữ số."
@@ -206,7 +212,7 @@ export default function ProfilePage() {
           return;
         }
       }
-      
+
 
       // 6. Kiểm tra Ngày sinh (dob)
       if (dob) {
@@ -248,7 +254,7 @@ export default function ProfilePage() {
         setLoading(false);
         return;
       }
-      
+
       setLoadingMessage("Đang cập nhật thông tin...");
       const res = await api.patch(`/users/${userId}`, form);
       const data = res.data;
