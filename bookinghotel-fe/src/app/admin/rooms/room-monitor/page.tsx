@@ -326,6 +326,10 @@ export default function RoomMonitorPage() {
     }).format(num);
   };
 
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages || 1);
+  }, [totalPages]);
+
   return (
     <div className="p-6 relative">
       <div className="relative">
