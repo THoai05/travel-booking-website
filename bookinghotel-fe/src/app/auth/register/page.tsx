@@ -2,6 +2,12 @@
 import React, { useState } from "react";
 import { FiUser, FiLock, FiMail, FiPhone, FiEye, FiEyeOff, FiX } from "react-icons/fi";
 
+export enum Gender {
+  MALE = "male",
+  FEMALE = "female",
+  OTHER = "other",
+}
+
 const Register = ({
   onClose,
   onSwitchToLogin,
@@ -65,7 +71,7 @@ const Register = ({
       setLoading(false);
       return;
     }
-    
+
     if (fullName.length > 100 || !/^[a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]+$/.test(fullName)) {
       setError("Họ và tên không hợp lệ!");
       setLoading(false);
@@ -76,14 +82,14 @@ const Register = ({
       setLoading(false);
       return;
     }
-    
+
     if (phone) {
       // Chỉ cho phép số 0–9, bắt đầu 0 hoặc +84, tổng 10–11 chữ số
       const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
-    
+
       // Loại bỏ ký tự full-width (０１２３…)
       const fullWidthCheck = /[０-９]/;
-    
+
       if (!phoneRegex.test(phone) || fullWidthCheck.test(phone) || phone.length > 20) {
         setError(
           "Số điện thoại phải bắt đầu bằng 0 hoặc +84, chỉ nhập số bình thường, 10–11 chữ số."
@@ -92,7 +98,7 @@ const Register = ({
         return;
       }
     }
-    
+
     if (dob) {
       const today = new Date();
       const birthDate = new Date(dob);
@@ -110,6 +116,21 @@ const Register = ({
         return;
       }
     }
+
+    //Kiểm tra giới tính
+    if (!gender) {
+      setError("Vui lòng chọn giới tính.");
+      setLoading(false);
+      return;
+    }
+
+    if (![Gender.MALE, Gender.FEMALE, Gender.OTHER].includes(gender as Gender)) {
+      setError("Giới tính không hợp lệ.");
+      setLoading(false);
+      return;
+    }
+
+
     if (password.length < 8 || password.length > 225) {
       setError("Mật khẩu không hợp lệ!");
       setLoading(false);

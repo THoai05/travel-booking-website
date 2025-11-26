@@ -22,6 +22,12 @@ interface User {
   updatedAt?: string;
 }
 
+export enum Gender {
+  MALE = "male",
+  FEMALE = "female",
+  OTHER = "other",
+}
+
 interface UpdateUserForm {
   fullName?: string;
   email?: string;
@@ -127,7 +133,7 @@ export default function ProfilePage() {
 
   // =================== CẬP NHẬT THÔNG TIN ===================
   const handleSubmit = async () => {
-    const { fullName, email, phone, dob } = form;
+    const { fullName, email, phone, dob, gender } = form;
     setError("");
 
     try {
@@ -230,6 +236,19 @@ export default function ProfilePage() {
         }
       }
 
+      //Kiểm tra giới tính
+      if (!gender) {
+        setError("Vui lòng chọn giới tính.");
+        setLoading(false);
+        return;
+      }
+
+      if (![Gender.MALE, Gender.FEMALE, Gender.OTHER].includes(gender as Gender)) {
+        setError("Giới tính không hợp lệ.");
+        setLoading(false);
+        return;
+      }
+      
       setLoadingMessage("Đang cập nhật thông tin...");
       const res = await api.patch(`/users/${userId}`, form);
       const data = res.data;
