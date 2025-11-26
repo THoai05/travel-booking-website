@@ -32,6 +32,4 @@ export class UpdateBookingRequest{
     @IsOptional()
     @IsNumber()
     totalPrice?:number
-    
-
 }
