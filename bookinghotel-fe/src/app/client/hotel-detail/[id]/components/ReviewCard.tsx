@@ -91,7 +91,8 @@ export default function ReviewCard({ review }: ReviewCardProps) {
 
   return (
     <>
-      <Card className="border border-sky-100 bg-gradient-to-br from-sky-50 via-white to-blue-50 shadow-sm rounded-lg relative">
+      <Card className="border border-sky-100 bg-gradient-to-br
+      from-sky-50 via-white to-blue-50 shadow-sm rounded-lg relative">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
             {/* Avatar */}

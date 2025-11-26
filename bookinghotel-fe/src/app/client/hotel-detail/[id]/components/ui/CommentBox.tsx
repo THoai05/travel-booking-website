@@ -56,13 +56,11 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
   const removeImage = (idx: number) => setImages(images.filter((_, i) => i !== idx));
 
   const handleSubmit = async () => {
-    // Kiểm tra rating bắt buộc
     if (rating < 1) {
       setWarning("Vui lòng chọn số sao trước khi gửi đánh giá!");
       return;
     }
 
-    // Kiểm tra comment và ảnh (ít nhất 1 trong 2)
     if (!commentHtml.trim() && images.length === 0) {
       setWarning("Vui lòng nhập nhận xét hoặc tải lên ít nhất một hình ảnh!");
       return;
@@ -88,7 +86,6 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
         uploadedImageUrls = data.urls || data || [];
       }
 
-      // Chuẩn bị payload để gửi tạo review
       const reviewData = {
         hotelId,
         rating,
@@ -97,18 +94,24 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
         images: uploadedImageUrls,
       };
 
-      const resultAction = await dispatch(createReviewThunk(reviewData)).unwrap();
-      console.log("Kết quả trả về từ API:", resultAction);
+      await dispatch(createReviewThunk(reviewData)).unwrap();
 
       setCommentHtml("");
       setRating(0);
       setImages([]);
       setWarning(null);
-    } catch (error) {
-      console.error("Lỗi khi gửi review:", error);
-      alert("Không thể gửi đánh giá. Kiểm tra kết nối cơ sở dữ liệu hoặc server!");
+    } catch (err: any) {
+      console.error(err);
+
+      const backendMessage =
+        typeof err === "string"
+          ? err
+          : "Gửi đánh giá thất bại. Kiểm tra kết nối hoặc server!";
+
+      setWarning(backendMessage);
     }
   };
+
 
   return (
     <div className="w-full max-w-5xl bg-[#f3f7fb] border border-blue-100 rounded-2xl p-4 shadow-sm relative">
