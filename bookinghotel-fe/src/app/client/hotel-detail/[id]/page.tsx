@@ -156,7 +156,6 @@ export default function HotelDetail() {
 
   const { data: dataHotel, isLoading, isError } = useHandleHotelById(id)
   const { data: dataSimilarHotel, isLoading: isLoadingSimilarHotel, isError: isErrorSimilarHotel } = useHandleSimilarHotelByCityId(dataHotel?.city.id)
-  console.log(dataHotel?.summaryReview)
   return (
 
     <div className="min-h-screen bg-white">
