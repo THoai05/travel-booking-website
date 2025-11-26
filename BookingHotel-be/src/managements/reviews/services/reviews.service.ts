@@ -160,14 +160,14 @@ export class ReviewsService {
       relations: ['user'],
     });
 
-    if (!review) throw new NotFoundException('Review not found');
+    if (!review) throw new NotFoundException('Đánh giá không tồn tại, tải lại trang để cập nhật dữ liệu mới nhất');
     if (review.user.id !== userId)
       throw new ForbiddenException('You can only delete your own review');
 
     await this.reviewRepo.remove(review);
     return {
       success: true,
-      message: 'Review deleted successfully',
+      message: 'Xóa đánh giá thành công',
       deletedReviewId: id,
     };
   }

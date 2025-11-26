@@ -112,7 +112,6 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
     }
   };
 
-
   return (
     <div className="w-full max-w-5xl bg-[#f3f7fb] border border-blue-100 rounded-2xl p-4 shadow-sm relative">
       {/* Star rating */}
@@ -219,8 +218,9 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
       {/* Submit */}
       <button
         onClick={handleSubmit}
-        className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-1.5 rounded-full text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={rating === 0 || (!commentHtml.trim() && images.length === 0)}
+        className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-1.5 rounded-full
+        text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={(!commentHtml.trim() && images.length === 0)}
       >
         Gửi
       </button>

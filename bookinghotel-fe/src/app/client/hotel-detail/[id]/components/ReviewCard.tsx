@@ -64,12 +64,17 @@ export default function ReviewCard({ review }: ReviewCardProps) {
 
   const handleDelete = async () => {
     if (!confirm("Bạn có chắc chắn muốn xoá đánh giá này không?")) return;
+
     try {
       setDeleting(true);
-      await dispatch(deleteReviewThunk(review.id));
+      const result = await dispatch(deleteReviewThunk(review.id)).unwrap();
+      alert(result.message); // thông báo xóa thành công
+      setShowMenu(false);
+    } catch (err: any) {
+      const backendMessage = err?.message || 'Xóa review thất bại';
+      alert(backendMessage);
     } finally {
       setDeleting(false);
-      setShowMenu(false);
     }
   };
 
