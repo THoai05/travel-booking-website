@@ -1,237 +1,112 @@
 // HotelAdminApp.jsx
-
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useHotelManager } from './hooks/useHotelManager'; // Import custom hook
 import { HotelList } from './components/HotelList';
 import { HotelForm } from './components/HotelForm';
 import { HotelDetail } from './components/HotelDetail';
 import { AlertModal } from './components/AlertModal';
-import { hotelService } from './services/HotelService';
-
-const DEFAULT_PAGINATION = { page: 1, totalItems: 0, totalPages: 0 };
 
 export default function HotelAdminApp() {
-    // State quản lý View
-    const [view, setView] = useState('list');
+    // 1. Logic API & Data (Lấy từ Hook)
+    const { 
+        hotels, pagination, isLoading, error, setError, 
+        fetchHotels, createHotel, updateHotel, removeHotel 
+    } = useHotelManager();
+
+    console.log(hotels)
+
+    // 2. Logic View (UI State)
+    const [view, setView] = useState('list'); // 'list', 'create', 'edit', 'detail'
     const [selectedHotel, setSelectedHotel] = useState(null);
+    const [modal, setModal] = useState(null); // Modal thông báo
 
-    // State quản lý Data & API
-    const [hotels, setHotels] = useState([]);
-    const [pagination, setPagination] = useState(DEFAULT_PAGINATION);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [modal, setModal] = useState(null);
-
-    const limit = 10;
-    const setPage = (newPage) => setPagination(prev => ({ ...prev, page: newPage }));
-
-
-    // --- Logic Fetch Data (Find All) ---
-    const fetchHotels = useCallback(async (p) => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const result = await hotelService.findAll(p, limit);
-            setHotels(result.data || []);
-            setPagination({
-                page: result.page,
-                totalItems: result.totalItems,
-                totalPages: result.totalPages,
-            });
-        } catch (e) {
-            setError(e.message || 'Lấy danh sách khách sạn thất bại.');
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
-
+    // Load data lần đầu
     useEffect(() => {
-        if (view === 'list') {
-            fetchHotels(pagination.page);
+        fetchHotels(1);
+    }, [fetchHotels]);
+
+    // --- Handlers ---
+    const handleSave = async (dto) => {
+        let res;
+        if (view === 'create') {
+            res = await createHotel(dto);
+        } else {
+            res = await updateHotel(selectedHotel.id, dto);
         }
-    }, [view, pagination.page, fetchHotels]);
 
-
-    // --- Logic Thao tác CRUD ---
-
-    const handleViewDetail = async (id) => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const hotel = await hotelService.findOne(id);
-            setSelectedHotel(hotel);
-            setView('detail');
-        } catch (e) {
-            setError(e.message || 'Lấy chi tiết khách sạn thất bại.');
-        } finally {
-            setIsLoading(false);
+        if (res.success) {
+            setModal({ 
+                type: 'success', 
+                title: 'Thành công', 
+                message: res.message,
+                onClose: () => { setModal(null); setView('list'); } 
+            });
         }
     };
 
-    const handleRemove = (id) => {
+    const confirmDelete = (id) => {
         setModal({
-            show: true,
-            title: 'Xác nhận xoá',
-            message: `Ban có chắc muốn xoá khách sạn ID: ${id} không? Hành động này không thể hoàn tác!`,
-            isConfirm: true,
+            type: 'confirm',
+            title: 'Xác nhận xóa',
+            message: `Bạn có chắc muốn xóa khách sạn #${id}?`,
             onConfirm: async () => {
-                setModal(null);
-                setIsLoading(true);
-                try {
-                    await hotelService.remove(id);
-                    setModal({
-                        show: true,
-                        title: 'Thành công',
-                        message: 'Xoá khách sạn thành công!',
-                        isSuccess: true,
-                        onClose: () => setModal(null),
-                    });
-                    fetchHotels(1);
-                } catch (e) {
-                    setError(e.message || 'Xoá khách sạn thất bại.');
-                } finally {
-                    setIsLoading(false);
-                }
+                const res = await removeHotel(id);
+                setModal(res.success 
+                    ? { type: 'success', title: 'Đã xóa', message: 'Xóa thành công!', onClose: () => setModal(null) }
+                    : null // Nếu lỗi thì hook đã set error rồi
+                );
             },
-            onClose: () => setModal(null),
+            onClose: () => setModal(null)
         });
     };
 
-    const handleFormError = (message) => {
-        setError(message);
-        setIsLoading(false);
-    }
-
-    const handleSubmitForm = async (dto) => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            let result;
-            if (view === 'create') {
-                result = await hotelService.create(dto);
-                setModal({
-                    show: true,
-                    title: 'Thành công',
-                    message: `Khách sạn "${result.name}" đã được tạo mới!`,
-                    isSuccess: true,
-                    onClose: () => setModal(null),
-                });
-            } else if (view === 'edit' && selectedHotel) {
-                result = await hotelService.update(selectedHotel.id, dto);
-                setModal({
-                    show: true,
-                    title: 'Thành công',
-                    message: `Khách sạn "${result.name}" đã được cập nhật!`,
-                    isSuccess: true,
-                    onClose: () => setModal(null),
-                });
-            }
-
-            setView('list');
-            fetchHotels(pagination.page || 1);
-        } catch (e) {
-            setError(e.message || `Thao tác ${view === 'create' ? 'tạo mới' : 'cập nhật'} thất bại.`);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleEdit = (hotel) => {
-        setSelectedHotel(hotel);
-        setView('edit');
-    };
-
-    const handleCreate = () => {
-        setSelectedHotel(null);
-        setView('create');
-    };
-
-    const handleCancel = () => {
-        setSelectedHotel(null);
-        setError(null);
-        setView('list');
-    };
-
-
-    // --- Render Chính (Switch View) ---
-    const renderView = () => {
+    // --- Render View Switcher ---
+    const renderContent = () => {
         switch (view) {
-            case 'list':
-                return (
-                    <HotelList
-                        data={hotels}
-                        pagination={pagination}
-                        isLoading={isLoading}
-                        onPageChange={setPage}
-                        onViewDetail={handleViewDetail}
-                        onEdit={handleEdit}
-                        onRemove={handleRemove}
-                        onCreate={handleCreate}
-                    />
-                );
             case 'create':
-                return (
-                    <HotelForm
-                        isEdit={false}
-                        initialData={null}
-                        isLoading={isLoading}
-                        onSubmit={handleSubmitForm}
-                        onCancel={handleCancel}
-                        onError={handleFormError}
-                    />
-                );
+                return <HotelForm isLoading={isLoading} onSubmit={handleSave} onCancel={() => setView('list')} />;
             case 'edit':
-                if (!selectedHotel) return <div className="p-4 text-red-500">Lỗi: Không có dữ liệu khách sạn để chỉnh sửa.</div>;
-                return (
-                    <HotelForm
-                        isEdit={true}
-                        initialData={selectedHotel}
-                        isLoading={isLoading}
-                        onSubmit={handleSubmitForm}
-                        onCancel={handleCancel}
-                        onError={handleFormError}
-                    />
-                );
+                return <HotelForm isEdit initialData={selectedHotel} isLoading={isLoading} onSubmit={handleSave} onCancel={() => setView('list')} />;
             case 'detail':
-                if (!selectedHotel) return <div className="p-4 text-red-500">Lỗi: Không có dữ liệu khách sạn để xem chi tiết.</div>;
+                return <HotelDetail hotel={selectedHotel} onBack={() => setView('list')} onEdit={() => setView('edit')} />;
+            default:
                 return (
-                    <HotelDetail
-                        hotel={selectedHotel}
-                        onEdit={handleEdit}
-                        onBack={handleCancel}
+                    <HotelList 
+                        data={hotels} 
+                        pagination={pagination} 
+                        isLoading={isLoading}
+                        onPageChange={fetchHotels}
+                        onCreate={() => { setSelectedHotel(null); setView('create'); }}
+                        onEdit={(h) => { setSelectedHotel(h); setView('edit'); }}
+                        onDetail={(h) => { setSelectedHotel(h); setView('detail'); }}
+                        onRemove={(id) => confirmDelete(id)}
                     />
                 );
-            default:
-                return null;
         }
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 p-4 sm:p-8 font-['Inter']">
-
-
-            <main className="max-w-6xl mx-auto">
-                {/* Hiển thị lỗi từ API hoặc form ở đây */}
+        <div className="min-h-screen bg-gray-50 p-4 md:p-8 font-sans text-gray-800">
+            <div className="max-w-7xl mx-auto">
+                {/* Global Error Banner */}
                 {error && (
-                    <div className="p-4 mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-lg shadow-sm">
-                        <p className="font-bold">Lỗi Thao Tác:</p>
-                        <p className="mt-1 whitespace-pre-wrap">{error}</p>
+                    <div className="mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded shadow-sm flex justify-between items-center">
+                        <div><strong className="font-bold">Lỗi:</strong> {error}</div>
+                        <button onClick={() => setError(null)} className="text-red-700 font-bold">✕</button>
                     </div>
                 )}
 
-                {renderView()}
-            </main>
+                {renderContent()}
+            </div>
 
-            {/* Render Modal */}
+            {/* Global Modal */}
             {modal && (
-                <AlertModal
-                    title={modal.title}
-                    message={modal.message}
-                    isConfirm={modal.isConfirm}
-                    onConfirm={modal.onConfirm}
-                    onClose={() => setModal(null)}
-                    isSuccess={modal.isSuccess}
+                <AlertModal 
+                    {...modal}
+                    isSuccess={modal.type === 'success'}
+                    isConfirm={modal.type === 'confirm'}
                 />
             )}
         </div>

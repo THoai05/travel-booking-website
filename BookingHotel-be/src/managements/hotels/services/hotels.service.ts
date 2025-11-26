@@ -249,7 +249,7 @@ export class HotelsService {
         'city.lon',
         'amenities.name',
         'amenities.description'
-      ])
+      ])  
       .where('hotel.id = :hotelId', { hotelId })
       .getOne()
     if (!hotel) {

@@ -107,7 +107,7 @@ const PaymentDone = () => {
                     size="lg"
                   >
                     <Download className="w-5 h-5 mr-2" />
-                    Tải xuống xác nhận
+                    Gửi hóa đơn về Email
                   </Button>
                   <Button 
                     className="bg-sky-800 text-white hover:bg-sky-900 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 font-bold border-2 border-white/20"
