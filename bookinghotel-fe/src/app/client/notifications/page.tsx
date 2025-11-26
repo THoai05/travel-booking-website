@@ -194,6 +194,10 @@ export default function NotificationsPage() {
         }
     };
 
+    useEffect(() => {
+        if (currentPage > totalPages) setCurrentPage(totalPages || 1);
+    }, [totalPages]);
+
 
     return (
         <div className="min-h-screen flex flex-col items-center bg-gray-50 p-4 sm:p-6" onClick={() => toast.dismiss()}>

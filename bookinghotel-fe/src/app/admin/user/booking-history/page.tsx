@@ -289,6 +289,10 @@ export default function BookingHistoryPage({ setShowTripHistoryPage }: TripHisto
     }
   };
 
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages || 1);
+  }, [totalPages]);
+  
   return (
     <div className="relative">
       <div className="relative">
