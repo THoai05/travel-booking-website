@@ -132,6 +132,8 @@ export default function RoomMonitorPage() {
       }
     };
     fetchMonitoredRooms();
+    const interval = setInterval(fetchMonitoredRooms, 2000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

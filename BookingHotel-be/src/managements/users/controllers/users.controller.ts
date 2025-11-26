@@ -25,12 +25,42 @@ import { Gender } from '../entities/users.entity';
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
+  // =================== KIỂM TRA AVATAR TẤT CẢ NGƯỜI DÙNG ===================
+  @Get('check-avatars')
+  async checkAllAvatars() {
+    const users = await this.usersService.findAll();
+    const avatarsPath = path.join(process.cwd(), '../bookinghotel-fe/public/avatars');
+
+    // Chỉ lưu id user bị reset avatar
+    const resetIds: number[] = [];
+
+    for (const user of users) {
+      if (!user.avatar || user.avatar.trim() === '') continue;
+
+      const avatarFilePath = path.join(avatarsPath, path.basename(user.avatar));
+      const fileExists = fs.existsSync(avatarFilePath);
+
+      if (!fileExists) {
+        await this.usersService.updateUser(user.id, { avatar: null });
+        resetIds.push(user.id); // ✅ chỉ lưu id
+      }
+    }
+
+    return {
+      message: 'Đã kiểm tra avatar tất cả người dùng',
+      totalUsers: users.length,
+      resetIds, // mảng id user avatar bị reset
+    };
+  }
+
   // Lấy tất cả người dùng
   @Get()
   async getAllUsers() {
     const users = await this.usersService.findAll();
     return { message: 'Danh sách người dùng', users };
   }
+
+
 
   // Lấy thông tin người dùng theo ID
   @Get(':id')
@@ -160,10 +190,57 @@ export class UsersController {
     }
   }
 
+
+  // XÓA AVATAR NGƯỜI DÙNG
+  @Delete(':id/avatar')
+  async deleteAvatar(@Param('id', ParseIntPipe) id: number) {
+    const user = await this.usersService.findById(id);
+    if (!user) throw new NotFoundException('Không tìm thấy người dùng');
+
+    // Nếu avatar hiện tại null hoặc rỗng
+    if (!user.avatar || user.avatar.trim() === '') {
+      return { message: 'Người dùng không có avatar để xóa', avatarDeleted: false };
+    }
+
+    // Đường dẫn file trong FE
+    const avatarsPath = path.join(process.cwd(), '../bookinghotel-fe/public/avatars');
+    const avatarFileName = path.basename(user.avatar);
+    const avatarFilePath = path.join(avatarsPath, avatarFileName);
+
+    // Kiểm tra tồn tại file trong thư mục
+    const fileExists = fs.existsSync(avatarFilePath);
+
+    if (fileExists) {
+      // Xóa file
+      try {
+        fs.unlinkSync(avatarFilePath);
+        console.log('🗑️ Đã xóa avatar:', avatarFileName);
+      } catch (err) {
+        console.error('❌ Lỗi khi xoá ảnh:', err);
+        throw new BadRequestException('Không thể xóa ảnh avatar');
+      }
+    } else {
+      console.log('⚠️ File avatar không tồn tại trong thư mục');
+    }
+
+    // Cập nhật avatar = null trong DB
+    const updatedUser = await this.usersService.updateUser(id, { avatar: null });
+    const { password, ...result } = updatedUser;
+
+    return {
+      message: fileExists
+        ? 'Đã xoá avatar thành công'
+        : 'Avatar không tồn tại, đã reset avatar về null',
+      avatarDeleted: fileExists,
+      user: result
+    };
+  }
+
   // Xóa người dùng ra khỏi danh sách
   @Delete(':id')
   async deleteUser(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.deleteUser(id);
   }
+
 
 }

@@ -59,22 +59,33 @@ export default function NotificationsPage() {
     }, []);
 
     // 🔹 Load thông báo
+    // 🔹 Load thông báo
     const loadNotifications = async () => {
         if (!userId) return;
         try {
-            setLoading(true);
             const res = await api.get(`/notifications/user/${userId}`);
             setNotifications(res.data);
         } catch {
             toast.error("Không thể tải thông báo!");
-        } finally {
-            setLoading(false);
         }
     };
 
     useEffect(() => {
-        if (userId) loadNotifications();
+        if (!userId) return;
+
+        // 🔥 Gọi ngay lần đầu
+        loadNotifications();
+
+        // 🔥 Lặp lại mỗi 3 giây
+        const interval = setInterval(() => {
+            loadNotifications();
+        }, 3000);
+
+        // 🔥 Clear interval khi component unmount
+        return () => clearInterval(interval);
+
     }, [userId]);
+
 
     // 🔹 Toggle chọn
     const toggleSelect = (id: number) => {
@@ -151,7 +162,7 @@ export default function NotificationsPage() {
     const openDetail = async (id: number) => {
         try {
             setDetailLoading(true);
-            const res = await api.get(`/notifications/${id}`);
+            const res = await api.get(`/notifications/detail/${id}`);
             setDetailData(res.data);
 
             if (!res.data.isRead) {

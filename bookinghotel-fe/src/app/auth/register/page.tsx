@@ -51,6 +51,21 @@ const Register = ({
       setLoading(false);
       return;
     }
+
+    // 2️⃣ Không có khoảng trắng đầu/cuối
+    if (fullName !== fullName.trim()) {
+      setError("Họ và tên không được có khoảng trắng đầu hoặc cuối.");
+      setLoading(false);
+      return;
+    }
+
+    // 3️⃣ Không có 2 khoảng trắng liên tiếp
+    if (/\s{2,}/.test(fullName)) {
+      setError("Họ và tên không được có 2 khoảng trắng liên tiếp.");
+      setLoading(false);
+      return;
+    }
+    
     if (fullName.length > 100 || !/^[a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]+$/.test(fullName)) {
       setError("Họ và tên không hợp lệ!");
       setLoading(false);
@@ -61,11 +76,23 @@ const Register = ({
       setLoading(false);
       return;
     }
-    if (phone && (!/^(0|\+84)\d{9,10}$/.test(phone) || phone.length > 20)) {
-      setError("Số điện thoại không hợp lệ!");
-      setLoading(false);
-      return;
+    
+    if (phone) {
+      // Chỉ cho phép số 0–9, bắt đầu 0 hoặc +84, tổng 10–11 chữ số
+      const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
+    
+      // Loại bỏ ký tự full-width (０１２３…)
+      const fullWidthCheck = /[０-９]/;
+    
+      if (!phoneRegex.test(phone) || fullWidthCheck.test(phone) || phone.length > 20) {
+        setError(
+          "Số điện thoại phải bắt đầu bằng 0 hoặc +84, chỉ nhập số bình thường, 10–11 chữ số."
+        );
+        setLoading(false);
+        return;
+      }
     }
+    
     if (dob) {
       const today = new Date();
       const birthDate = new Date(dob);
@@ -143,30 +170,30 @@ const Register = ({
         {/* Username */}
         <div className="relative">
           <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input type="text" name="username" placeholder="Tên đăng nhập" value={formData.username} onChange={handleChange} className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0068ff] outline-none" required/>
+          <input type="text" name="username" placeholder="Tên đăng nhập" value={formData.username} onChange={handleChange} className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0068ff] outline-none" required />
         </div>
 
         {/* Full Name */}
         <div className="relative">
           <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input type="text" name="fullName" placeholder="Họ và tên" value={formData.fullName} onChange={handleChange} className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0068ff] outline-none" required/>
+          <input type="text" name="fullName" placeholder="Họ và tên" value={formData.fullName} onChange={handleChange} className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0068ff] outline-none" required />
         </div>
 
         {/* Email */}
         <div className="relative">
           <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0068ff] outline-none" required/>
+          <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0068ff] outline-none" required />
         </div>
 
         {/* Phone */}
         <div className="relative">
           <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input type="text" name="phone" placeholder="Số điện thoại" value={formData.phone} onChange={handleChange} className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0068ff] outline-none"/>
+          <input type="text" name="phone" placeholder="Số điện thoại" value={formData.phone} onChange={handleChange} className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0068ff] outline-none" />
         </div>
 
         {/* DOB */}
         <div>
-          <input type="date" name="dob" value={formData.dob} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0068ff] outline-none text-gray-700"/>
+          <input type="date" name="dob" value={formData.dob} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0068ff] outline-none text-gray-700" />
         </div>
 
         {/* Gender */}
@@ -181,7 +208,7 @@ const Register = ({
         {/* Password */}
         <div className="relative">
           <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input type={showPassword ? "text" : "password"} name="password" placeholder="Mật khẩu" value={formData.password} onChange={handleChange} className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0068ff] outline-none" required/>
+          <input type={showPassword ? "text" : "password"} name="password" placeholder="Mật khẩu" value={formData.password} onChange={handleChange} className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0068ff] outline-none" required />
           <span onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer">
             {showPassword ? <FiEyeOff /> : <FiEye />}
           </span>
@@ -190,7 +217,7 @@ const Register = ({
         {/* Confirm Password */}
         <div className="relative">
           <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input type={showConfirmPassword ? "text" : "password"} name="confirmPassword" placeholder="Nhập lại mật khẩu" value={formData.confirmPassword} onChange={handleChange} className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0068ff] outline-none" required/>
+          <input type={showConfirmPassword ? "text" : "password"} name="confirmPassword" placeholder="Nhập lại mật khẩu" value={formData.confirmPassword} onChange={handleChange} className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0068ff] outline-none" required />
           <span onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer">
             {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
           </span>

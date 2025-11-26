@@ -170,17 +170,15 @@ export class HotelsService {
   }
 
   // service của bro
-  async findRoomTypeAndRatePlanByHotelId(hotelId: number): Promise<any> {
+  async findRoomTypeAndRatePlanByHotelId(hotelId: number,maxGuests:number): Promise<any> {
   // 1. Lấy hotel, roomTypes, và ratePlans trong 1 query duy nhất
-  const hotel = await this.hotelRepo.findOne({
-    where: {
-      id: hotelId,
-    },
-    relations: [
-      'roomTypes',
-      'roomTypes.ratePlans', // Đảm bảo relation này đúng
-    ],
-  });
+    const hotel = await this.hotelRepo
+      .createQueryBuilder('hotels')
+      .leftJoinAndSelect('hotels.roomTypes', 'roomTypes')
+      .leftJoinAndSelect('roomTypes.ratePlans', 'ratePlans')
+      .where('hotels.id = :hotelId',{hotelId})
+      .andWhere('roomTypes.max_guests <= :maxGuests', { maxGuests })
+      .getOne()
 
   if (!hotel) {
     throw new NotFoundException('Không tìm thấy khách sạn');
@@ -221,7 +219,8 @@ export class HotelsService {
       bedType: roomType.bed_type,
       totalInventory: roomType.total_inventory,
       images: images, // Gán mảng ảnh đã fetch
-      ratePlans: ratePlans, // Gán mảng ratePlan đã map
+      ratePlans: ratePlans, // Gán mảng ratePlan đã map,
+      quantity:roomType.quantity
     };
   });
 
@@ -246,6 +245,8 @@ export class HotelsService {
         'hotel.avgPrice',
         'city.id',
         'city.title',
+        'city.lat',
+        'city.lon',
         'amenities.name',
         'amenities.description'
       ])

@@ -103,6 +103,7 @@ export default class HotelSeeder implements Seeder {
         roomType.bed_type = fakerVI.helpers.arrayElement([
           '1 giường đôi', '2 giường đơn', '1 giường cỡ đại', '3 giường đơn'
         ]);
+        roomType.quantity = fakerVI.number.int({ min: 1, max: 5 });
         roomTypes.push(roomType);
       }
     }

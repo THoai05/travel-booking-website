@@ -82,27 +82,24 @@ const Login = ({
         usernameOrEmail: formData.emailOrUsername,
         password:formData.password
       })
-      console.log(res)
       if (res?.data.message === 'success') {
         setUser(res?.data.userWithoutPassword)
         toast.success("Đăng nhập thành công")
         onClose(); // Gọi prop onClose để đóng component
         localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
       }
-      else  throw new Error(res.data.message || "Đăng nhập thất bại!");
-
       const user = res.data.userWithoutPassword
 
       const isAdmin = user.role === "admin"
-      console.log(isAdmin)
       if (isAdmin) {
         router.push('/admin')
       } else {
         router.refresh()
+        window.location.reload();
       }
       
     } catch (err: any) {
-      setError(err.message || "Đăng nhập thất bại!");
+      setError(err.response?.data?.message || "Đăng nhập thất bại!");
       setLoading(false);
     } finally{
       setLoading(false)

@@ -44,9 +44,16 @@ export class City {
     @Column({ default: true })
     isFeatured: boolean;
 
+    @Column({ type: 'float' }) 
+    lat: number
+     
+     @Column({ type: 'float' })
+    lon: number
+    
     @CreateDateColumn()
     created_at: Date
 
     @UpdateDateColumn()
     updated_at: Date
+
 }

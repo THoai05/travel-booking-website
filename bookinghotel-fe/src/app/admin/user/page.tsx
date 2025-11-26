@@ -58,17 +58,98 @@ export default function UserPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const res = await api.get("/users/check-avatars");
         const data = await getUsers();
         if (JSON.stringify(data) !== JSON.stringify(oldUsers)) {
           setUsers(data);
           setOldUsers(data);
+
+          setShowDashboard(prev => {
+            if (prev) {
+              setTimeout(() => toast.error("Thông tin thay đổi: Đã đóng Dashboard.", {
+                icon: "⚠️",
+                id: "dashboard-error" // <--- Thêm dòng này (ID phải duy nhất cho mỗi loại)
+              }), 0);
+              return false;
+            }
+            return prev;
+          });
+
+          setShowBookingHistory(prev => {
+            if (prev) {
+              setTimeout(() => toast.error("Danh sách thay đổi: Đã làm mới Lịch sử đặt phòng.", {
+                icon: "⚠️",
+                id: "booking-error" // <--- ID khác nhau
+              }), 0);
+              return false;
+            }
+            return prev;
+          });
+
+          // setShowProfilePage(prev => {
+          //   if (prev) {
+          //     setTimeout(() => toast.error("Thông tin thay đổi: Đã đóng trang Hồ sơ.", {
+          //       icon: "⚠️",
+          //       id: "profile-error"
+          //     }), 0);
+          //     return false;
+          //   }
+          //   return prev;
+          // });
+
+          setShowRegister(prev => {
+            if (prev) {
+              setTimeout(() => toast.error("Dữ liệu thay đổi: Đã đóng form Đăng ký.", {
+                icon: "⚠️",
+                id: "register-error"
+              }), 0);
+              return false;
+            }
+            return prev;
+          });
+
+          setShowResetPasswordPage(prev => {
+            if (prev) {
+              setTimeout(() => toast.error("Hệ thống cập nhật: Đã đóng form Đổi mật khẩu.", {
+                icon: "⚠️",
+                id: "reset-pass-error"
+              }), 0);
+              return false;
+            }
+            return prev;
+          });
+
+          setShowTripHistoryPage(prev => {
+            if (prev) {
+              setTimeout(() => toast.error("Dữ liệu mới: Đã đóng Lịch sử chuyến đi.", {
+                icon: "⚠️",
+                id: "trip-error"
+              }), 0);
+              return false;
+            }
+            return prev;
+          });
+
+          setShowFull(prev => {
+            if (prev) {
+              setTimeout(() => toast.error("Danh sách User thay đổi: Đã thoát chế độ Toàn màn hình.", {
+                icon: "⚠️",
+                id: "full-mode-error"
+              }), 0);
+              return false;
+            }
+            return prev;
+          });
+
+          // Hiện thông báo
+          //toast.error("Dữ liệu trong danh sách đã bị thay đổi, trang đã được làm mới!");
         }
       } catch (error) {
         //console.error("Lỗi khi lấy danh sách user:", error);
       }
     };
     fetchData();
-    const interval = setInterval(fetchData, 3000);
+    const interval = setInterval(fetchData, 2000);
     return () => clearInterval(interval);
   }, [oldUsers]);
 
