@@ -116,6 +116,9 @@ const Header = () => {
         if (profileRes.status !== 401) {
           setProfile(profileRes.data);
           setUser(profileRes.data);
+          if (user?.role === "admin") {
+            router.replace("/admin");
+          }
         }
 
         // 2. Fetch notifications
