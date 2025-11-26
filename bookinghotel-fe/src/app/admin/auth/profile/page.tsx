@@ -300,6 +300,7 @@ export default function ProfilePage() {
       alert(message);
     } finally {
       setLoading(false);
+      e.target.value = ""; // reset input file
     }
   };
 

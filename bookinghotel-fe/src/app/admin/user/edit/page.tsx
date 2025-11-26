@@ -281,6 +281,7 @@ export default function ProfilePage({ setShowProfilePage }: ProfilePageProps) {
       alert(message);
     } finally {
       setLoading(false);
+      e.target.value = ""; // reset input file
     }
   };
 
