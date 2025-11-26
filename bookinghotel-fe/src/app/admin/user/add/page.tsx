@@ -4,6 +4,12 @@ import { FiUser, FiLock, FiMail, FiPhone, FiEye, FiEyeOff } from "react-icons/fi
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 
+export enum Gender {
+  MALE = "male",
+  FEMALE = "female",
+  OTHER = "other",
+}
+
 interface RegisterPageProps {
   setShowRegister: (value: boolean) => void;
 }
@@ -90,7 +96,7 @@ const Register = ({ setShowRegister }: RegisterPageProps) => {
       setLoading(false);
       return;
     }
-    
+
     const fullNameRegex = /^[a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+$/;
     if (!fullNameRegex.test(fullName)) {
       setError("Họ và tên không có số, ký tự đặc biệt.");
@@ -115,10 +121,10 @@ const Register = ({ setShowRegister }: RegisterPageProps) => {
     if (phone) {
       // Chỉ cho phép số 0–9, bắt đầu 0 hoặc +84, tổng 10–11 chữ số
       const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
-    
+
       // Loại bỏ ký tự full-width (０１２３…)
       const fullWidthCheck = /[０-９]/;
-    
+
       if (!phoneRegex.test(phone) || fullWidthCheck.test(phone) || phone.length > 20) {
         setError(
           "Số điện thoại phải bắt đầu bằng 0 hoặc +84, chỉ nhập số bình thường, 10–11 chữ số."
@@ -127,7 +133,7 @@ const Register = ({ setShowRegister }: RegisterPageProps) => {
         return;
       }
     }
-    
+
 
     // 6. Kiểm tra Ngày sinh (dob)
     if (dob) {
@@ -156,6 +162,20 @@ const Register = ({ setShowRegister }: RegisterPageProps) => {
         return;
       }
     }
+
+    //Kiểm tra giới tính
+    if (!gender) {
+      setError("Vui lòng chọn giới tính.");
+      setLoading(false);
+      return;
+    }
+
+    if (![Gender.MALE, Gender.FEMALE, Gender.OTHER].includes(gender as Gender)) {
+      setError("Giới tính không hợp lệ.");
+      setLoading(false);
+      return;
+    }
+
 
     // 7. Kiểm tra Mật khẩu
     if (password.length < 8) {
