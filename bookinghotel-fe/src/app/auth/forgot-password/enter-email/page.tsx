@@ -16,10 +16,10 @@ export default function EnterEmail() {
     const [linkSent, setLinkSent] = useState(false); // ✅ trạng thái link-sent
     const [error, setError] = useState(""); // ⚠️ thêm state error
 
-    const EMAILJS_SERVICE_ID = "service_6ytahtk";
-    const EMAILJS_LINK_TEMPLATE_ID = "template_ym1yo7j";
-    const EMAILJS_OTP_TEMPLATE_ID = "template_9a5slhf";
-    const EMAILJS_PUBLIC_KEY = "fu_9wJvvS8-nwltpn";
+    const EMAILJS_SERVICE_ID = "service_ydsxt82";
+    const EMAILJS_LINK_TEMPLATE_ID = "template_v94dvwg";
+    const EMAILJS_OTP_TEMPLATE_ID = "template_193axxj";
+    const EMAILJS_PUBLIC_KEY = "iozY7qNmKJZLr6Yq9";
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@(?!(?:[0-9]+\.)+[a-zA-Z]{2,})[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
