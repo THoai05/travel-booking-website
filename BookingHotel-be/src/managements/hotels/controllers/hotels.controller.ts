@@ -44,9 +44,7 @@ export class HotelsController {
     return {
       data
     }
-
   }
-  
 
 }
 

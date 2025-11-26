@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -27,7 +28,7 @@ export class ReviewsService {
 
     @InjectRepository(ReviewLike)
     private reviewLikeRepo: Repository<ReviewLike>,
-  ) {}
+  ) { }
 
   async getSummaryReviewByHotelId(hotelId: number): Promise<{ avgRating: number; reviewCount: number }> {
     const summary = await this.reviewRepo
@@ -103,6 +104,18 @@ export class ReviewsService {
     const hotel = await this.hotelRepo.findOne({ where: { id: dto.hotelId } });
 
     if (!user || !hotel) throw new NotFoundException('User or Hotel not found');
+
+    const existingReview = await this.reviewRepo.findOne({
+      where: {
+        user: { id: userId },
+        hotel: { id: dto.hotelId },
+      },
+      relations: ['user', 'hotel'],
+    });
+
+    if (existingReview) {
+      throw new BadRequestException('Bạn đã đánh giá khách sạn này rồi');
+    }
 
     const review = this.reviewRepo.create({
       user,
