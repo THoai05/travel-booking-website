@@ -454,5 +454,3 @@ if (hotelImages && hotelImages.length > 0) {
   }
 }
 
-
-
