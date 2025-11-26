@@ -154,20 +154,20 @@ export default function UserPage() {
   }, [oldUsers]);
 
 
-  // Reset page khi lọc role
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filterRole]);
+  // // Reset page khi lọc role
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [filterRole]);
 
-  // Reset page khi search
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search]);
+  // // Reset page khi search
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [search]);
 
-  // Reset page khi sort
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [sortColumn, sortOrder]);
+  // // Reset page khi sort
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [sortColumn, sortOrder]);
 
 
   // 🔹 Delete user
@@ -210,6 +210,13 @@ export default function UserPage() {
           : (bValue as any) - (aValue as any);
       }
     });
+
+  useEffect(() => {
+    const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+    if (currentPage > totalPages) {
+      setCurrentPage(1);   // hoặc setCurrentPage(totalPages)
+    }
+  }, [filteredUsers]);
 
 
   // 📄 Pagination
