@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import NotificationService from "@/service/notification/NotificationService";
 import { toast } from "react-hot-toast";
 
+
 interface Notification {
     id: number;
     userId: number;
@@ -27,6 +28,11 @@ export default function AdminNotificationsPage() {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
+
+    //web push
+    const [newBroadcastTitle, setNewBroadcastTitle] = useState("");
+    const [newBroadcastMessage, setNewBroadcastMessage] = useState("");
+    const [newBroadcastUrl, setNewBroadcastUrl] = useState("/");
 
     // =========================
     // Load all notifications
@@ -89,7 +95,7 @@ export default function AdminNotificationsPage() {
             toast.success("Xóa thành công");
         } catch (err) {
             console.error(err);
-            toast.error("Xóa thất bại");
+            toast.error("Xóa thất bại, sản phẩm không tồn tại");
         }
     };
 
@@ -117,7 +123,7 @@ export default function AdminNotificationsPage() {
             toast.success("Cập nhật thành công");
         } catch (err) {
             console.error(err);
-            toast.error("Cập nhật thất bại");
+            toast.error("Cập nhật thất bại , sản phẩm không tồn tại");
         }
     };
 
@@ -132,6 +138,34 @@ export default function AdminNotificationsPage() {
     const handleNextPage = () => {
         if (page < totalPages) setPage(page + 1);
     };
+
+    const handleBroadcast = async () => {
+        if (!newBroadcastTitle || !newBroadcastMessage) {
+            toast.error("Vui lòng nhập đầy đủ thông tin!");
+            return;
+        }
+
+        try {
+            await NotificationService.broadcastNotification({
+                title: newBroadcastTitle,
+                message: newBroadcastMessage,
+                url: newBroadcastUrl,
+                type: "system"
+            });
+
+            toast.success("Gửi thông báo đến toàn bộ user thành công!");
+
+            // Clear
+            setNewBroadcastTitle("");
+            setNewBroadcastMessage("");
+            setNewBroadcastUrl("/");
+
+        } catch (err) {
+            console.error(err);
+            toast.error("Gửi thất bại");
+        }
+    };
+
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
@@ -300,6 +334,46 @@ export default function AdminNotificationsPage() {
                     Next
                 </button>
             </div>
+
+            {/* Form broadcast notification */}
+            <div className="mb-4 p-4 bg-white rounded shadow border border-blue-400">
+                <h2 className="font-semibold mb-2 text-blue-600 text-lg">
+                    Gửi thông báo đến tất cả người dùng
+                </h2>
+
+                <div className="flex gap-2 flex-wrap">
+                    <input
+                        type="text"
+                        placeholder="Tiêu đề"
+                        value={newBroadcastTitle}
+                        onChange={(e) => setNewBroadcastTitle(e.target.value)}
+                        className="border px-2 py-1 rounded w-full"
+                    />
+
+                    <textarea
+                        placeholder="Nội dung"
+                        value={newBroadcastMessage}
+                        onChange={(e) => setNewBroadcastMessage(e.target.value)}
+                        className="border px-2 py-1 rounded w-full h-20"
+                    />
+
+                    <input
+                        type="text"
+                        placeholder="URL khi click (optional)"
+                        value={newBroadcastUrl}
+                        onChange={(e) => setNewBroadcastUrl(e.target.value)}
+                        className="border px-2 py-1 rounded w-full"
+                    />
+
+                    <button
+                        onClick={handleBroadcast}
+                        className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
+                    >
+                        Gửi cho toàn bộ user
+                    </button>
+                </div>
+            </div>
+
         </div>
     );
 }

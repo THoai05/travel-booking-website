@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { FaEye, FaEllipsisV, FaUser, FaRegCalendar } from "react-icons/fa";
-import EditPostForm from "../../components/EditPostForm";
+import EditPostForm from "../components/EditPostForm";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper";
 import "swiper/css";

@@ -9,12 +9,15 @@ import {
 } from 'typeorm';
 import { User } from 'src/managements/users/entities/users.entity';
 import { ZaloChat } from 'src/managements/zalo/entities/zalo.entity';
+import { NotificationUser } from './notification-user.entity';
 
 export enum NotificationType {
   BOOKING = 'booking',
   PAYMENT = 'payment',
   PROMOTION = 'promotion',
+  SYSTEM = 'system',  // thêm dòng này
 }
+
 
 @Entity({ name: 'notifications' })
 export class Notification {
@@ -45,4 +48,7 @@ export class Notification {
 
   @OneToMany(() => ZaloChat, chat => chat.notification)
   zalo_chats: ZaloChat[];
+
+  @OneToMany(() => NotificationUser, nu => nu.notification)
+  notificationUsers: NotificationUser[];
 }

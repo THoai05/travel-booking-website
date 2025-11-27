@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from './components/ui/separator';
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
-import { useAppSelector,useAppDispatch } from '@/reduxTK/hook';
+import { useAppSelector, useAppDispatch } from '@/reduxTK/hook';
 import { fetchBookingById } from '@/reduxTK/features/bookingSlice';
 import { selectBooking } from "@/reduxTK/features/bookingSlice";
+import { sendInvoice } from "./useInvoice";
 
 const ROOM_TYPE_NAMES = new Map([
   ['deluxe double', "Phòng đôi sang trọng"],
@@ -30,14 +31,14 @@ const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
 
 const PaymentDone = () => {
 
-    const dispatch = useAppDispatch();
-    useEffect(() => {
-        const bookingIdStr = sessionStorage.getItem("activeBookingId");
-        if (bookingIdStr) {
-          const bookingId = Number(bookingIdStr);
-          dispatch(fetchBookingById(bookingId));
-        }
-      }, [dispatch]);
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    const bookingIdStr = sessionStorage.getItem("activeBookingId");
+    if (bookingIdStr) {
+      const bookingId = Number(bookingIdStr);
+      dispatch(fetchBookingById(bookingId));
+    }
+  }, [dispatch]);
   const { pendingBooking } = useAppSelector(selectBooking);
 
   if (!pendingBooking) {
@@ -57,16 +58,16 @@ const PaymentDone = () => {
   const checkInDate = new Date(pendingBooking.checkinDate + 'T00:00:00Z');
   const checkOutDate = new Date(pendingBooking.checkoutDate + 'T00:00:00Z');
   const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
-  
+
   const checkInFull = checkInDate.toLocaleDateString('vi-VN', DATE_FORMAT_OPTIONS);
   const checkOutFull = checkOutDate.toLocaleDateString('vi-VN', DATE_FORMAT_OPTIONS);
-  
+
   const confirmationNumber = `BK-${pendingBooking.bookingId}`;
   const guestName = pendingBooking.guestsFullName || pendingBooking.contactFullName || 'Khách';
-  const totalAmount = typeof pendingBooking.totalPrice === 'string' 
-    ? parseFloat(pendingBooking.totalPrice) 
+  const totalAmount = typeof pendingBooking.totalPrice === 'string'
+    ? parseFloat(pendingBooking.totalPrice)
     : pendingBooking.totalPrice;
-  
+
   const formattedTotal = new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND'
@@ -79,9 +80,9 @@ const PaymentDone = () => {
       {/* Decorative Elements */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-sky-300 rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"></div>
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-300 rounded-full blur-3xl opacity-20 translate-y-1/2 -translate-x-1/2"></div>
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
-        
+
         {/* Success Banner with Animation */}
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-sky-500 to-blue-600 rounded-3xl blur-xl opacity-50 animate-pulse"></div>
@@ -102,14 +103,15 @@ const PaymentDone = () => {
                   Chúc mừng! Đặt phòng của bạn đã được xác nhận. Thông tin chi tiết đã được gửi đến <span className="font-semibold text-white">{pendingBooking.contactEmail}</span>
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <Button 
-                    className="bg-white text-sky-600 hover:bg-sky-50 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 font-bold"
-                    size="lg"
+                  <button
+                    disabled={!pendingBooking}
+                    onClick={() => pendingBooking && sendInvoice(pendingBooking.bookingId)}
+                    className="px-3 py-1 bg-blue-600 text-white rounded-lg disabled:opacity-50"
                   >
                     <Download className="w-5 h-5 mr-2" />
                     Gửi hóa đơn về Email
-                  </Button>
-                  <Button 
+                  </button>
+                  <Button
                     className="bg-sky-800 text-white hover:bg-sky-900 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 font-bold border-2 border-white/20"
                     size="lg"
                   >
@@ -123,10 +125,10 @@ const PaymentDone = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          
+
           {/* Left Column - Main Details */}
           <div className="lg:col-span-2 space-y-8">
-            
+
             {/* Property Card */}
             <Card className="overflow-hidden shadow-2xl border-0 hover:shadow-[0_20px_60px_rgba(14,165,233,0.3)] transition-all duration-500 group bg-white rounded-2xl">
               <div className="md:flex">
@@ -154,7 +156,7 @@ const PaymentDone = () => {
                     <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0 text-sky-500" />
                     <span className="text-sm leading-relaxed">{pendingBooking.hotelAddress}</span>
                   </div>
-                  <Button 
+                  <Button
                     className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                     size="lg"
                     onClick={() => window.location.href = `tel:${pendingBooking.hotelPhone}`}
@@ -174,7 +176,7 @@ const PaymentDone = () => {
                 </div>
                 <h3 className="font-black text-3xl text-sky-900">Thông tin đặt phòng</h3>
               </div>
-              
+
               <div className="grid sm:grid-cols-2 gap-6 mb-8">
                 <div className="relative overflow-hidden bg-gradient-to-br from-sky-50 to-sky-100 p-8 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border-2 border-sky-200 group">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-sky-300 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
@@ -190,7 +192,7 @@ const PaymentDone = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border-2 border-blue-200 group">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-blue-300 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
                   <div className="relative">
@@ -206,9 +208,9 @@ const PaymentDone = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="h-px bg-gradient-to-r from-transparent via-sky-300 to-transparent my-8"></div>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-6 bg-gradient-to-r from-sky-50 to-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-sky-100">
                   <span className="text-gray-700 font-bold text-lg">Tổng thời gian lưu trú</span>
@@ -233,7 +235,7 @@ const PaymentDone = () => {
                 </div>
                 <h3 className="font-black text-3xl text-sky-900">Thông tin khách</h3>
               </div>
-              
+
               <div className="space-y-5">
                 <div className="flex items-center gap-5 p-6 bg-gradient-to-r from-sky-50 to-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-sky-100 group">
                   <div className="w-14 h-14 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -244,7 +246,7 @@ const PaymentDone = () => {
                     <div className="font-black text-sky-900 text-xl">{guestName}</div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-5 p-6 bg-gradient-to-r from-sky-50 to-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-sky-100 group">
                   <div className="w-14 h-14 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                     <Mail className="w-7 h-7 text-white" />
@@ -254,7 +256,7 @@ const PaymentDone = () => {
                     <div className="font-black text-sky-900 text-lg break-all">{pendingBooking.contactEmail}</div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-5 p-6 bg-gradient-to-r from-sky-50 to-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-sky-100 group">
                   <div className="w-14 h-14 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                     <Phone className="w-7 h-7 text-white" />
@@ -270,7 +272,7 @@ const PaymentDone = () => {
 
           {/* Right Column - Summary */}
           <div className="space-y-8">
-            
+
             {/* Booking Reference */}
             <Card className="p-10 shadow-2xl border-0 bg-white rounded-2xl sticky top-24 hover:shadow-[0_20px_60px_rgba(14,165,233,0.3)] transition-all duration-500">
               <h3 className="font-black text-2xl text-sky-900 mb-8 text-center">Mã đặt phòng</h3>

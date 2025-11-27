@@ -1,10 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Dropdown } from "primereact/dropdown";
+import { Toast } from "primereact/toast";
 import { getAllFaqs, createFaq, updateFaq, deleteFaq } from "@/service/faq/faqService";
 
 interface FAQ {
@@ -17,19 +18,28 @@ interface FAQ {
     updated_at: string;
 }
 
+interface FaqForm {
+    question: string;
+    answer: string;
+    categories: string;
+    status: string;
+    updated_at?: string;
+}
+
 export default function AdminFAQPage() {
     const [faqs, setFaqs] = useState<FAQ[]>([]);
     const [loading, setLoading] = useState(true);
     const [visible, setVisible] = useState(false);
     const [editingFaq, setEditingFaq] = useState<FAQ | null>(null);
-    const [form, setForm] = useState({
+    const [form, setForm] = useState<FaqForm>({
         question: "",
         answer: "",
         categories: "",
         status: "active",
+        updated_at: "",
     });
+    const toast = useRef<Toast>(null);
 
-    // 🟢 Các chủ đề cố định
     const categoryOptions = [
         { label: "Tour du lịch", value: "Tour du lịch" },
         { label: "Hoạt động", value: "Hoạt động" },
@@ -40,7 +50,6 @@ export default function AdminFAQPage() {
         { label: "Đặt vé", value: "Đặt vé" },
     ];
 
-    // 🟩 Load dữ liệu thật
     useEffect(() => {
         fetchFaqs();
     }, []);
@@ -56,45 +65,110 @@ export default function AdminFAQPage() {
         }
     };
 
-    // 🟨 Lưu (thêm hoặc sửa)
+    const openEditModal = async (faq: FAQ) => {
+        try {
+            // Fetch dữ liệu mới nhất trước khi sửa
+            const data = await getAllFaqs();
+            setFaqs(data);
+
+            const freshFaq = data.find(f => f.id === faq.id);
+            if (!freshFaq) {
+                toast.current?.show({ severity: "error", summary: "Lỗi", detail: "FAQ đã bị xóa." });
+                return;
+            }
+
+            setEditingFaq(freshFaq);
+            setForm({
+                question: freshFaq.question,
+                answer: freshFaq.answer,
+                categories: freshFaq.categories,
+                status: freshFaq.status,
+                updated_at: freshFaq.updated_at, // thêm dòng này
+            });
+            setVisible(true);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     const handleSave = async () => {
         try {
             if (editingFaq) {
-                await updateFaq(editingFaq.id, form);
+                await updateFaq(editingFaq.id, form); // form đã có updated_at
+                toast.current?.show({ severity: "success", summary: "Thành công", detail: "Cập nhật FAQ thành công", life: 3000 });
             } else {
                 await createFaq(form);
+                toast.current?.show({ severity: "success", summary: "Thành công", detail: "Thêm FAQ mới thành công", life: 3000 });
             }
+
             setVisible(false);
             setEditingFaq(null);
+
             setForm({ question: "", answer: "", categories: "", status: "active" });
+
             fetchFaqs();
-        } catch (err) {
-            console.error("Lỗi lưu FAQ:", err);
+        } catch (err: any) {
+            if (err.response?.status === 409) {
+                toast.current?.show({
+                    severity: "warn",
+                    summary: "Xung đột dữ liệu",
+                    detail: err.response.data.message,
+                    life: 5000,
+                });
+            } else {
+                const msg = err.response?.data?.message || "Đã có lỗi xảy ra khi lưu FAQ.";
+                toast.current?.show({ severity: "error", summary: "Lỗi", detail: msg, life: 5000 });
+            }
         }
+
+
+
     };
 
-    // 🟥 Xóa FAQ
     const handleDelete = async (id: number) => {
         if (confirm("Bạn có chắc muốn xóa câu hỏi này?")) {
-            await deleteFaq(id);
-            fetchFaqs();
+            try {
+                await deleteFaq(id);
+                fetchFaqs();
+                toast.current?.show({ severity: "success", summary: "Thành công", detail: "Xóa FAQ thành công", life: 3000 });
+            } catch (err: any) {
+                console.error("Lỗi xóa FAQ:", err);
+
+                // Nếu phần tử không tồn tại nữa
+                if (err.response?.status === 404) {
+                    toast.current?.show({
+                        severity: "warn",
+                        summary: "Không tìm thấy",
+                        detail: "Câu hỏi này đã bị xóa trước đó.",
+                        life: 5000,
+                    });
+                } else {
+                    const msg = err.response?.data?.message || "Đã có lỗi xảy ra khi xóa FAQ.";
+                    toast.current?.show({ severity: "error", summary: "Lỗi", detail: msg, life: 5000 });
+                }
+
+                // Load lại danh sách để đồng bộ với server
+                fetchFaqs();
+            }
         }
     };
 
-    // 🟦 Toggle ẩn/hiện
+
     const handleToggleStatus = async (faq: FAQ) => {
         try {
             const newStatus = faq.status === "active" ? "hidden" : "active";
             await updateFaq(faq.id, { status: newStatus });
-            await fetchFaqs();
-        } catch (err) {
+            fetchFaqs();
+        } catch (err: any) {
             console.error("Lỗi khi đổi trạng thái FAQ:", err);
+            toast.current?.show({ severity: "error", summary: "Lỗi", detail: "Đã có lỗi xảy ra khi đổi trạng thái FAQ.", life: 5000 });
         }
     };
 
     return (
         <div>
             <div className="flex justify-between items-center p-6 space-y-6">
+                <Toast ref={toast} />
                 <div>
                     <h1 className="text-black font-bold text-2xl">Quản lý FAQ</h1>
                     <p>Quản lý câu hỏi thường gặp hiển thị cho khách hàng</p>
@@ -111,15 +185,12 @@ export default function AdminFAQPage() {
                 />
             </div>
 
-            {/* Danh sách FAQ */}
             <div className="bg-white shadow-md rounded-2xl p-6 border border-gray-100">
                 <div className="flex justify-between items-center pb-5">
                     <h1>
                         <span className="pi pi-question-circle mr-2"></span>Danh sách câu hỏi
                     </h1>
-                    <div className="px-3 py-1 bg-gray-200 text-black rounded-2xl">
-                        {faqs.length} câu hỏi
-                    </div>
+                    <div className="px-3 py-1 bg-gray-200 text-black rounded-2xl">{faqs.length} câu hỏi</div>
                 </div>
 
                 {loading ? (
@@ -158,16 +229,7 @@ export default function AdminFAQPage() {
                                             label="Sửa"
                                             icon="pi pi-file-edit"
                                             className="!bg-white w-22 h-10 !text-black border !border-gray-200"
-                                            onClick={() => {
-                                                setEditingFaq(faq);
-                                                setForm({
-                                                    question: faq.question,
-                                                    answer: faq.answer,
-                                                    categories: faq.categories,
-                                                    status: faq.status,
-                                                });
-                                                setVisible(true);
-                                            }}
+                                            onClick={() => openEditModal(faq)}
                                         />
                                         <Button
                                             label="Xóa"
@@ -183,7 +245,6 @@ export default function AdminFAQPage() {
                 )}
             </div>
 
-            {/* Modal thêm/sửa */}
             <Dialog
                 header={editingFaq ? "Cập nhật câu hỏi" : "Thêm câu hỏi mới"}
                 visible={visible}

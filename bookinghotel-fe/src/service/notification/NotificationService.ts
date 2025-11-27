@@ -49,6 +49,10 @@ const NotificationService = {
     createNotification(data: any) {
         return api.post(`/notifications`, data);
     },
+
+    broadcastNotification(data: any) {
+        return api.post("/notifications/broadcast", data);
+    },
 };
 
 export default NotificationService;
