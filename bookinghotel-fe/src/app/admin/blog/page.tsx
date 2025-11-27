@@ -1,141 +1,160 @@
 "use client";
-
-import Image from "next/image";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Link from "next/link";
-import React from "react";
+import { FaPlus } from "react-icons/fa";
+import Toolbar from "./Toolbar";
+import PostItem from "./PostItem";
+import Pagination from "../components/Pagination";
+import { fetchAdminBlogs, deletePosts } from "@/reduxTK/features/blog/blogThunk";
+import { AppDispatch, RootState } from "@/reduxTK/store";
 
-const posts = [
-  {
-    id: 1,
-    title: "Cách viết Blog chuẩn SEO",
-    author: "Quân Đặng",
-    date: "25 July 2024",
-    comments: 598,
-    hits: 2,
-    image: "/post1.png",
-  },
-  {
-    id: 2,
-    title: "Làm sao để tăng traffic tự nhiên",
-    author: "Admin",
-    date: "1 January 2025",
-    comments: 120,
-    hits: 15,
-    image: "/post3.png",
-  },
-  {
-    id: 3,
-    title: "Các bước tạo nội dung hấp dẫn",
-    author: "Admin",
-    date: "2 January 2025",
-    comments: 76,
-    hits: 8,
-    image: "/post3.png",
-  },
-];
+export default function ModernSingleListPost() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { adminBlogs, isLoading, error, adminPagination } = useSelector(
+    (state: RootState) => state.blogs
+  );
 
-export default function Blog() {
+  // STATE
+  const [query, setQuery] = useState("");
+  const [showPublicOnly, setShowPublicOnly] = useState(false);
+  const [selected, setSelected] = useState<number[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [openMenuFor, setOpenMenuFor] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+
+  const postsPerPage = 5;
+  const { total = 0, page: currentPage = 1, limit = postsPerPage } = adminPagination || {};
+
+  // EFFECT
+  useEffect(() => {
+    dispatch(fetchAdminBlogs({ page, limit: postsPerPage }));
+  }, [dispatch, page]);
+
+  const filtered = adminBlogs.filter((p: any) => {
+    if (showPublicOnly && !p.is_public) return false;
+    if (!query) return true;
+    const q = query.toLowerCase();
+    return (
+      p.title.toLowerCase().includes(q) ||
+      p.author?.fullName?.toLowerCase().includes(q)
+    );
+  });
+
+  const getPostImageUrl = (image: string) => {
+    if (!image) return "/post1.png"; // fallback
+    if (image.startsWith("http://") || image.startsWith("https://")) return image;
+    return `http://localhost:3636${image}`; // prepend backend host
+  };
+
+  const toggleSelect = (id: number) => {
+    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const toggleSelectAll = () => {
+    if (selectAll) {
+      setSelected([]);
+      setSelectAll(false);
+    } else {
+      setSelected(filtered.map((p: any) => p.id));
+      setSelectAll(true);
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selected.length === 0) return alert("Chọn ít nhất 1 bài để xóa");
+    if (confirm(`Xóa ${selected.length} bài viết?`)) {
+      try {
+        await dispatch(deletePosts(selected)).unwrap();
+        alert("Xóa thành công!");
+        setSelected([]);
+        setSelectAll(false);
+      } catch (err) {
+        console.error(err);
+        alert("Xóa thất bại.");
+      }
+    }
+  };
+
+  const handleAction = async (action: string, id: number) => {
+    setOpenMenuFor(null);
+    if (action === "delete") {
+      if (confirm("Xác nhận xóa bài này?")) {
+        try {
+          await dispatch(deletePosts([id])).unwrap();
+          alert("Xóa thành công!");
+        } catch (err) {
+          console.error(err);
+          alert("Xóa thất bại.");
+        }
+      }
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > Math.ceil(total / limit)) return;
+    setPage(newPage);
+  };
+
+  // RENDER
+  if (isLoading) return <p className="p-6">Đang tải dữ liệu blog...</p>;
+  if (error) return <p className="p-6 text-red-500">Lỗi khi tải dữ liệu.</p>;
+
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex items-center justify-start mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Blog Management</h1>
-        <p className="ml-10 text-sm text-gray-500">/ Blog / Details</p>
-      </div>
-
-      {/* Top Section */}
-      <div className="flex flex-col lg:flex-row gap-6 mb-10">
-        {/* Featured Post (Left) */}
-        <Link
-          href={`/admin/blog/details/${posts[0].id}`}
-          className="flex-1 relative rounded-xl overflow-hidden shadow-md max-h-[350px] group"
-        >
-          <Image
-            src={posts[0].image}
-            alt="featured"
-            width={800}
-            height={500}
-            className="object-cover w-full h-[350px] transition-transform duration-300 group-hover:scale-105"
-          />
-          <div className="absolute inset-0 bg-black/30 flex flex-col justify-end p-5 text-white h-full group-hover:bg-black/40 transition">
-            <h2 className="text-lg font-semibold mb-2">{posts[0].title}</h2>
-            <div className="flex items-center gap-4 text-sm opacity-90">
-              <span>👤 {posts[0].author}</span>
-              <span>💬 {posts[0].comments} Comments</span>
-              <span>👁 {posts[0].hits} Hits</span>
-            </div>
-            <p className="text-xs mt-2">{posts[0].date}</p>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6 sm:p-10">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900">
+              Blog Management
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">/ Blog / Single</p>
           </div>
-        </Link>
 
-        {/* Side Posts (Right) */}
-        <div className="flex-1 flex flex-col gap-4 justify-between h-[500px]">
-          {posts.slice(1, 3).map((post) => (
+          <div className="flex items-center gap-3">
             <Link
-              key={post.id}
-              href={`/admin/blog/details/${post.id}`}
-              className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition flex-1"
+              href="/admin/blog/add"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-sky-500
+            text-white px-4 py-2 rounded-lg shadow-md hover:opacity-95 transition"
             >
-              <div className="flex gap-3 p-3 h-full mt-7">
-                <Image
-                  src={post.image}
-                  alt="small post"
-                  width={100}
-                  height={100}
-                  className="object-cover w-35 h-35 rounded-md self-start border border-black"
-                />
-                <div className="flex-1 flex flex-col justify-start">
-                  <p className="text-sm text-gray-500">{post.date}</p>
-                  <h3 className="text-base font-semibold text-gray-900">
-                    {post.title}
-                  </h3>
-                  <p className="text-xs text-gray-500">
-                    by: {post.author} | {post.hits} Hits
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-                    There are many variations of passages of Lorem Ipsum available...
-                  </p>
-                </div>
-              </div>
+              <FaPlus />
+              <span className="font-medium">Add Post</span>
             </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* See more */}
-      <div className="text-right pb-2">
-        <Link
-          href="/admin/blog/singles"
-          className="text-sm text-blue-600 hover:underline"
-        >
-          See more &gt;&gt;
-        </Link>
-      </div>
-
-      {/* Grid of Posts */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
-        {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition"
-          >
-            <Image
-              src="/post4.png"
-              alt="post"
-              width={300}
-              height={200}
-              className="object-cover w-full h-[180px]"
-            />
-            <div className="p-4">
-              <p className="text-xs text-gray-500">
-                9 April 2024 | by: Admin | 0 Hits
-              </p>
-              <h4 className="text-sm font-semibold text-gray-900 mt-2">
-                Tên bài viết
-              </h4>
-            </div>
           </div>
+        </div>
+
+        <Toolbar
+          query={query}
+          setQuery={setQuery}
+          showPublicOnly={showPublicOnly}
+          setShowPublicOnly={setShowPublicOnly}
+          selectedCount={selected.length}
+          totalFiltered={filtered.length}
+          onSelectAll={toggleSelectAll}
+          selectAll={selectAll}
+          onDeleteSelected={handleDeleteSelected}
+        />
+
+        {filtered.map((post: any, index) => (
+          <PostItem
+            key={post.id ?? index}
+            post={post}
+            isSelected={selected.includes(post.id)}
+            toggleSelect={toggleSelect}
+            getPostImageUrl={getPostImageUrl}
+            openMenuFor={openMenuFor}
+            setOpenMenuFor={setOpenMenuFor}
+            handleAction={handleAction}
+            onPostUpdated={() => dispatch(fetchAdminBlogs({ page, limit: postsPerPage }))}
+          />
         ))}
+
+        <Pagination
+          currentPage={currentPage}
+          total={total}
+          limit={limit}
+          onPageChange={handlePageChange}
+        />
       </div>
     </div>
   );
