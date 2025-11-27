@@ -22,6 +22,13 @@ interface User {
   updatedAt?: string;
 }
 
+export enum Gender {
+  MALE = "male",
+  FEMALE = "female",
+  OTHER = "other",
+}
+
+
 interface UpdateUserForm {
   fullName?: string;
   email?: string;
@@ -41,6 +48,7 @@ export default function ProfilePage() {
   const router = useRouter(); // ✅ khởi tạo router
 
   const { user, setUser } = useAuth();
+  const [updateProfile, setUpdateProfile] = useState(0); // cập nhập lần đầu
 
 
 
@@ -88,6 +96,14 @@ export default function ProfilePage() {
             dob: data.dob,
             gender: data.gender,
           });
+
+          if (updateProfile != 0) {
+            setTimeout(() => toast.error("Thông tin thay đổi: Đã tự động cập nhập dữ liệu.", {
+              icon: "⚠️",
+              id: "profile-error"
+            }), 0);
+          }
+          setUpdateProfile(1);
         }
       } catch (err: any) {
         //console.error(err); //hiển thị lỗi không tìm thấy người dùng hoặc Có lỗi xảy ra khi tải thông tin người dùng
@@ -105,8 +121,13 @@ export default function ProfilePage() {
           if (nofications === 0) {
             setNofications(1);
             //toast("Hết thời gian đăng nhập vui lòng đăng nhập để xem thông tin người dùng của bạn!", { icon: "⚠️" });
+            setTimeout(() => toast.error("Hệ thống cập nhật: Có lỗi khi tải thông tin người dùng.", {
+              icon: "⚠️",
+              id: "reset-user-profile"
+            }), 0);
           }
           setUser(null);
+          setUserProfile(null);
         }
       }
     };
@@ -127,7 +148,7 @@ export default function ProfilePage() {
 
   // =================== CẬP NHẬT THÔNG TIN ===================
   const handleSubmit = async () => {
-    const { fullName, email, phone, dob } = form;
+    const { fullName, email, phone, dob, gender } = form;
     setError("");
 
     try {
@@ -230,6 +251,19 @@ export default function ProfilePage() {
         }
       }
 
+      //Kiểm tra giới tính
+      if (!gender) {
+        setError("Vui lòng chọn giới tính.");
+        setLoading(false);
+        return;
+      }
+
+      if (![Gender.MALE, Gender.FEMALE, Gender.OTHER].includes(gender as Gender)) {
+        setError("Giới tính không hợp lệ.");
+        setLoading(false);
+        return;
+      }
+
       setLoadingMessage("Đang cập nhật thông tin...");
       const res = await api.patch(`/users/${userId}`, form);
       const data = res.data;
@@ -275,6 +309,7 @@ export default function ProfilePage() {
       alert(message);
     } finally {
       setLoading(false);
+      e.target.value = ""; // reset input file
     }
   };
 

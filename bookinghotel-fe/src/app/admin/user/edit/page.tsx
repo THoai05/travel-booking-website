@@ -21,6 +21,16 @@ interface User {
   updatedAt?: string;
 }
 
+export enum Gender {
+  MALE = "male",
+  FEMALE = "female",
+  OTHER = "other",
+}
+
+interface ProfilePageProps {
+  setShowProfilePage: (value: boolean) => void;
+}
+
 interface UpdateUserForm {
   fullName?: string;
   email?: string;
@@ -29,7 +39,7 @@ interface UpdateUserForm {
   gender?: "male" | "female" | "other";
 }
 
-export default function ProfilePage() {
+export default function ProfilePage({ setShowProfilePage }: ProfilePageProps) {
   const [user, setUser] = useState<User | null>(null);
   const [form, setForm] = useState<UpdateUserForm>({});
   const [userId, setUserId] = useState(0);
@@ -37,6 +47,7 @@ export default function ProfilePage() {
   const [loadingMessage, setLoadingMessage] = useState("");
   const [error, setError] = useState("");
   const router = useRouter(); // ✅ khởi tạo router
+  const [updateProfile, setUpdateProfile] = useState(0); // cập nhập lần đầu
 
   // =================== sử dụng toLocaleDateString với UTC ===================
   const formatDateUTC = (dateStr?: string) => {
@@ -70,6 +81,15 @@ export default function ProfilePage() {
             dob: data.dob,
             gender: data.gender,
           });
+
+          if (updateProfile != 0) {
+            setTimeout(() => toast.error("Thông tin thay đổi: Đã tự động cập nhập dữ liệu.", {
+              icon: "⚠️",
+              id: "profile-error"
+            }), 0);
+          }
+          setUpdateProfile(1);
+
         }
       } catch (err: any) {
         //console.error(err); //hiển thị lỗi không tìm thấy người dùng hoặc Có lỗi xảy ra khi tải thông tin người dùng
@@ -84,7 +104,12 @@ export default function ProfilePage() {
           message === "Người dùng không tồn tại" ||
           err.response?.status === 404
         ) {
-          router.replace("/admin/user");
+          //toast.error("Người dùng không tồn tại. Chuyển về trang danh sách người dùng.");
+          setShowProfilePage(false); // Đóng trang Hồ sơ
+          setTimeout(() => toast.error("Người dùng không tồn tại. Chuyển về trang danh sách người dùng.", {
+            icon: "⚠️",
+            id: "profile-error"
+          }), 0);
         }
       }
     };
@@ -105,7 +130,7 @@ export default function ProfilePage() {
 
   // =================== CẬP NHẬT THÔNG TIN ===================
   const handleSubmit = async () => {
-    const { fullName, email, phone, dob } = form;
+    const { fullName, email, phone, dob, gender } = form;
     setError("");
 
     try {
@@ -207,6 +232,19 @@ export default function ProfilePage() {
         }
       }
 
+      //Kiểm tra giới tính
+      if (!gender) {
+        setError("Vui lòng chọn giới tính.");
+        setLoading(false);
+        return;
+      }
+
+      if (![Gender.MALE, Gender.FEMALE, Gender.OTHER].includes(gender as Gender)) {
+        setError("Giới tính không hợp lệ.");
+        setLoading(false);
+        return;
+      }
+
       setLoadingMessage("Đang cập nhật thông tin...");
       const res = await api.patch(`/users/${userId}`, form);
       const data = res.data;
@@ -253,6 +291,7 @@ export default function ProfilePage() {
       alert(message);
     } finally {
       setLoading(false);
+      e.target.value = ""; // reset input file
     }
   };
 

@@ -1,9 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Notification } from '../entities/notification.entity';
+import { Notification, NotificationType } from '../entities/notification.entity';
+import { NotificationUser } from '../entities/notification-user.entity';
 import { User } from 'src/managements/users/entities/users.entity';
+import { PushSubscription } from 'src/managements/push-web/entities/push-subscription.entity';
 import { ZaloChatService } from 'src/managements/zalo/zalo.service';
+import { PushWebService } from '../../push-web/push-web.service';
+import { Not } from 'typeorm';
+
 
 @Injectable()
 export class NotificationsService {
@@ -14,7 +19,15 @@ export class NotificationsService {
         @InjectRepository(User)
         private usersRepo: Repository<User>,
 
+        @InjectRepository(PushSubscription)
+        private pushWebRepo: Repository<PushSubscription>,
+
+        @InjectRepository(NotificationUser)
+        private notificationUserRepo: Repository<NotificationUser>,
+
         private zaloChatService: ZaloChatService,
+
+        private pushWebService: PushWebService,
     ) { }
 
     // ==========================
@@ -40,6 +53,17 @@ export class NotificationsService {
             type: 'notification',
             notification_id: savedNoti.id,
         });
+
+        try {
+            await this.pushWebService.sendToUser(user.id, {
+                title: data.title,
+                message: data.message,
+                url: data.url ?? '/', // optional, nếu muốn click mở trang
+            });
+        } catch (err) {
+            console.error('Web push failed:', err);
+        }
+
 
         return savedNoti;
     }
@@ -143,4 +167,92 @@ export class NotificationsService {
             throw error;
         }
     }
+
+    // src/notifications/notifications.service.ts
+    async createNotificationForAllUsers(data: {
+        title: string;
+        message: string;
+        type?: NotificationType;
+        sender_id?: number;
+        url?: string;
+    }) {
+        // 1️⃣ Lấy system user để gán vào notification.userId
+        const systemUser = await this.usersRepo.findOne({ where: { id: 1 } });
+        if (!systemUser) throw new Error('System user (id=1) not found');
+
+        // 2️⃣ Tạo notification
+        const noti = this.notificationsRepo.create({
+            title: data.title,
+            message: data.message,
+            type: data.type ?? NotificationType.PROMOTION,
+            user: systemUser, // gán system user
+        });
+        const savedNoti = await this.notificationsRepo.save(noti);
+
+        // 3️⃣ Lấy tất cả user thực tế (trừ system user)
+        const users = await this.usersRepo.find({ where: { id: Not(1) } });
+
+        // 4️⃣ Tạo bản ghi NotificationUser cho từng user
+        const notificationUsers = users.map(user =>
+            this.notificationUserRepo.create({
+                notification: savedNoti,
+                user,
+                isRead: false,
+            }),
+        );
+        await this.notificationUserRepo.save(notificationUsers);
+
+        // 5️⃣ Gửi Zalo + Web Push
+        for (const user of users) {
+            try {
+                // Gửi Zalo
+                await this.zaloChatService.createMessage({
+                    sender_id: data.sender_id ?? 1,
+                    receiver_id: user.id,
+                    type: 'notification',
+                    notification_id: savedNoti.id,
+                });
+            } catch (err) {
+                console.error(`Zalo chat failed for user ${user.id}:`, err.message);
+            }
+
+            try {
+                // Gửi Web Push
+                await this.pushWebService.sendToUser(user.id, {
+                    title: data.title,
+                    message: data.message,
+                    url: data.url ?? '/',
+                });
+
+            } catch (err) {
+                console.error(`Web push failed for user ${user.id}:`, err.message);
+            }
+        }
+
+        return {
+            message: `Đã gửi thông báo đến ${users.length} người dùng`,
+            notificationId: savedNoti.id,
+        };
+    }
+
+    // notifications.service.ts
+    // notifications.service.ts
+    async getNotificationsForUser(userId: number) {
+        const notificationUsers = await this.notificationUserRepo.find({
+            where: { user: { id: userId } },
+            relations: ['notification'],
+            order: { createdAt: 'DESC' },
+        });
+
+        return notificationUsers.map(nu => ({
+            id: nu.notification.id,
+            title: nu.notification.title,
+            message: nu.notification.message,
+            type: nu.notification.type,
+            createdAt: nu.notification.createdAt,
+            isRead: nu.isRead,
+        }));
+    }
+
+
 }

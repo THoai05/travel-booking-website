@@ -92,7 +92,7 @@ export default function TripHistoryPage() {
         const userId = Number(storedId);
         setUserId(userId);
       } catch {
-        
+
       }
     };
     fetchUserId();
@@ -317,6 +317,10 @@ export default function TripHistoryPage() {
       toast.error("❌ Không thể xóa hành trình!");
     }
   };
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages || 1);
+  }, [totalPages]);
 
   return (
     <div className="relative" onClick={() => toast.dismiss()}>

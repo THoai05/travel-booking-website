@@ -170,14 +170,19 @@ export class HotelsService {
   }
 
   // service của bro
-  async findRoomTypeAndRatePlanByHotelId(hotelId: number,maxGuests:number): Promise<any> {
+  async findRoomTypeAndRatePlanByHotelId(hotelId: number, maxGuests: number): Promise<any> {
+    console.log(hotelId,maxGuests)
   // 1. Lấy hotel, roomTypes, và ratePlans trong 1 query duy nhất
     const hotel = await this.hotelRepo
       .createQueryBuilder('hotels')
-      .leftJoinAndSelect('hotels.roomTypes', 'roomTypes')
+      .leftJoinAndSelect(
+        'hotels.roomTypes',
+        'roomTypes',
+        'roomTypes.max_guests <= :maxGuests',
+        { maxGuests }
+        )
       .leftJoinAndSelect('roomTypes.ratePlans', 'ratePlans')
       .where('hotels.id = :hotelId',{hotelId})
-      .andWhere('roomTypes.max_guests <= :maxGuests', { maxGuests })
       .getOne()
 
   if (!hotel) {
@@ -453,6 +458,3 @@ if (hotelImages && hotelImages.length > 0) {
     return finalResults
   }
 }
-
-
-
