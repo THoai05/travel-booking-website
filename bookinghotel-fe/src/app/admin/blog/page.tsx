@@ -103,24 +103,28 @@ export default function ModernSingleListPost() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6 sm:p-10">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
               Blog Management
             </h1>
-            <p className="text-sm text-gray-500 mt-1">/ Blog / Single</p>
+            <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
+              <Link href="/admin">Admin</Link>
+              <span>/</span>
+              <span className="font-medium text-gray-700">Blogs</span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Link
-              href="/admin/blog/add"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-sky-500
-            text-white px-4 py-2 rounded-lg shadow-md hover:opacity-95 transition"
-            >
-              <FaPlus />
-              <span className="font-medium">Add Post</span>
-            </Link>
-          </div>
+          <Link
+            href="/admin/blog/add"
+            className="inline-flex items-center gap-2 
+          bg-neutral-900 hover:bg-neutral-800
+          text-white px-4 py-2 rounded-lg 
+            shadow-[0_2px_6px_rgba(0,0,0,0.4)]
+            transition-all duration-200 active:scale-95"
+          >
+            <span className="font-medium">New Post</span>
+          </Link>
         </div>
 
         <Toolbar
