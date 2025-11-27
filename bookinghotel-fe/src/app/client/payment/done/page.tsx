@@ -9,6 +9,7 @@ import { ImageWithFallback } from './components/figma/ImageWithFallback';
 import { useAppSelector,useAppDispatch } from '@/reduxTK/hook';
 import { fetchBookingById } from '@/reduxTK/features/bookingSlice';
 import { selectBooking } from "@/reduxTK/features/bookingSlice";
+import { sendInvoice } from "./useInvoice";
 
 const ROOM_TYPE_NAMES = new Map([
   ['deluxe double', "Phòng đôi sang trọng"],
@@ -102,13 +103,13 @@ const PaymentDone = () => {
                   Chúc mừng! Đặt phòng của bạn đã được xác nhận. Thông tin chi tiết đã được gửi đến <span className="font-semibold text-white">{pendingBooking.contactEmail}</span>
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <Button 
-                    className="bg-white text-sky-600 hover:bg-sky-50 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 font-bold"
-                    size="lg"
+                  <button
+                    disabled={!pendingBooking}
+                    onClick={() => pendingBooking && sendInvoice(pendingBooking.bookingId)}
+                    className="px-3 py-1 bg-blue-600 text-white rounded-lg disabled:opacity-50"
                   >
-                    <Download className="w-5 h-5 mr-2" />
-                    Tải xuống xác nhận
-                  </Button>
+                    Gửi Hóa Đơn
+                  </button>
                   <Button 
                     className="bg-sky-800 text-white hover:bg-sky-900 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 font-bold border-2 border-white/20"
                     size="lg"

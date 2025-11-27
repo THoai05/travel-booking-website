@@ -23,7 +23,7 @@ export class InvoiceService {
     async getBookingById(id: number) {
         const booking = await this.bookingRepo.findOne({
             where: { id },
-            relations: ['user', 'roomType', 'rateplan', 'payment'],
+            relations: ['user', 'roomType', 'roomType.hotel', 'rateplan', 'payment'],
         });
 
         if (!booking) return null;
@@ -32,7 +32,7 @@ export class InvoiceService {
         const customerName = booking.contactFullName ?? booking.user?.fullName ?? 'Khách hàng';
 
         // Lấy tên khách sạn
-        const hotelName = booking.roomType?.hotel ?? booking.roomType?.name ?? 'Khách sạn';
+        const hotelName = booking.roomType?.hotel.name ?? booking.roomType?.name ?? 'Khách sạn';
 
         // Lấy tổng tiền
         const totalPrice = Number(booking.totalPrice ?? 0);
