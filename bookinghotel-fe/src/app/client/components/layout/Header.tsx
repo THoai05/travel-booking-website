@@ -45,6 +45,8 @@ const Header = () => {
   const router = useRouter();
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
+  const { user, logout } = useAuth();
+
 
   const [showLogin, setShowLogin] = useState(false);
   const [open, setOpen] = useState(false);
@@ -57,6 +59,8 @@ const Header = () => {
   // --- THÊM MỚI: State cho dropdown ---
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null); // Ref để detect click bên ngoài
+
+
 
   // --- Modal control
   const openLogin = () => {

@@ -1,24 +1,21 @@
 // src/push-web/entities/push-subscription.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { User } from 'src/managements/users/entities/users.entity';
 
-@Entity('push_subscriptions')
+@Entity()
 export class PushSubscription {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => User, user => user.pushSubscriptions, { onDelete: 'CASCADE' })
+    @ManyToOne(() => User, user => user.id)
     user: User;
 
-    @Column('text')
+    @Column()
     endpoint: string;
 
-    @Column('text')
+    @Column()
     p256dh: string;
 
-    @Column('text')
+    @Column()
     auth: string;
-
-    @CreateDateColumn()
-    createdAt: Date;
 }
