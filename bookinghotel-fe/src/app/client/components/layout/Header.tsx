@@ -45,8 +45,7 @@ const Header = () => {
   const router = useRouter();
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
-  const { user, logout } = useAuth();
-
+  const { user, setUser, logout } = useAuth();
 
   const [showLogin, setShowLogin] = useState(false);
   const [open, setOpen] = useState(false);
@@ -81,7 +80,7 @@ const Header = () => {
     localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
   };
 
-  const { user, setUser, logout } = useAuth();
+
 
   // --- Fetch profile
 
