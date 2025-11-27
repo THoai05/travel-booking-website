@@ -299,7 +299,8 @@ export default function ProfilePage() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       const data = res.data;
-      alert("Upload avatar thành công");
+      //alert("Upload avatar thành công");
+      toast.success(data.message || "✅ Cập nhật avatar thành công!");
       setUserProfile((prev) => (prev ? { ...prev, avatar: data.avatarUrl } : prev));
     } catch (err: any) {
       let message = "Upload avatar thất bại";
