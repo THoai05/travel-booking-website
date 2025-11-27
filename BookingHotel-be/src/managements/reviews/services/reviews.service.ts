@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -27,7 +28,7 @@ export class ReviewsService {
 
     @InjectRepository(ReviewLike)
     private reviewLikeRepo: Repository<ReviewLike>,
-  ) {}
+  ) { }
 
   async getSummaryReviewByHotelId(hotelId: number): Promise<{ avgRating: number; reviewCount: number }> {
     const summary = await this.reviewRepo
@@ -48,6 +49,8 @@ export class ReviewsService {
     limit = 10,
     userId?: number,
   ): Promise<{ data: any[]; total: number; page: number; limit: number }> {
+
+    //Lấy tất cả review với số like
     const query = this.reviewRepo
       .createQueryBuilder('review')
       .leftJoinAndSelect('review.user', 'user')
@@ -65,37 +68,42 @@ export class ReviewsService {
       .where('review.reviewType = :type', { type: 'hotel' })
       .andWhere('review.hotelId = :hotelId', { hotelId })
       .groupBy('review.id')
-      .addGroupBy('user.id')
-      .orderBy('review.createdAt', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit);
+      .addGroupBy('user.id');
 
-    const [data, total] = await Promise.all([
-      query.getRawAndEntities().then(async ({ raw, entities }) => {
-        const reviews = entities.map((review, i) => ({
+    const [rawReviews, total] = await Promise.all([
+      query.getRawAndEntities().then(({ raw, entities }) =>
+        entities.map((review, i) => ({
           ...review,
           likeCount: Number(raw[i].likeCount) || 0,
-        }));
-
-        if (userId) {
-          const likedReviews = await this.reviewLikeRepo.find({
-            where: { user: { id: userId }, review: In(reviews.map(r => r.id)) },
-            relations: ['review'],
-          });
-
-          const likedReviewIds = likedReviews.map(like => like.review.id);
-
-          reviews.forEach(r => {
-            (r as any).isLiked = likedReviewIds.includes(r.id);
-          });
-        }
-
-        return reviews;
-      }),
+        }))
+      ),
       query.getCount(),
     ]);
 
-    return { data, total, page, limit };
+    // Nếu có userId, đưa review của chính user lên đầu
+    let reviews = rawReviews;
+    if (userId) {
+      reviews = [
+        ...rawReviews.filter(r => r.user.id === userId),
+        ...rawReviews.filter(r => r.user.id !== userId).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      ];
+    } else {
+      // Nếu không có userId, sort theo createdAt DESC
+      reviews.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    }
+
+    const paginatedReviews = reviews.slice((page - 1) * limit, page * limit);
+
+    if (userId) {
+      const likedReviews = await this.reviewLikeRepo.find({
+        where: { user: { id: userId }, review: In(paginatedReviews.map(r => r.id)) },
+        relations: ['review'],
+      });
+      const likedReviewIds = likedReviews.map(like => like.review.id);
+      paginatedReviews.forEach(r => (r as any).isLiked = likedReviewIds.includes(r.id));
+    }
+
+    return { data: paginatedReviews, total, page, limit };
   }
 
   async createReview(dto: CreateReviewDto, userId: number) {
@@ -103,6 +111,18 @@ export class ReviewsService {
     const hotel = await this.hotelRepo.findOne({ where: { id: dto.hotelId } });
 
     if (!user || !hotel) throw new NotFoundException('User or Hotel not found');
+
+    const existingReview = await this.reviewRepo.findOne({
+      where: {
+        user: { id: userId },
+        hotel: { id: dto.hotelId },
+      },
+      relations: ['user', 'hotel'],
+    });
+
+    if (existingReview) {
+      throw new BadRequestException('Bạn đã đánh giá khách sạn này rồi');
+    }
 
     const review = this.reviewRepo.create({
       user,
@@ -140,14 +160,14 @@ export class ReviewsService {
       relations: ['user'],
     });
 
-    if (!review) throw new NotFoundException('Review not found');
+    if (!review) throw new NotFoundException('Đánh giá không tồn tại, tải lại trang để cập nhật dữ liệu mới nhất');
     if (review.user.id !== userId)
       throw new ForbiddenException('You can only delete your own review');
 
     await this.reviewRepo.remove(review);
     return {
       success: true,
-      message: 'Review deleted successfully',
+      message: 'Xóa đánh giá thành công',
       deletedReviewId: id,
     };
   }

@@ -95,6 +95,7 @@ const Login = ({
         router.push('/admin')
       } else {
         router.refresh()
+        window.location.reload();
       }
       
     } catch (err: any) {

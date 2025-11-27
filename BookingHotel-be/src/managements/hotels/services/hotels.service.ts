@@ -245,9 +245,11 @@ export class HotelsService {
         'hotel.avgPrice',
         'city.id',
         'city.title',
+        'city.lat',
+        'city.lon',
         'amenities.name',
         'amenities.description'
-      ])
+      ])  
       .where('hotel.id = :hotelId', { hotelId })
       .getOne()
     if (!hotel) {

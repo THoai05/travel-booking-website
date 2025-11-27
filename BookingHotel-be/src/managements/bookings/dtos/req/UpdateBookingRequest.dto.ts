@@ -27,11 +27,9 @@ export class UpdateBookingRequest{
 
     @IsOptional()
     @IsNumber()
-    couponId?: string
+    couponId?: number
 
     @IsOptional()
     @IsNumber()
     totalPrice?:number
-    
-
 }

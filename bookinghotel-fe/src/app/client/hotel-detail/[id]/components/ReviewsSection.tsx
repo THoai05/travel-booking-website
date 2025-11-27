@@ -53,7 +53,7 @@ export default function ReviewsSection({ data, hotelId }: ReviewSectionProps) {
         <Tabs defaultValue="Bluevera">
           <TabsList className="mb-6">
             <TabsTrigger value="Bluevera">Bluevera ({data?.reviewCount})</TabsTrigger>
-            <TabsTrigger value="others">Nguồn khác (1)</TabsTrigger>
+            <TabsTrigger value="others">Nguồn khác (0)</TabsTrigger>
           </TabsList>
 
           <TabsContent value="Bluevera">
@@ -61,7 +61,7 @@ export default function ReviewsSection({ data, hotelId }: ReviewSectionProps) {
               {reviews && reviews.length > 0 ? (
                 reviews.map((review) => <ReviewCard key={review.id} review={review} />)
               ) : (
-                <p className="text-gray-500">Chưa có đánh giá nào.</p>
+                <p className="text-gray-500">Chưa có đánh giá nào cho khách sạn này.</p>
               )}
             </div>
 

@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, Query ,DefaultValuePipe} from '@nestjs/common';
 import { HotelsService } from '../services/hotels.service';
 import { GetAllHotelRequest } from '../dtos/req/GetAllHotelRequest.dto';
-import { CreateHotelDto } from '../dtos/res/create-hotel.dto';
-import { UpdateHotelDto } from '../dtos/res/update-hotel.dto';
 import { HotelManageService } from '../services/hotels_manage.service';
+import { CreateHotelDto } from '../dtos/req/create-hotel.dto';
+import { UpdateHotelDto } from '../dtos/req/update-hotel.dto';
 
 
 @Controller('hotels')
@@ -47,16 +47,14 @@ export class HotelsController {
     return {
       data
     }
-
   }
-  
 
 }
 
 //  ADMIN / MANAGEMENT HOTEL API //
 @Controller('admin/hotels')
 export class HotelsManageController {
-  constructor(private readonly hotelManageService: HotelManageService) { }
+  constructor(private readonly hotelManageService: HotelManageService) {}
 
   @Post()
   create(@Body() dto: CreateHotelDto) {
@@ -65,24 +63,30 @@ export class HotelsManageController {
 
   @Get()
   findAll(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
+    // Dùng ParseIntPipe để đảm bảo page/limit là số. 
+    // DefaultValuePipe để nếu ko gửi thì mặc định là 1 và 10
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
-    return this.hotelManageService.findAll(Number(page), Number(limit));
+    return this.hotelManageService.findAll(page, limit);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  // ParseIntPipe sẽ chặn ngay nếu id="abc" -> Trả về 400 Bad Request luôn
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.hotelManageService.findOne(id);
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @Body() dto: UpdateHotelDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number, 
+    @Body() dto: UpdateHotelDto
+  ) {
     return this.hotelManageService.update(id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.hotelManageService.remove(id);
   }
 }

@@ -64,7 +64,7 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
         { icon: Activity, label: "Room Monitor", path: '/admin/rooms/room-monitor' },
         { icon: Calendar, label: "Bookings", path: '/admin/booking' },
         { icon: CreditCard, label: "Payments", path: '/admin/payment' },
-        { icon: Tag, label: "Promotions", path: '/admin/promotion' },
+        { icon: Tag, label: "Coupons", path: '/admin/promotion' },
         { icon: FileText, label: "Blog", path: '/admin/blog', hasSub: true },
         { icon: Heart, label: "Favorites", path: '/admin/favourite' },
         { icon: Home, label: "Notifications", path: '/admin/notification' },

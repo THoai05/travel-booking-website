@@ -369,7 +369,7 @@ const router = useRouter()
                               checkIn,
                               checkOut,
                               totalGuests,
-                              Number(option?.salePrice) * nights,
+                              Number(option?.salePrice) * nights * Number(guests.rooms),
                               user?.id,
                               room?.id,
                               option?.id

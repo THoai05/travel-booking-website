@@ -21,6 +21,16 @@ interface User {
   updatedAt?: string;
 }
 
+export enum Gender {
+  MALE = "male",
+  FEMALE = "female",
+  OTHER = "other",
+}
+
+interface ProfilePageProps {
+  setShowProfilePage: (value: boolean) => void;
+}
+
 interface UpdateUserForm {
   fullName?: string;
   email?: string;
@@ -29,7 +39,7 @@ interface UpdateUserForm {
   gender?: "male" | "female" | "other";
 }
 
-export default function ProfilePage() {
+export default function ProfilePage({ setShowProfilePage }: ProfilePageProps) {
   const [user, setUser] = useState<User | null>(null);
   const [form, setForm] = useState<UpdateUserForm>({});
   const [userId, setUserId] = useState(0);
@@ -84,7 +94,12 @@ export default function ProfilePage() {
           message === "Người dùng không tồn tại" ||
           err.response?.status === 404
         ) {
-          router.replace("/admin/user");
+          //toast.error("Người dùng không tồn tại. Chuyển về trang danh sách người dùng.");
+          setShowProfilePage(false); // Đóng trang Hồ sơ
+          setTimeout(() => toast.error("Người dùng không tồn tại. Chuyển về trang danh sách người dùng.", {
+            icon: "⚠️",
+            id: "profile-error"
+          }), 0);
         }
       }
     };
@@ -105,7 +120,7 @@ export default function ProfilePage() {
 
   // =================== CẬP NHẬT THÔNG TIN ===================
   const handleSubmit = async () => {
-    const { fullName, email, phone, dob } = form;
+    const { fullName, email, phone, dob, gender } = form;
     setError("");
 
     try {
@@ -122,6 +137,21 @@ export default function ProfilePage() {
         setLoading(false);
         return;
       }
+
+      // 2️⃣ Không có khoảng trắng đầu/cuối
+      if (fullName !== fullName.trim()) {
+        setError("Họ và tên không được có khoảng trắng đầu hoặc cuối.");
+        setLoading(false);
+        return;
+      }
+
+      // 3️⃣ Không có 2 khoảng trắng liên tiếp
+      if (/\s{2,}/.test(fullName)) {
+        setError("Họ và tên không được có 2 khoảng trắng liên tiếp.");
+        setLoading(false);
+        return;
+      }
+
       const fullNameRegex =
         /^[a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+$/;
       if (!fullNameRegex.test(fullName)) {
@@ -149,10 +179,15 @@ export default function ProfilePage() {
       }
 
       if (phone) {
-        const phoneRegex = /^(0|\+84)\d{9,10}$/;
-        if (!phoneRegex.test(phone) || phone.length > 20) {
+        // Chỉ cho phép số 0–9, bắt đầu 0 hoặc +84, tổng 10–11 chữ số
+        const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
+
+        // Loại bỏ ký tự full-width (０１２３…)
+        const fullWidthCheck = /[０-９]/;
+
+        if (!phoneRegex.test(phone) || fullWidthCheck.test(phone) || phone.length > 20) {
           setError(
-            "Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có từ 10–11 chữ số."
+            "Số điện thoại phải bắt đầu bằng 0 hoặc +84, chỉ nhập số bình thường, 10–11 chữ số."
           );
           setLoading(false);
           return;
@@ -185,6 +220,19 @@ export default function ProfilePage() {
           setLoading(false);
           return;
         }
+      }
+
+      //Kiểm tra giới tính
+      if (!gender) {
+        setError("Vui lòng chọn giới tính.");
+        setLoading(false);
+        return;
+      }
+
+      if (![Gender.MALE, Gender.FEMALE, Gender.OTHER].includes(gender as Gender)) {
+        setError("Giới tính không hợp lệ.");
+        setLoading(false);
+        return;
       }
 
       setLoadingMessage("Đang cập nhật thông tin...");
@@ -233,8 +281,29 @@ export default function ProfilePage() {
       alert(message);
     } finally {
       setLoading(false);
+      e.target.value = ""; // reset input file
     }
   };
+
+  const handleDeleteAvatar = async () => {
+    if (!confirm("Bạn có chắc muốn xóa avatar không?")) return;
+
+    try {
+      setLoading(true);
+      setLoadingMessage("Đang xóa avatar...");
+
+      const res = await api.delete(`/users/${userId}/avatar`);
+      const data = res.data;
+
+      toast.success(data.message || "Đã xóa avatar");
+
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Không thể xóa avatar!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   if (!user) return <p>Đang tải...</p>;
 
@@ -243,7 +312,7 @@ export default function ProfilePage() {
       {/* ========== giữ nguyên toàn bộ phần UI ========== */}
       <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-gradient-to-b from-blue-400 to-blue-200 shadow-md">
         <img
-          src={user.avatar || "https://via.placeholder.com/150"}
+          src={user.avatar || "https://avatars.githubusercontent.com/u/9919?s=128&v=4"}
           alt="Avatar"
           className="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover border-4 border-white shadow mb-3"
         />
@@ -253,6 +322,16 @@ export default function ProfilePage() {
           onChange={handleAvatarUpload}
           className="text-sm text-gray-700 mb-3"
         />
+
+        {user.avatar && (
+          <button
+            onClick={handleDeleteAvatar}
+            className="text-red-600 text-sm underline mb-3"
+          >
+            Xóa avatar
+          </button>
+        )}
+
         <h2 className="text-lg md:text-xl font-semibold text-white mb-4">
           {user.fullName || "Họ và tên"}
         </h2>

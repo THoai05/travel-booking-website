@@ -61,9 +61,9 @@ export const deleteReviewThunk = createAsyncThunk(
       const res = await api.delete(`/reviews/${reviewId}`);
       return { id: reviewId, message: res.data?.message || "Deleted" };
     } catch (err: any) {
-      return rejectWithValue(
-        err.response?.data?.message || "Delete review failed"
-      );
+      return rejectWithValue({
+        message: err.response?.data?.message || "Delete review failed"
+      });
     }
   }
 );

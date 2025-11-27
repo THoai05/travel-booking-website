@@ -90,3 +90,21 @@ export const deleteUser = async (userId: number) => {
   const res = await api.delete(`/users/${userId}`);
   return res.data;
 };
+
+// =================== DELETE AVATAR ===================
+export const deleteUserAvatar = (userId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const res = await api.delete(`/users/${userId}/avatar`);
+      return res.data;
+    },
+    onSuccess: (data) => {
+      // update cache user: set avatar = null
+      queryClient.setQueryData(["user", userId], (old: any) => ({
+        ...old,
+        avatar: null,
+      }));
+    },
+  });
+};

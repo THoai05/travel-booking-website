@@ -116,6 +116,7 @@ const SuggestionBox = ({
 }: SuggestionBoxProps) => (
   <div className="absolute top-full left-0 w-full bg-white rounded-lg shadow-xl mt-2 border border-gray-200 z-50 max-h-96 overflow-y-auto">
 
+
     {hasQuery ? (
       // --- PHẦN 1: HIỂN THỊ KHI USER ĐÃ GÕ TÌM KIẾM ---
       <div className="p-4">
