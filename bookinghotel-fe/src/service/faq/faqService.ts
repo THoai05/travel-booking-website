@@ -6,6 +6,7 @@ interface FaqPayload {
     answer?: string;
     categories?: string;
     status?: string;
+    updated_at?: string;
 }
 
 // 🟦 Lấy danh sách tất cả FAQ

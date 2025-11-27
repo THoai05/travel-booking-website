@@ -16,6 +16,7 @@ import { ChatModule } from './managements/chat/chat.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { InvoiceModule } from './managements/invoice/invoice.module';
 import { ZaloChatModule } from './managements/zalo/zalo.module'
+import { PushWebModule } from './managements/push-web/push-web.module'
 import { join } from 'path';
 
 @Module({
@@ -23,6 +24,7 @@ import { join } from 'path';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    PushWebModule,
 
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),

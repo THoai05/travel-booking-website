@@ -6,6 +6,7 @@ import { Post } from 'src/managements/posts/entities/post.entity';
 import { Favourite } from 'src/managements/favourite/entities/favourite.entity';
 import { ReviewLike } from 'src/managements/reviews/entities/review-like.entity';
 import { PushSubscription } from '../../push-web/entities/push-subscription.entity';
+import { NotificationUser } from "src/managements/notifications/entities/notification-user.entity";
 
 import {
   Entity,
@@ -151,4 +152,7 @@ export class User {
 
   @OneToMany(() => PushSubscription, ps => ps.user)
   pushSubscriptions: PushSubscription[];
+
+  @OneToMany(() => NotificationUser, nu => nu.user)
+  notificationUsers: NotificationUser[];
 }

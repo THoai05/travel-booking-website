@@ -15,10 +15,14 @@ export class PushWebService {
         @InjectRepository(User)
         private usersRepo: Repository<User>,
     ) {
+        const publicKey = process.env.VAPID_PUBLIC_KEY;
+        const privateKey = process.env.VAPID_PRIVATE_KEY;
+        if (!publicKey || !privateKey) throw new Error('VAPID keys are missing in .env');
+
         webpush.setVapidDetails(
-            'mailto:your-email@example.com',
-            'BNFtbUrK1TkBAiehTvi_kmtycIqRuH4NdvYIApYGGZr6JoN36n8zhJUN6DwtO97DHXHfVyv-U73eV2cbN-KuCXE', // publicKey
-            'mzeM9dHUCJkTl8iiuBEKRQmFae-3owGAng06KK3PQ6g' // privateKey
+            'mailto:bluvera05@gmail.com',
+            publicKey,
+            privateKey
         );
     }
 
@@ -26,11 +30,9 @@ export class PushWebService {
         const user = await this.usersRepo.findOne({ where: { id: userId } });
         if (!user) throw new Error('User not found');
 
-        // kiểm tra đã tồn tại subscription chưa
         const exists = await this.pushRepo.findOne({
             where: { user: { id: userId }, endpoint: subscription.endpoint },
         });
-
         if (exists) return exists;
 
         const ps = this.pushRepo.create({
@@ -39,34 +41,30 @@ export class PushWebService {
             p256dh: subscription.keys.p256dh,
             auth: subscription.keys.auth,
         });
-
         return this.pushRepo.save(ps);
     }
 
     async sendToUser(userId: number, payload: { title: string; message: string; url?: string }) {
         const subs = await this.pushRepo.find({ where: { user: { id: userId } } });
-
-        const notificationPayload = JSON.stringify({
-            title: payload.title,
-            message: payload.message,
-            url: payload.url ?? '/',
-        });
+        const notificationPayload = JSON.stringify(payload);
 
         for (const sub of subs) {
             try {
-                await webpush.sendNotification(
-                    {
-                        endpoint: sub.endpoint,
-                        keys: {
-                            p256dh: sub.p256dh,
-                            auth: sub.auth,
-                        },
-                    },
-                    notificationPayload
-                );
+                await webpush.sendNotification({
+                    endpoint: sub.endpoint,
+                    keys: { p256dh: sub.p256dh, auth: sub.auth },
+                }, notificationPayload);
+                console.log('Sending to subscription', sub.endpoint);
             } catch (err) {
                 console.error('Web push failed for endpoint:', sub.endpoint, err);
             }
         }
     }
+    async broadcast(payload: { title: string; message: string; url?: string }) {
+        const users = await this.usersRepo.find();
+        for (const user of users) {
+            await this.sendToUser(user.id, payload);
+        }
+    }
+
 }

@@ -1,5 +1,8 @@
-import { Controller, Post, Get, Query, Body, Param, Patch, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Get, Req, Query, Body, Param, Patch, Delete, ParseIntPipe } from '@nestjs/common';
 import { NotificationsService } from '../services/notifications.service';
+import { da } from '@faker-js/faker';
+import { NotificationType } from '../entities/notification.entity';
+
 
 @Controller('notifications')
 export class NotificationsController {
@@ -66,6 +69,24 @@ export class NotificationsController {
   @Patch('mark-notifications-read/:userId')
   async markNotificationsRead(@Param('userId', ParseIntPipe) userId: number) {
     return this.notificationsService.markAllAsRead(userId);
+  }
+
+  @Post('broadcast')
+  async broadcastNotification(@Body() body: { title: string; message: string; url?: string }) {
+    const result = await this.notificationsService.createNotificationForAllUsers({
+      title: body.title,
+      message: body.message,
+      url: body.url,
+      type: NotificationType.SYSTEM, // <-- sửa ở đây
+      sender_id: 1,   // nếu có
+    });
+
+    return result;
+  }
+
+  @Get('user/:id')
+  async getNotificationsForUser(@Param('id') userId: number) {
+    return this.notificationsService.getNotificationsForUser(userId);
   }
 
 }

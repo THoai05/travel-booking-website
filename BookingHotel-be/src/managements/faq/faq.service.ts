@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Faq } from './entities/faq.entity';
@@ -16,9 +16,16 @@ export class FaqService {
     return this.faqRepository.find({ order: { created_at: 'DESC' } });
   }
 
-  findOne(id: number) {
-    return this.faqRepository.findOne({ where: { id } });
+  async findOne(id: number) {
+    const faq = await this.faqRepository.findOne({ where: { id } });
+
+    if (!faq) {
+      throw new NotFoundException(`FAQ with ID ${id} không tìm thấy`);
+    }
+
+    return faq;
   }
+
 
   create(createFaqDto: CreateFaqDto) {
     const faq = this.faqRepository.create(createFaqDto);
@@ -26,11 +33,27 @@ export class FaqService {
   }
 
   async update(id: number, updateFaqDto: UpdateFaqDto) {
+    const faq = await this.faqRepository.findOne({ where: { id } });
+    if (!faq) throw new NotFoundException('FAQ không tồn tại');
+
+    // Kiểm tra xung đột updated_at
+    if (updateFaqDto.updated_at && faq.updated_at.toISOString() !== updateFaqDto.updated_at) {
+      throw new ConflictException('FAQ đã được cập nhật ở nơi khác. Vui lòng tải lại trang.');
+    }
+
     await this.faqRepository.update(id, updateFaqDto);
     return this.findOne(id);
   }
 
-  remove(id: number) {
-    return this.faqRepository.delete(id);
+
+  async remove(id: number) {
+    const result = await this.faqRepository.delete(id);
+
+    if (result.affected === 0) {
+      throw new NotFoundException(`FAQ with ID ${id} not found`);
+    }
+
+    return { message: 'Delete successfully' };
   }
+
 }

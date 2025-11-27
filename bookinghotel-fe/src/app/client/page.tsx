@@ -1,3 +1,4 @@
+"use client";
 import Hero from "./home/Hero";
 import FeaturedDestinations from "./home/FeaturedDestinations";
 import RecommendedTours from "./home/RecommendedTours";
@@ -10,15 +11,12 @@ import FaqSection from "./home/FaqSection";
 import TravelTips from "./home/TravelTips";
 import BackgroundSub from "./home/BackgroundSub";
 
-import useWebPush from "@/service/webpush/useWebPush";
 import { useAuth } from "@/context/AuthContext";
 
 
 export default function Home() {
-    const { user, isLoading } = useAuth();
 
     // chỉ đăng ký push khi user đã login và dữ liệu đã load xong
-    useWebPush(user?.id);
 
     return (
         <>
