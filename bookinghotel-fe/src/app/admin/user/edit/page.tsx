@@ -47,6 +47,7 @@ export default function ProfilePage({ setShowProfilePage }: ProfilePageProps) {
   const [loadingMessage, setLoadingMessage] = useState("");
   const [error, setError] = useState("");
   const router = useRouter(); // ✅ khởi tạo router
+  const [updateProfile, setUpdateProfile] = useState(0); // cập nhập lần đầu
 
   // =================== sử dụng toLocaleDateString với UTC ===================
   const formatDateUTC = (dateStr?: string) => {
@@ -80,6 +81,15 @@ export default function ProfilePage({ setShowProfilePage }: ProfilePageProps) {
             dob: data.dob,
             gender: data.gender,
           });
+
+          if (updateProfile != 0) {
+            setTimeout(() => toast.error("Thông tin thay đổi: Đã tự động cập nhập dữ liệu.", {
+              icon: "⚠️",
+              id: "profile-error"
+            }), 0);
+          }
+          setUpdateProfile(1);
+
         }
       } catch (err: any) {
         //console.error(err); //hiển thị lỗi không tìm thấy người dùng hoặc Có lỗi xảy ra khi tải thông tin người dùng
