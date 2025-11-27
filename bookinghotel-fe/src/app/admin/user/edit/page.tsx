@@ -53,8 +53,13 @@ export default function ProfilePage({ setShowProfilePage }: ProfilePageProps) {
   const formatDateUTC = (dateStr?: string) => {
     if (!dateStr) return "-";
     const d = new Date(dateStr);
-    return d.toLocaleDateString("vi-VN", { timeZone: "UTC" });
+    return d.toLocaleString("vi-VN", {
+      timeZone: "UTC",
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+    });
   };
+
 
   // =================== LẤY THÔNG TIN NGƯỜI DÙNG VỚI POLLING ===================
   useEffect(() => {
