@@ -10,7 +10,7 @@ import Register from "@/app/auth/register/page";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
 import api from "@/axios/axios";
-import useWebPush from "@/service/webpush/useWebPush";
+import { motion, AnimatePresence } from "framer-motion";
 
 import NotificationsPage from "@/app/client/notifications/page";
 
@@ -81,6 +81,7 @@ const Header = () => {
     localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
   };
 
+  const { user, setUser, logout } = useAuth();
 
   // --- Fetch profile
 
@@ -104,45 +105,45 @@ const Header = () => {
     };
   }, [dropdownRef]);
 
-  const fetchNotification = async () => {
-    try {
-      const res = await api.get(`notifications/user/${user?.id}/unread-count`);
-      setUnreadCount(res.data.unreadCount);
-
-    } catch {
-      //toast.error("Không thể lấy thông tin người dùng!");
-    }
-  };
-
-  // 🔹 Lấy userId
+  // 1. Lấy profile lần đầu
   useEffect(() => {
-    fetchNotification();
-
-    const interval = setInterval(() => {
-      fetchNotification();
-    }, 5000);
-
     if (user?.role === "admin") {
       router.replace("/admin");
     }
 
-    const fetchProfileAndUser = async () => {
+    if (!user) return;
+
+    const fetchAll = async () => {
       try {
-        const response = await api.get("auth/profile");
-        let storedId = null;
-        if (response.status !== 401) {
-          const profileData = response.data;
-          storedId = profileData.id;
-          setProfile(profileData);
+        // 1. Fetch profile
+        const profileRes = await api.get("auth/profile");
+        if (profileRes.status !== 401) {
+          setProfile(profileRes.data);
+          setUser(profileRes.data);
+          if (user?.role === "admin") {
+            router.replace("/admin");
+          }
         }
-      } catch (err: any) {
+
+        // 2. Fetch notifications
+        if (profileRes.data?.id) {
+          const notifRes = await api.get(
+            `notifications/user/${profileRes.data.id}/unread-count`
+          );
+          setUnreadCount(notifRes.data);
+        }
+      } catch (err) {
+        console.log("Fetch error:", err);
+        setUser(null);
       }
     };
-    fetchProfileAndUser(); // lần đầu load
 
+    fetchAll(); // lần đầu
+
+    const interval = setInterval(fetchAll, 3000); // lặp 5 giây
     return () => clearInterval(interval);
 
-  }, [user]);
+  }, []);
 
 
   // --- Track localStorage changes
@@ -155,10 +156,8 @@ const Header = () => {
 
   const handleLogout = () => {
     logout();
-    localStorage.removeItem('token');
-    router.replace("/client");
+    router.refresh()
   };
-  console.log(user);
 
   return (
     <>
@@ -205,21 +204,7 @@ const Header = () => {
           {/* Actions */}
           <div className="flex-1 flex justify-end gap-4 items-center">
             {/* Language & Currency */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 px-1 py-0.5 text-sm">
-                <Image src="/global.png" alt="Global" width={16} height={16} />
-                <select className="bg-transparent outline-none text-sm p-0 cursor-pointer">
-                  <option value="en">EN</option>
-                  <option value="vi">VI</option>
-                </select>
-              </div>
-              <div className="px-1 py-0.5 text-sm">
-                <select className="bg-transparent outline-none text-sm p-0 cursor-pointer">
-                  <option value="usd">USD</option>
-                  <option value="vnd">VND</option>
-                </select>
-              </div>
-            </div>
+
 
             {/* Nếu chưa đăng nhập */}
             {!loading && !user && (
@@ -387,107 +372,113 @@ const Header = () => {
 
             {/* 1. Nếu CHƯA login, hiển thị icon menu (cho mobile) */}
             {!loading && !user && (
-              <div className="menu-icon cursor-pointer">
-                <Image
-                  src="/menu.png"
-                  alt="menu icon"
-                  width={32}
-                  height={32}
-                />
-              </div>
+              null
             )}
 
             {/* 2. Nếu ĐÃ login, biến icon menu thành trigger cho dropdown */}
             {!loading && user && (
               <div className="relative" ref={dropdownRef}>
-                {/* Nút trigger */}
+                {/* Nút trigger (Giữ nguyên) */}
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="menu-icon cursor-pointer w-10 h-10 flex items-center justify-center"
+                  className="menu-icon cursor-pointer w-10 h-10 flex items-center justify-center transition-transform active:scale-95"
                 >
                   <Image
                     src="/menu.png"
                     alt="menu icon"
-                    width={35} // kích thước cố định cho ảnh
+                    width={35}
                     height={35}
                     className="object-contain"
                   />
                 </button>
 
-                {/* Panel của dropdown */}
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100">
+                {/* Panel của dropdown có hiệu ứng */}
+                <AnimatePresence>
+                  {isDropdownOpen && (
+                    <motion.div
+                      // --- CẤU HÌNH ANIMATION ---
+                      initial={{ opacity: 0, scale: 0.95, y: -10 }} // Trạng thái ban đầu: mờ, nhỏ hơn xíu, và ở trên cao 10px
+                      animate={{ opacity: 1, scale: 1, y: 0 }}      // Trạng thái hiện ra: rõ, size chuẩn, về vị trí cũ
+                      exit={{ opacity: 0, scale: 0.95, y: -10 }}    // Trạng thái khi tắt: mờ dần và thu nhỏ lại
+                      transition={{ duration: 0.2, ease: "easeInOut" }} // Thời gian chạy
+                      style={{ transformOrigin: "top right" }}      // Quan trọng: Zoom từ góc phải trên (chỗ nút bấm) ra
+                      // ---------------------------
 
-                    <button
-                      onClick={() => setShowNotifications(true)}
-                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors relative"
+                      className="absolute right-0 mt-2 w-52 bg-white rounded-md shadow-xl py-1 z-50 border border-gray-100 overflow-hidden"
                     >
-                      <HiOutlineBell className="mr-3 w-5 h-5" />
-                      Thông báo
-                      {unreadCount > 0 && (
-                        <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
-                          {unreadCount}
-                        </span>
-                      )}
-                    </button>
 
-                    <button
-                      onClick={() => {
-                        router.push("/favourites");
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      <HiOutlineHeart className="mr-3 w-5 h-5" />
-                      Yêu thích
-                    </button>
+                      <button
+                        onClick={() => setShowNotifications(true)}
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600 transition-colors relative"
+                      >
+                        <HiOutlineBell className="mr-3 w-5 h-5" />
+                        Thông báo
+                        {unreadCount >= 0 && (
+                          <span className="ml-auto inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full shadow-sm">
+                            {unreadCount}
+                          </span>
+                        )}
+                      </button>
 
-                    <button
-                      onClick={() => {
-                        router.replace("/rooms/booking-history");
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      <HiOutlineCalendar className="mr-3 w-5 h-5" />
-                      Lịch sử đặt phòng
-                    </button>
+                      <button
+                        onClick={() => {
+                          router.push("/favourites");
+                          setIsDropdownOpen(false);
+                        }}
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
+                      >
+                        <HiOutlineHeart className="mr-3 w-5 h-5" />
+                        Yêu thích
+                      </button>
 
-                    <button
-                      onClick={() => {
-                        router.replace("/rooms/trip-history");
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      <HiOutlineBookmark className="mr-3 w-5 h-5" />
-                      Lịch sử chuyến đi
-                    </button>
+                      <button
+                        onClick={() => {
+                          router.replace("/rooms/booking-history");
+                          setIsDropdownOpen(false);
+                        }}
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
+                      >
+                        <HiOutlineCalendar className="mr-3 w-5 h-5" />
+                        Lịch sử đặt phòng
+                      </button>
 
+                      <button
+                        onClick={() => {
+                          router.replace("/rooms/trip-history");
+                          setIsDropdownOpen(false);
+                        }}
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
+                      >
+                        <HiOutlineBookmark className="mr-3 w-5 h-5" />
+                        Lịch sử chuyến đi
+                      </button>
 
-                    <button
-                      onClick={() => {
-                        handleClickProfile();
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      <HiOutlineUser className="mr-3 w-5 h-5" />
-                      Hồ sơ
-                    </button>
-                    <div className="border-t border-gray-100 my-1"></div>
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      <HiOutlineLogout className="mr-3 w-5 h-5" />
-                      Đăng xuất
-                    </button>
-                  </div>
-                )}
+                      <button
+                        onClick={() => {
+                          handleClickProfile();
+                          setIsDropdownOpen(false);
+                        }}
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
+                      >
+                        <HiOutlineUser className="mr-3 w-5 h-5" />
+                        Hồ sơ
+                      </button>
+
+                      <div className="border-t border-gray-100 my-1"></div>
+
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setIsDropdownOpen(false);
+                        }}
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <HiOutlineLogout className="mr-3 w-5 h-5" />
+                        Đăng xuất
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )}
           </div>

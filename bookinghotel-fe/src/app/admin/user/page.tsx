@@ -58,19 +58,117 @@ export default function UserPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const res = await api.get("/users/check-avatars");
         const data = await getUsers();
         if (JSON.stringify(data) !== JSON.stringify(oldUsers)) {
           setUsers(data);
           setOldUsers(data);
+
+          setShowDashboard(prev => {
+            if (prev) {
+              setTimeout(() => toast.error("Thông tin thay đổi: Đã đóng Dashboard.", {
+                icon: "⚠️",
+                id: "dashboard-error" // <--- Thêm dòng này (ID phải duy nhất cho mỗi loại)
+              }), 0);
+              return false;
+            }
+            return prev;
+          });
+
+          setShowBookingHistory(prev => {
+            if (prev) {
+              setTimeout(() => toast.error("Danh sách thay đổi: Đã làm mới Lịch sử đặt phòng.", {
+                icon: "⚠️",
+                id: "booking-error" // <--- ID khác nhau
+              }), 0);
+              return false;
+            }
+            return prev;
+          });
+
+          // setShowProfilePage(prev => {
+          //   if (prev) {
+          //     setTimeout(() => toast.error("Thông tin thay đổi: Đã đóng trang Hồ sơ.", {
+          //       icon: "⚠️",
+          //       id: "profile-error"
+          //     }), 0);
+          //     return false;
+          //   }
+          //   return prev;
+          // });
+
+          setShowRegister(prev => {
+            if (prev) {
+              setTimeout(() => toast.error("Dữ liệu thay đổi: Đã đóng form Đăng ký.", {
+                icon: "⚠️",
+                id: "register-error"
+              }), 0);
+              return false;
+            }
+            return prev;
+          });
+
+          setShowResetPasswordPage(prev => {
+            if (prev) {
+              setTimeout(() => toast.error("Hệ thống cập nhật: Đã đóng form Đổi mật khẩu.", {
+                icon: "⚠️",
+                id: "reset-pass-error"
+              }), 0);
+              return false;
+            }
+            return prev;
+          });
+
+          setShowTripHistoryPage(prev => {
+            if (prev) {
+              setTimeout(() => toast.error("Dữ liệu mới: Đã đóng Lịch sử chuyến đi.", {
+                icon: "⚠️",
+                id: "trip-error"
+              }), 0);
+              return false;
+            }
+            return prev;
+          });
+
+          setShowFull(prev => {
+            if (prev) {
+              setTimeout(() => toast.error("Danh sách User thay đổi: Đã thoát chế độ Toàn màn hình.", {
+                icon: "⚠️",
+                id: "full-mode-error"
+              }), 0);
+              return false;
+            }
+            return prev;
+          });
+
+          // Hiện thông báo
+          //toast.error("Dữ liệu trong danh sách đã bị thay đổi, trang đã được làm mới!");
         }
       } catch (error) {
         //console.error("Lỗi khi lấy danh sách user:", error);
       }
     };
     fetchData();
-    const interval = setInterval(fetchData, 3000);
+    const interval = setInterval(fetchData, 2000);
     return () => clearInterval(interval);
   }, [oldUsers]);
+
+
+  // // Reset page khi lọc role
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [filterRole]);
+
+  // // Reset page khi search
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [search]);
+
+  // // Reset page khi sort
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [sortColumn, sortOrder]);
+
 
   // 🔹 Delete user
   const handleDelete = async (userId: number) => {
@@ -112,6 +210,13 @@ export default function UserPage() {
           : (bValue as any) - (aValue as any);
       }
     });
+
+  useEffect(() => {
+    const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+    if (currentPage > totalPages) {
+      setCurrentPage(1);   // hoặc setCurrentPage(totalPages)
+    }
+  }, [filteredUsers]);
 
 
   // 📄 Pagination
@@ -314,7 +419,7 @@ export default function UserPage() {
                   </div>
 
                   {/* Nội dung dashboard */}
-                  <ProfilePage />
+                  <ProfilePage setShowProfilePage={setShowProfilePage}/>
                 </div>
               </div>
             )}
@@ -376,301 +481,319 @@ export default function UserPage() {
           </div>
         </div>
 
-        {/* Desktop Table */}
-        <div className="hidden sm:block overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b bg-gray-100">
-                <th className="p-3 cursor-pointer text-center hover:text-blue-500 select-none" onClick={() => handleSort("id")}>ID {sortColumn === "id" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
-                <th className="p-3  text-center">Avatar</th>
-                <th className="p-3 cursor-pointer text-center hover:text-blue-500 select-none" onClick={() => handleSort("username")}>Username {sortColumn === "username" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
-                <th className="p-3 cursor-pointer  text-center hover:text-blue-500 select-none" onClick={() => handleSort("fullName")}>Full Name {sortColumn === "fullName" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
-                <th className="p-3 cursor-pointer  text-center hover:text-blue-500 select-none" onClick={() => handleSort("email")}>Email {sortColumn === "email" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
-                <th className="p-3 cursor-pointer text-center hover:text-blue-500 select-none" onClick={() => handleSort("phone")}>Phone {sortColumn === "phone" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
-                <th className="p-3 cursor-pointer  text-center hover:text-blue-500 select-none" onClick={() => handleSort("role")}>Role {sortColumn === "role" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
-                <th className="p-3 cursor-pointer  text-center hover:text-blue-500 select-none" onClick={() => handleSort("dob")}>Dob {sortColumn === "dob" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
-                <th className="p-3 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentUsers.map((user) => (
-                <motion.tr
-                  key={user.id}
-                  className="border-b hover:bg-blue-50 transition cursor-pointer"
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => openModal(user)}
-                >
-                  <td className="p-3 text-center">{user.id}</td>
-                  <td className="p-3 text-center">
-                    <div className="relative w-12 h-12 flex items-center justify-center">
-                      {/* Cánh trái */}
-                      <svg className="absolute -left-6 w-16 h-16 animate-wing-left" viewBox="0 0 64 64">
-                        <defs>
-                          <linearGradient id={`gradientLeft-${user.id}`} x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stopColor={user?.membershipLevel === "Gold" ? "#facc15" : user?.membershipLevel === "Platinum" ? "#3b82f6" : "#9ca3af"} />
-                            <stop offset="50%" stopColor={user?.membershipLevel === "Gold" ? "#fcd34d" : user?.membershipLevel === "Platinum" ? "#8b5cf6" : "#d1d5db"} />
-                            <stop offset="100%" stopColor={user?.membershipLevel === "Gold" ? "#fbbf24" : user?.membershipLevel === "Platinum" ? "#ec4899" : "#9ca3af"} />
-                          </linearGradient>
-                        </defs>
-                        <path d="M32 32 C10 10, 0 64, 32 32" fill={`url(#gradientLeft-${user.id})`} />
-                      </svg>
-                      {/* Cánh phải */}
-                      <svg className="absolute -right-6 w-16 h-16 animate-wing-right" viewBox="0 0 64 64">
-                        <defs>
-                          <linearGradient id={`gradientRight-${user.id}`} x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stopColor={user?.membershipLevel === "Gold" ? "#facc15" : user?.membershipLevel === "Platinum" ? "#3b82f6" : "#9ca3af"} />
-                            <stop offset="50%" stopColor={user?.membershipLevel === "Gold" ? "#fcd34d" : user?.membershipLevel === "Platinum" ? "#8b5cf6" : "#d1d5db"} />
-                            <stop offset="100%" stopColor={user?.membershipLevel === "Gold" ? "#fbbf24" : user?.membershipLevel === "Platinum" ? "#ec4899" : "#9ca3af"} />
-                          </linearGradient>
-                        </defs>
-                        <path d="M32 32 C54 10, 64 64, 32 32" fill={`url(#gradientRight-${user.id})`} />
-                      </svg>
-                      {/* Avatar với gradient border */}
-                      <div className={`relative flex items-center justify-center ${user?.membershipLevel === "Platinum" ? "w-8 h-13 rounded-[80%/40%] p-[2px]" : "w-12 h-13 rounded-full p-[3px]"} ${user?.membershipLevel === "Gold" ? "bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400" : user?.membershipLevel === "Platinum" ? "bg-gradient-to-r from-blue-500 via-purple-400 to-pink-500" : "bg-gradient-to-r from-gray-400 via-gray-200 to-gray-400"}`}>
-                        <img src={user?.avatar || "https://avatars.githubusercontent.com/u/9919?s=128&v=4"} alt="User Avatar" className={`w-full h-full object-cover ${user?.membershipLevel === "Platinum" ? "rounded-[50%/40%]" : "rounded-full"}`} />
-                        <div className="absolute inset-0 pointer-events-none">
-                          {[...Array(5)].map((_, i) => (
-                            <div key={i} className="absolute w-1 h-2 bg-white opacity-70 rounded-full animate-feather" style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 2}s`, animationDuration: `${1 + Math.random() * 1.5}s` }} />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-3  text-center">{user.username}</td>
-                  <td className="p-3 text-center">{user.fullName}</td>
-                  <td className="p-3 text-center">{user.email}</td>
-                  <td className="p-3 text-center">{user.phone}</td>
-                  <td className="p-3 font-medium text-center">
-                    {user.role === "admin" ? <span className="text-red-500">Admin</span> : <span className="text-blue-500">Customer</span>}
-                  </td>
-                  <td className="p-3 text-center">{formatDate(user.dob)}</td>
-                  <td className="p-3 flex gap-2 text-center">
-                    <div className="flex flex-col space-y-4">
-                      {/* Nhóm nút Sửa + Xóa */}
-                      <div className="flex space-x-3">
-                        <button
-                          className="flex items-center gap-1 px-3 py-1 bg-yellow-50 text-black rounded hover:bg-yellow-100 transition"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            localStorage.setItem("editUserId", user.id.toString());
-                            setShowProfilePage(true);
-                          }}
-                        >
-                          <Pencil size={16} /> Sửa
-                        </button>
+        {filteredUsers.length === 0 && (
+          <div className="flex flex-col items-center justify-center mt-20">
+            <img
+              src="https://avatars.githubusercontent.com/u/9919?s=128&v=4"
+              alt="404 Not Found"
+              className="w-32 h-32 mb-4 rounded-full"
+            />
+            <h2 className="text-2xl font-bold text-gray-700 mb-2">404</h2>
+            <p className="text-gray-500 text-center">
+              Không tìm thấy dữ liệu phù hợp. Hãy thử điều chỉnh bộ lọc hoặc tìm kiếm khác.
+            </p>
+          </div>
+        )}
 
-                        {user.role !== "admin" && (
-                          <>
+        {filteredUsers.length > 0 && (
+          <>
+            {/* Desktop Table */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b bg-gray-100">
+                    <th className="p-3 cursor-pointer text-center hover:text-blue-500 select-none" onClick={() => handleSort("id")}>ID {sortColumn === "id" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                    <th className="p-3  text-center">Avatar</th>
+                    <th className="p-3 cursor-pointer text-center hover:text-blue-500 select-none" onClick={() => handleSort("username")}>Username {sortColumn === "username" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                    <th className="p-3 cursor-pointer  text-center hover:text-blue-500 select-none" onClick={() => handleSort("fullName")}>Full Name {sortColumn === "fullName" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                    <th className="p-3 cursor-pointer  text-center hover:text-blue-500 select-none" onClick={() => handleSort("email")}>Email {sortColumn === "email" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                    <th className="p-3 cursor-pointer text-center hover:text-blue-500 select-none" onClick={() => handleSort("phone")}>Phone {sortColumn === "phone" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                    <th className="p-3 cursor-pointer  text-center hover:text-blue-500 select-none" onClick={() => handleSort("role")}>Role {sortColumn === "role" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                    <th className="p-3 cursor-pointer  text-center hover:text-blue-500 select-none" onClick={() => handleSort("dob")}>Dob {sortColumn === "dob" ? (sortOrder === "asc" ? "▲" : "▼") : ""}</th>
+                    <th className="p-3 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentUsers.map((user) => (
+                    <motion.tr
+                      key={user.id}
+                      className="border-b hover:bg-blue-50 transition cursor-pointer"
+                      whileHover={{ scale: 1.02 }}
+                      onClick={() => openModal(user)}
+                    >
+                      <td className="p-3 text-center">{user.id}</td>
+                      <td className="p-3 text-center">
+                        <div className="relative w-12 h-12 flex items-center justify-center">
+                          {/* Cánh trái */}
+                          <svg className="absolute -left-6 w-16 h-16 animate-wing-left" viewBox="0 0 64 64">
+                            <defs>
+                              <linearGradient id={`gradientLeft-${user.id}`} x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stopColor={user?.membershipLevel === "Gold" ? "#facc15" : user?.membershipLevel === "Platinum" ? "#3b82f6" : "#9ca3af"} />
+                                <stop offset="50%" stopColor={user?.membershipLevel === "Gold" ? "#fcd34d" : user?.membershipLevel === "Platinum" ? "#8b5cf6" : "#d1d5db"} />
+                                <stop offset="100%" stopColor={user?.membershipLevel === "Gold" ? "#fbbf24" : user?.membershipLevel === "Platinum" ? "#ec4899" : "#9ca3af"} />
+                              </linearGradient>
+                            </defs>
+                            <path d="M32 32 C10 10, 0 64, 32 32" fill={`url(#gradientLeft-${user.id})`} />
+                          </svg>
+                          {/* Cánh phải */}
+                          <svg className="absolute -right-6 w-16 h-16 animate-wing-right" viewBox="0 0 64 64">
+                            <defs>
+                              <linearGradient id={`gradientRight-${user.id}`} x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stopColor={user?.membershipLevel === "Gold" ? "#facc15" : user?.membershipLevel === "Platinum" ? "#3b82f6" : "#9ca3af"} />
+                                <stop offset="50%" stopColor={user?.membershipLevel === "Gold" ? "#fcd34d" : user?.membershipLevel === "Platinum" ? "#8b5cf6" : "#d1d5db"} />
+                                <stop offset="100%" stopColor={user?.membershipLevel === "Gold" ? "#fbbf24" : user?.membershipLevel === "Platinum" ? "#ec4899" : "#9ca3af"} />
+                              </linearGradient>
+                            </defs>
+                            <path d="M32 32 C54 10, 64 64, 32 32" fill={`url(#gradientRight-${user.id})`} />
+                          </svg>
+                          {/* Avatar với gradient border */}
+                          <div className={`relative flex items-center justify-center ${user?.membershipLevel === "Platinum" ? "w-8 h-13 rounded-[80%/40%] p-[2px]" : "w-12 h-13 rounded-full p-[3px]"} ${user?.membershipLevel === "Gold" ? "bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400" : user?.membershipLevel === "Platinum" ? "bg-gradient-to-r from-blue-500 via-purple-400 to-pink-500" : "bg-gradient-to-r from-gray-400 via-gray-200 to-gray-400"}`}>
+                            <img src={user?.avatar || "https://avatars.githubusercontent.com/u/9919?s=128&v=4"} alt="User Avatar" className={`w-full h-full object-cover ${user?.membershipLevel === "Platinum" ? "rounded-[50%/40%]" : "rounded-full"}`} />
+                            <div className="absolute inset-0 pointer-events-none">
+                              {[...Array(5)].map((_, i) => (
+                                <div key={i} className="absolute w-1 h-2 bg-white opacity-70 rounded-full animate-feather" style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 2}s`, animationDuration: `${1 + Math.random() * 1.5}s` }} />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-3  text-center">{user.username}</td>
+                      <td className="p-3 text-center">{user.fullName}</td>
+                      <td className="p-3 text-center">{user.email}</td>
+                      <td className="p-3 text-center">{user.phone}</td>
+                      <td className="p-3 font-medium text-center">
+                        {user.role === "admin" ? <span className="text-red-500">Admin</span> : <span className="text-blue-500">Customer</span>}
+                      </td>
+                      <td className="p-3 text-center">{formatDate(user.dob)}</td>
+                      <td className="p-3 flex gap-2 text-center">
+                        <div className="flex flex-col space-y-4">
+                          {/* Nhóm nút Sửa + Xóa */}
+                          <div className="flex space-x-3">
                             <button
-                              className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-red-100 transition"
+                              className="flex items-center gap-1 px-3 py-1 bg-yellow-50 text-black rounded hover:bg-yellow-100 transition"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDelete(user.id);
+                                localStorage.setItem("editUserId", user.id.toString());
+                                setShowProfilePage(true);
                               }}
                             >
-                              <Trash2 size={16} /> Xóa
+                              <Pencil size={16} /> Sửa
                             </button>
-                          </>
-                        )}
 
+                            {user.role !== "admin" && (
+                              <>
+                                <button
+                                  className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-red-100 transition"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(user.id);
+                                  }}
+                                >
+                                  <Trash2 size={16} /> Xóa
+                                </button>
+                              </>
+                            )}
+
+                            <button
+                              className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-red-100 transition"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                const res = await api.post("/reset-password/reset-password", {
+                                  userId: user.id,      // bạn phải truyền userId vào
+                                  expireMinutes: 5         // có thể bỏ nếu dùng default
+                                });
+
+                                const token = res.data.token;
+                                localStorage.setItem("token-reset-password", token.toString());
+
+                                setShowResetPasswordPage(true);
+                              }}
+                            >
+                              <Key size={16} />Password
+                            </button>
+                          </div>
+
+                          {/* Chỉ hiển thị nếu user KHÔNG PHẢI là admin */}
+                          {user.role !== "admin" && (
+                            <>
+                              {/* Nút xem lịch sử đặt phòng */}
+                              <button
+                                className="flex items-center gap-1 px-3 py-1 bg-blue-50 text-black rounded hover:bg-blue-100 transition"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  localStorage.setItem("editUserId", user.id.toString());
+                                  setShowBookingHistory(true);
+                                }}
+                              >
+                                <History size={16} /> Booking history
+                              </button>
+
+                              {/* Nút xem lịch sử chuyến đi */}
+                              <button
+                                className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-blue-100 transition"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  localStorage.setItem("editUserId", user.id.toString());
+                                  setShowTripHistoryPage(true);
+                                }}
+                              >
+                                <History size={16} /> Trip History
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="grid sm:hidden gap-4">
+              {currentUsers.map((user) => (
+                <motion.div
+                  key={user.id}
+                  whileHover={{ scale: 1.02 }}
+                  // SỬA 1: flex-col để tách phần thông tin và phần nút thành 2 tầng
+                  className="bg-gray-50 rounded-xl shadow-md p-4 flex flex-col gap-4 cursor-pointer hover:shadow-lg transition w-full overflow-hidden"
+                  onClick={() => openModal(user)}
+                >
+                  {/* PHẦN 1: THÔNG TIN + AVATAR */}
+                  <div className="flex items-start gap-4 w-full">
+                    <motion.img
+                      src={user.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                      alt="avatar"
+                      // Giữ kích thước avatar cố định, không bị co
+                      className="w-14 h-14 rounded-full border border-gray-300 flex-shrink-0"
+                    />
+
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-lg truncate leading-tight">{user.fullName}</h3>
+                      <p className="text-sm text-gray-600 truncate">{user.email}</p>
+                      <p className="text-sm text-gray-600 truncate">{user.phone}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${user.role === "admin"
+                          ? "bg-red-100 text-red-600 border-red-200"
+                          : "bg-blue-100 text-blue-600 border-blue-200"
+                          }`}>
+                          {user.role}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* PHẦN 2: CÁC NÚT BẤM (Đưa ra khỏi hàng ngang của Avatar) */}
+                  {/* Border top nhẹ để ngăn cách */}
+                  <div className="pt-3 border-t border-gray-200 w-full">
+                    <div className="flex flex-wrap gap-2 w-full">
+
+                      {/* Nút Sửa */}
+                      <button
+                        className="flex-1 min-w-[80px] flex items-center justify-center gap-1 px-3 py-1.5 bg-yellow-50 text-black rounded border border-yellow-200 hover:bg-yellow-100 transition text-xs font-medium"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          localStorage.setItem("editUserId", user.id.toString());
+                          setShowProfilePage(true);
+                        }}
+                      >
+                        <Pencil size={14} /> Sửa
+                      </button>
+
+                      {/* Nút Xóa */}
+                      {user.role !== "admin" && (
                         <button
-                          className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-red-100 transition"
-                          onClick={async (e) => {
+                          className="flex-1 min-w-[80px] flex items-center justify-center gap-1 px-3 py-1.5 bg-red-50 text-black rounded border border-red-200 hover:bg-red-100 transition text-xs font-medium"
+                          onClick={(e) => {
                             e.stopPropagation();
-                            const res = await api.post("/reset-password/reset-password", {
-                              userId: user.id,      // bạn phải truyền userId vào
-                              expireMinutes: 5         // có thể bỏ nếu dùng default
-                            });
-
-                            const token = res.data.token;
-                            localStorage.setItem("token-reset-password", token.toString());
-
-                            setShowResetPasswordPage(true);
+                            handleDelete(user.id);
                           }}
                         >
-                          <Key size={16} />Password
+                          <Trash2 size={14} /> Xóa
                         </button>
-                      </div>
+                      )}
 
-                      {/* Chỉ hiển thị nếu user KHÔNG PHẢI là admin */}
+                      {/* Nút Password */}
+                      <button
+                        className="flex-1 min-w-[100px] flex items-center justify-center gap-1 px-3 py-1.5 bg-gray-100 text-black rounded border border-gray-200 hover:bg-gray-200 transition text-xs font-medium"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          const res = await api.post("/reset-password/reset-password", {
+                            userId: user.id,
+                            expireMinutes: 5,
+                          });
+                          const token = res.data.token;
+                          localStorage.setItem("token-reset-password", token.toString());
+                          setShowResetPasswordPage(true);
+                        }}
+                      >
+                        <Key size={14} /> Reset Pass
+                      </button>
                       {user.role !== "admin" && (
                         <>
-                          {/* Nút xem lịch sử đặt phòng */}
+                          {/* Nút Booking History */}
                           <button
-                            className="flex items-center gap-1 px-3 py-1 bg-blue-50 text-black rounded hover:bg-blue-100 transition"
+                            className="flex-grow flex items-center justify-center gap-1 px-3 py-1.5 bg-blue-50 text-black rounded border border-blue-200 hover:bg-blue-100 transition text-xs font-medium"
                             onClick={(e) => {
                               e.stopPropagation();
                               localStorage.setItem("editUserId", user.id.toString());
                               setShowBookingHistory(true);
                             }}
                           >
-                            <History size={16} /> Booking history
+                            <History size={14} /> Booking
                           </button>
 
-                          {/* Nút xem lịch sử chuyến đi */}
+                          {/* Nút Trip History */}
                           <button
-                            className="flex items-center gap-1 px-3 py-1 bg-red-50 text-black rounded hover:bg-blue-100 transition"
+                            className="flex-grow flex items-center justify-center gap-1 px-3 py-1.5 bg-purple-50 text-black rounded border border-purple-200 hover:bg-purple-100 transition text-xs font-medium"
                             onClick={(e) => {
                               e.stopPropagation();
                               localStorage.setItem("editUserId", user.id.toString());
                               setShowTripHistoryPage(true);
                             }}
                           >
-                            <History size={16} /> Trip History
+                            <History size={14} /> Trip
                           </button>
                         </>
                       )}
                     </div>
-                  </td>
-
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
-
-        </div>
-
-        {/* Mobile Cards */}
-        <div className="grid sm:hidden gap-4">
-          {currentUsers.map((user) => (
-            <motion.div
-              key={user.id}
-              whileHover={{ scale: 1.02 }}
-              // SỬA 1: flex-col để tách phần thông tin và phần nút thành 2 tầng
-              className="bg-gray-50 rounded-xl shadow-md p-4 flex flex-col gap-4 cursor-pointer hover:shadow-lg transition w-full overflow-hidden"
-              onClick={() => openModal(user)}
-            >
-              {/* PHẦN 1: THÔNG TIN + AVATAR */}
-              <div className="flex items-start gap-4 w-full">
-                <motion.img
-                  src={user.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
-                  alt="avatar"
-                  // Giữ kích thước avatar cố định, không bị co
-                  className="w-14 h-14 rounded-full border border-gray-300 flex-shrink-0"
-                />
-
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-lg truncate leading-tight">{user.fullName}</h3>
-                  <p className="text-sm text-gray-600 truncate">{user.email}</p>
-                  <p className="text-sm text-gray-600 truncate">{user.phone}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${user.role === "admin"
-                      ? "bg-red-100 text-red-600 border-red-200"
-                      : "bg-blue-100 text-blue-600 border-blue-200"
-                      }`}>
-                      {user.role}
-                    </span>
                   </div>
-                </div>
-              </div>
 
-              {/* PHẦN 2: CÁC NÚT BẤM (Đưa ra khỏi hàng ngang của Avatar) */}
-              {/* Border top nhẹ để ngăn cách */}
-              <div className="pt-3 border-t border-gray-200 w-full">
-                <div className="flex flex-wrap gap-2 w-full">
+                </motion.div>
+              ))}
+            </div>
 
-                  {/* Nút Sửa */}
-                  <button
-                    className="flex-1 min-w-[80px] flex items-center justify-center gap-1 px-3 py-1.5 bg-yellow-50 text-black rounded border border-yellow-200 hover:bg-yellow-100 transition text-xs font-medium"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      localStorage.setItem("editUserId", user.id.toString());
-                      setShowProfilePage(true);
-                    }}
-                  >
-                    <Pencil size={14} /> Sửa
-                  </button>
-
-                  {/* Nút Xóa */}
-                  {user.role !== "admin" && (
-                    <button
-                      className="flex-1 min-w-[80px] flex items-center justify-center gap-1 px-3 py-1.5 bg-red-50 text-black rounded border border-red-200 hover:bg-red-100 transition text-xs font-medium"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(user.id);
-                      }}
-                    >
-                      <Trash2 size={14} /> Xóa
-                    </button>
-                  )}
-
-                  {/* Nút Password */}
-                  <button
-                    className="flex-1 min-w-[100px] flex items-center justify-center gap-1 px-3 py-1.5 bg-gray-100 text-black rounded border border-gray-200 hover:bg-gray-200 transition text-xs font-medium"
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      const res = await api.post("/reset-password/reset-password", {
-                        userId: user.id,
-                        expireMinutes: 5,
-                      });
-                      const token = res.data.token;
-                      localStorage.setItem("token-reset-password", token.toString());
-                      setShowResetPasswordPage(true);
-                    }}
-                  >
-                    <Key size={14} /> Reset Pass
-                  </button>
-                  {user.role !== "admin" && (
-                    <>
-                      {/* Nút Booking History */}
-                      <button
-                        className="flex-grow flex items-center justify-center gap-1 px-3 py-1.5 bg-blue-50 text-black rounded border border-blue-200 hover:bg-blue-100 transition text-xs font-medium"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          localStorage.setItem("editUserId", user.id.toString());
-                          setShowBookingHistory(true);
-                        }}
-                      >
-                        <History size={14} /> Booking
-                      </button>
-
-                      {/* Nút Trip History */}
-                      <button
-                        className="flex-grow flex items-center justify-center gap-1 px-3 py-1.5 bg-purple-50 text-black rounded border border-purple-200 hover:bg-purple-100 transition text-xs font-medium"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          localStorage.setItem("editUserId", user.id.toString());
-                          setShowTripHistoryPage(true);
-                        }}
-                      >
-                        <History size={14} /> Trip
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Pagination */}
-        <div className="flex flex-wrap justify-center gap-2 mt-4">
-          <button
-            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 border rounded bg-gray-200 disabled:opacity-50"
-          >
-            Previous
-          </button>
-          {getPaginationNumbers().map((num, i) => (
-            <button
-              key={i}
-              disabled={num === "..."}
-              onClick={() => typeof num === "number" && setCurrentPage(num)}
-              className={`px-3 py-1 border rounded ${num === currentPage ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-            >
-              {num}
-            </button>
-          ))}
-          <button
-            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 border rounded bg-gray-200 disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+            {/* Pagination */}
+            <div className="flex flex-wrap justify-center gap-2 mt-4">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 border rounded bg-gray-200 disabled:opacity-50"
+              >
+                Previous
+              </button>
+              {getPaginationNumbers().map((num, i) => (
+                <button
+                  key={i}
+                  disabled={num === "..."}
+                  onClick={() => typeof num === "number" && setCurrentPage(num)}
+                  className={`px-3 py-1 border rounded ${num === currentPage ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+                >
+                  {num}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 border rounded bg-gray-200 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </>
+        )}
 
       </div>
 

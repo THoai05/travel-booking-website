@@ -22,6 +22,12 @@ interface User {
   updatedAt?: string;
 }
 
+export enum Gender {
+  MALE = "male",
+  FEMALE = "female",
+  OTHER = "other",
+}
+
 interface UpdateUserForm {
   fullName?: string;
   email?: string;
@@ -41,7 +47,7 @@ export default function ProfilePage() {
   const router = useRouter(); // ✅ khởi tạo router
 
   const { user, setUser } = useAuth();
-
+  const [updateProfile, setUpdateProfile] = useState(0); // cập nhập lần đầu
 
 
   // =================== sử dụng toLocaleDateString với UTC ===================
@@ -68,6 +74,7 @@ export default function ProfilePage() {
         }
         else {
           setUser(null);
+
         }
 
         if (!storedId) return;
@@ -88,6 +95,14 @@ export default function ProfilePage() {
             dob: data.dob,
             gender: data.gender,
           });
+
+          if (updateProfile != 0) {
+            setTimeout(() => toast.error("Thông tin thay đổi: Đã tự động cập nhập dữ liệu.", {
+              icon: "⚠️",
+              id: "profile-error"
+            }), 0);
+          }
+          setUpdateProfile(1);
         }
       } catch (err: any) {
         //console.error(err); //hiển thị lỗi không tìm thấy người dùng hoặc Có lỗi xảy ra khi tải thông tin người dùng
@@ -105,8 +120,13 @@ export default function ProfilePage() {
           if (nofications === 0) {
             setNofications(1);
             //toast("Hết thời gian đăng nhập vui lòng đăng nhập để xem thông tin người dùng của bạn!", { icon: "⚠️" });
+            setTimeout(() => toast.error("Hệ thống cập nhật: Có lỗi khi tải thông tin người dùng.", {
+              icon: "⚠️",
+              id: "reset-user-profile"
+            }), 0);
           }
           setUser(null);
+          setUserProfile(null);
         }
       }
     };
@@ -127,7 +147,7 @@ export default function ProfilePage() {
 
   // =================== CẬP NHẬT THÔNG TIN ===================
   const handleSubmit = async () => {
-    const { fullName, email, phone, dob } = form;
+    const { fullName, email, phone, dob, gender } = form;
     setError("");
 
     try {
@@ -144,6 +164,21 @@ export default function ProfilePage() {
         setLoading(false);
         return;
       }
+
+      // 2️⃣ Không có khoảng trắng đầu/cuối
+      if (fullName !== fullName.trim()) {
+        setError("Họ và tên không được có khoảng trắng đầu hoặc cuối.");
+        setLoading(false);
+        return;
+      }
+
+      // 3️⃣ Không có 2 khoảng trắng liên tiếp
+      if (/\s{2,}/.test(fullName)) {
+        setError("Họ và tên không được có 2 khoảng trắng liên tiếp.");
+        setLoading(false);
+        return;
+      }
+
       const fullNameRegex =
         /^[a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+$/;
       if (!fullNameRegex.test(fullName)) {
@@ -171,15 +206,21 @@ export default function ProfilePage() {
       }
 
       if (phone) {
-        const phoneRegex = /^(0|\+84)\d{9,10}$/;
-        if (!phoneRegex.test(phone) || phone.length > 20) {
+        // Chỉ cho phép số 0–9, bắt đầu 0 hoặc +84, tổng 10–11 chữ số
+        const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
+
+        // Loại bỏ ký tự full-width (０１２３…)
+        const fullWidthCheck = /[０-９]/;
+
+        if (!phoneRegex.test(phone) || fullWidthCheck.test(phone) || phone.length > 20) {
           setError(
-            "Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có từ 10–11 chữ số."
+            "Số điện thoại phải bắt đầu bằng 0 hoặc +84, chỉ nhập số bình thường, 10–11 chữ số."
           );
           setLoading(false);
           return;
         }
       }
+
 
       // 6. Kiểm tra Ngày sinh (dob)
       if (dob) {
@@ -207,6 +248,19 @@ export default function ProfilePage() {
           setLoading(false);
           return;
         }
+      }
+
+      //Kiểm tra giới tính
+      if (!gender) {
+        setError("Vui lòng chọn giới tính.");
+        setLoading(false);
+        return;
+      }
+
+      if (![Gender.MALE, Gender.FEMALE, Gender.OTHER].includes(gender as Gender)) {
+        setError("Giới tính không hợp lệ.");
+        setLoading(false);
+        return;
       }
 
       setLoadingMessage("Đang cập nhật thông tin...");
@@ -254,6 +308,26 @@ export default function ProfilePage() {
       alert(message);
     } finally {
       setLoading(false);
+      e.target.value = ""; // reset input file
+    }
+  };
+
+  const handleDeleteAvatar = async () => {
+    if (!confirm("Bạn có chắc muốn xóa avatar không?")) return;
+
+    try {
+      setLoading(true);
+      setLoadingMessage("Đang xóa avatar...");
+
+      const res = await api.delete(`/users/${userId}/avatar`);
+      const data = res.data;
+
+      toast.success(data.message || "Đã xóa avatar");
+
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Không thể xóa avatar!");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -264,7 +338,7 @@ export default function ProfilePage() {
       {/* ========== giữ nguyên toàn bộ phần UI ========== */}
       <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-gradient-to-b from-blue-400 to-blue-200 shadow-md">
         <img
-          src={userProfile.avatar || "https://via.placeholder.com/150"}
+          src={userProfile.avatar || "https://avatars.githubusercontent.com/u/9919?s=128&v=4"}
           alt="Avatar"
           className="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover border-4 border-white shadow mb-3"
         />
@@ -277,6 +351,15 @@ export default function ProfilePage() {
         <h2 className="text-lg md:text-xl font-semibold text-white mb-4">
           {userProfile.fullName || "Họ và tên"}
         </h2>
+        {userProfile.avatar && (
+          <button
+            onClick={handleDeleteAvatar}
+            className="text-red-600 text-sm underline mb-3"
+          >
+            Xóa avatar
+          </button>
+        )}
+
 
         <div className="w-full max-w-xs md:max-w-sm space-y-2 text-left text-gray-800 bg-white/50 p-3 rounded-lg shadow-inner">
           <InfoItem label="Quyền" value={userProfile.role} />

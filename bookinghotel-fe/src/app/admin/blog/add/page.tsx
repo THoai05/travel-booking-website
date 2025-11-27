@@ -230,6 +230,12 @@ const AddPost = () => {
               onChange={(e) => {
                 if (e.target.files) {
                   const selectedFiles = Array.from(e.target.files);
+                  // Kiểm tra dung lượng mỗi ảnh
+                  const tooLarge = selectedFiles.find(f => f.size > 5 * 1024 * 1024); // 5MB
+                  if (tooLarge) {
+                    alert(`Ảnh "${tooLarge.name}" vượt quá 5MB, vui lòng chọn ảnh nhỏ hơn!`);
+                    return;
+                  }
                   setImages(selectedFiles);
                 }
               }}

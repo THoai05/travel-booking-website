@@ -1,5 +1,5 @@
 'use client';
-import { useMemo } from 'react';
+import { useMemo,useState } from 'react';
 import { Room, RoomOption } from '../types';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
@@ -27,6 +27,9 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
+import Login from "@/app/auth/login/page";
+import Register from "@/app/auth/register/page";
+import toast from 'react-hot-toast';
 
 
 
@@ -47,7 +50,6 @@ interface RoomCardProps {
 }
 
 export default function RoomCard({ room }: RoomCardProps) {
-  console.log(room)
   const safeRoom = room ?? {
     id: 'unknown',
     name: 'Unknown Room',
@@ -57,6 +59,53 @@ export default function RoomCard({ room }: RoomCardProps) {
     amenities: [],
     ratePlans: [],
   };
+
+  /////////=====================////////
+
+  const [showLogin, setShowLogin] = useState(false);
+   
+  const [showRegister, setShowRegister] = useState(false);
+  
+
+   
+  
+
+   const openLogin = () => {
+    setShowLogin(true);
+    setShowRegister(false);
+    localStorage.setItem("methodShowLoginregister", JSON.stringify("showLogin"));
+  };
+
+  const openRegister = () => {
+    setShowRegister(true);
+    setShowLogin(false);
+    localStorage.setItem("methodShowLoginregister", JSON.stringify("showRegister"));
+  };
+
+  const closeModal = () => {
+    setShowLogin(false);
+    setShowRegister(false);
+    localStorage.setItem("methodShowLoginregister", JSON.stringify("none"));
+  };
+
+  const handleClick = () => {
+  if (!user) {
+    openLogin(); // hoặc showLogin = true
+    return;
+  }
+
+  handleCreateBooking(
+    checkIn,
+    checkOut,
+    totalGuests,
+    Number(option?.salePrice) * nights,
+    user?.id,
+    room?.id,
+    option?.id
+  );
+};
+
+  /////////=====================////////
 
   const roomTypeName = new Map([
     ['deluxe double', "Phòng đôi sang trọng",],
@@ -124,7 +173,6 @@ const router = useRouter()
     ratePlanId
   )=> {
     try {
-      console.log(nights)
       const response = await api.post('bookings', {
       checkinDate,
       checkoutDate,
@@ -145,7 +193,7 @@ const router = useRouter()
       router.push('/payment/review')
     }
     } catch (error) {
-      console.log(error)
+      toast.error(error.response.data.message)
     }
   }
 
@@ -203,7 +251,7 @@ const router = useRouter()
                 ) : (
                   <>
                     <WifiOff className="w-4 h-4" />
-                    <span>Without WiFi</span>
+                    <span>WiFi miễn phí</span>
                   </>
                 )}
               </div>
@@ -311,17 +359,38 @@ const router = useRouter()
                         Chưa bao gồm thuế và phí
                       </p>
 
-                      <Button onClick={() => handleCreateBooking(
-                        checkIn,
-                        checkOut,
-                        totalGuests,
-                        Number(option?.salePrice)*nights,
-                        user?.id,
-                        room?.id,
-                        option?.id
-                      )} className="w-full md:w-24 bg-sky-500 hover:bg-sky-700 text-white mt-2">
+                     <Button
+                        onClick={() => {
+                          if (!user) {
+                              openLogin(); // hoặc showLogin = true
+                              return;
+                            }
+                            handleCreateBooking(
+                              checkIn,
+                              checkOut,
+                              totalGuests,
+                              Number(option?.salePrice) * nights * Number(guests.rooms),
+                              user?.id,
+                              room?.id,
+                              option?.id
+                            );
+                        }}
+                        className="w-full md:w-24 bg-sky-500 hover:bg-sky-700 text-white mt-2"
+                      >
                         Chọn phòng
                       </Button>
+
+                        {showLogin && (
+                          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4 animate-fadeIn">
+                            <Login onClose={closeModal} onSwitchToRegister={openRegister} />
+                          </div>
+                        )}
+
+                        {showRegister && (
+                          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4 animate-fadeIn">
+                            <Register onClose={closeModal} onSwitchToLogin={openLogin} />
+                          </div>
+                        )}
                     </div>
                   </div>
                 ))

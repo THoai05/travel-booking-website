@@ -21,7 +21,7 @@ export class RatePlan {
     @PrimaryGeneratedColumn()
     id: number
 
-    @ManyToOne(() => RoomType, (roomType) => roomType.ratePlans)
+    @ManyToOne(() => RoomType, (roomType) => roomType.ratePlans,{onDelete:'CASCADE'})
     @JoinColumn({ name: 'room_type_id' }) // Bro nên thêm JoinColumn cho rõ
     roomType: RoomType
     

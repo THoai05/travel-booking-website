@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PromotionController } from './promotion.controller';
+import { PromotionController } from './controllers/promotion.controller';
 import { PromotionService } from './services/promotion.service';
 
 describe('PromotionController', () => {

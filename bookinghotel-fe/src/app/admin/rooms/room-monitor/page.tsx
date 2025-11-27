@@ -132,6 +132,8 @@ export default function RoomMonitorPage() {
       }
     };
     fetchMonitoredRooms();
+    const interval = setInterval(fetchMonitoredRooms, 2000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -324,6 +326,10 @@ export default function RoomMonitorPage() {
     }).format(num);
   };
 
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages || 1);
+  }, [totalPages]);
+
   return (
     <div className="p-6 relative">
       <div className="relative">
@@ -496,7 +502,17 @@ export default function RoomMonitorPage() {
       </h1>
 
       {currentGroups.length === 0 ? (
-        <p>Không có dữ liệu.</p>
+        <div className="flex flex-col items-center justify-center mt-20">
+          <img
+            src="https://avatars.githubusercontent.com/u/9919?s=128&v=4"
+            alt="404 Not Found"
+            className="w-32 h-32 mb-4 rounded-full"
+          />
+          <h2 className="text-2xl font-bold text-gray-700 mb-2">404</h2>
+          <p className="text-gray-500 text-center">
+            Không tìm thấy dữ liệu phù hợp. Hãy thử điều chỉnh bộ lọc hoặc tìm kiếm khác.
+          </p>
+        </div>
       ) : (
         currentGroups.map((group) => (
           <div key={group.hotelName} className="mb-6 border rounded-xl p-4 shadow bg-white">

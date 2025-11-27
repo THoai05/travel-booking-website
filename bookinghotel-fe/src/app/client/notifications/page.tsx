@@ -63,39 +63,10 @@ export default function NotificationsPage() {
         };
         fetchUserId();
     }, []);
-
-    // 🔹 Đăng ký Web Push
-    useWebPush(userId, (newNoti) => {
-        setNotifications((prev) => [newNoti, ...prev]);
-        toast.success(`Thông báo mới: ${newNoti.title}`);
-    });
-
-
-    // 🔹 Lắng nghe Web Push realtime
-    useEffect(() => {
-        if (!userId) return;
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.addEventListener("message", (event) => {
-                console.log("Message từ SW:", event.data); // kiểm tra có message không
-                const { type, notification } = event.data;
-                if (type === "NEW_NOTIFICATION") {
-                    setNotifications(prev =>
-                        [notification, ...prev].sort(
-                            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-                        )
-                    );
-                    toast.success(`Thông báo mới: ${notification.title}`);
-                }
-            });
-        }
-    }, [userId]);
-
-
-    // 🔹 Load notifications từ server
+    // 🔹 Load thông báo
     const loadNotifications = async () => {
         if (!userId) return;
         try {
-            setLoading(true);
             const res = await api.get(`/notifications/user/${userId}`);
             setNotifications(
                 res.data.sort(
@@ -105,14 +76,25 @@ export default function NotificationsPage() {
             );
         } catch {
             toast.error("Không thể tải thông báo!");
-        } finally {
-            setLoading(false);
         }
     };
 
     useEffect(() => {
-        if (userId) loadNotifications();
+        if (!userId) return;
+
+        // 🔥 Gọi ngay lần đầu
+        loadNotifications();
+
+        // 🔥 Lặp lại mỗi 3 giây
+        const interval = setInterval(() => {
+            loadNotifications();
+        }, 3000);
+
+        // 🔥 Clear interval khi component unmount
+        return () => clearInterval(interval);
+
     }, [userId]);
+
 
     // 🔹 Toggle chọn
     const toggleSelect = (id: number) => {
@@ -182,7 +164,7 @@ export default function NotificationsPage() {
     const openDetail = async (id: number) => {
         try {
             setDetailLoading(true);
-            const res = await api.get(`/notifications/${id}`);
+            const res = await api.get(`/notifications/detail/${id}`);
             setDetailData(res.data);
             if (!res.data.isRead) {
                 await api.patch(`/notifications/${id}/read`);
@@ -205,6 +187,11 @@ export default function NotificationsPage() {
         if (selectedIds.length === paginatedNotifications.length) setSelectedIds([]);
         else setSelectedIds(paginatedNotifications.map((n) => n.id));
     };
+
+    useEffect(() => {
+        if (currentPage > totalPages) setCurrentPage(totalPages || 1);
+    }, [totalPages]);
+
 
     return (
         <div className="min-h-screen flex flex-col items-center bg-gray-50 p-4 sm:p-6" onClick={() => toast.dismiss()}>

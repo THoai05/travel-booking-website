@@ -68,6 +68,13 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
       return;
     }
 
+    // Kiểm tra dung lượng từng ảnh
+    const tooLarge = images.find(img => img.size > 5 * 1024 * 1024); // 5MB
+    if (tooLarge) {
+      setWarning(`Ảnh "${tooLarge.name}" vượt quá 5MB, vui lòng chọn ảnh nhỏ hơn!`);
+      return;
+    }
+
     setWarning(null);
 
     try {
@@ -88,7 +95,6 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
         uploadedImageUrls = data.urls || data || [];
       }
 
-      // Chuẩn bị payload để gửi tạo review
       const reviewData = {
         hotelId,
         rating,
@@ -97,16 +103,21 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
         images: uploadedImageUrls,
       };
 
-      const resultAction = await dispatch(createReviewThunk(reviewData));
-      console.log("Kết quả trả về từ API:", resultAction);
+      await dispatch(createReviewThunk(reviewData)).unwrap();
 
       setCommentHtml("");
       setRating(0);
       setImages([]);
       setWarning(null);
-    } catch (error) {
-      console.error("Lỗi khi gửi review:", error);
-      setWarning("Gửi đánh giá thất bại. Vui lòng thử lại!");
+    } catch (err: any) {
+      console.error(err);
+
+      const backendMessage =
+        typeof err === "string"
+          ? err
+          : "Gửi đánh giá thất bại. Kiểm tra kết nối hoặc server!";
+
+      setWarning(backendMessage);
     }
   };
 
@@ -216,8 +227,9 @@ export default function CommentBox({ hotelId }: { hotelId: number }) {
       {/* Submit */}
       <button
         onClick={handleSubmit}
-        className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-1.5 rounded-full text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={rating === 0 || (!commentHtml.trim() && images.length === 0)}
+        className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-1.5 rounded-full
+        text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={(!commentHtml.trim() && images.length === 0)}
       >
         Gửi
       </button>

@@ -13,6 +13,8 @@ import { BookingStatus } from '../entities/bookings.entity';
 import { PaymentStatus, PaymentMethod } from 'src/managements/payments/entities/payments.entity';
 import { RatePlan } from 'src/managements/rooms/entities/ratePlans.entity';
 import { Coupon } from 'src/managements/coupons/entities/coupons.entity';
+import { LessThan, MoreThan } from 'typeorm';
+
 
 @Injectable()
 export class BookingsService {
@@ -29,6 +31,32 @@ export class BookingsService {
         private readonly couponRepo: Repository<Coupon>
     ) { }
 
+    async checkAvailability(roomTypeId: number, checkIn: Date, checkOut: Date) {
+        const roomType = await this.roomTypeRepo.findOne({
+            where: {
+                id:roomTypeId
+            }
+        })
+        if (!roomType) {
+            throw new NotFoundException("Khong tim thay loai phong nay")
+        }
+        const bookedCount = await this.bookingRepo.count({
+        where: {
+            roomType: { id: roomTypeId }, 
+            status: In([BookingStatus.CONFIRMED, BookingStatus.PENDING]), 
+            checkInDate: LessThan(checkOut), 
+            checkOutDate: MoreThan(checkIn),
+        }
+        });
+        
+        const remaining = roomType.quantity - bookedCount;
+
+    return {
+        isAvailable: remaining > 0,
+        remainingRooms: remaining 
+    };
+    }
+
     async createBooking(body: CreateBookingRequest): Promise<BookingResponseManagement> {
         const {
             checkinDate,
@@ -39,6 +67,20 @@ export class BookingsService {
             roomTypeId,
             ratePlanId
         } = body
+
+        if (!roomTypeId || !checkinDate || !checkoutDate) {
+            throw new BadRequestException('Thieu du lieu can thiet');
+        }
+
+        const newCheckInDate = new Date(checkinDate);
+        const newCheckOutDate = new Date(checkoutDate);
+
+        const availability = await this.checkAvailability(roomTypeId, newCheckInDate, newCheckOutDate);
+    
+        if (!availability.isAvailable) {
+            throw new BadRequestException('Hết phòng rồi bro ơi!');
+        }
+
 
 
         const user = await this.userRepo.findOne({
@@ -203,17 +245,43 @@ export class BookingsService {
         }
     }
 
-    async getFullDataBookingById(id: number): Promise<Booking> {
-        const booking = await this.bookingRepo.findOne({
-            where: {
-                id
-            }
-        })
+    async getFullDataBookingById(id: number): Promise<BookingResponseManagement> {
+        const booking = await this.bookingRepo
+            .createQueryBuilder('booking')
+            .leftJoinAndSelect('booking.user', 'user')
+            .leftJoinAndSelect('booking.roomType', 'roomType')
+            .leftJoinAndSelect('roomType.hotel', 'hotel')
+            .where('booking.id = :id', { id })
+            .getOne()
         if (!booking) {
-            throw new NotFoundException("Khong tim thay don hang")
+            throw new NotFoundException("Không tìm thấy đơn hàng này")
         }
-        return booking
+        return {
+            bookingId: booking.id,
+            userId: booking.user.id,
+            hotelName: booking.roomType.hotel.name,
+            hotelAddress: booking.roomType.hotel.name,
+            hotelPhone: booking.roomType.hotel.phone,
+            roomTypeId: booking.roomType.id,
+            roomTypeName: booking.roomType.name,
+            checkinDate: booking.checkInDate,
+            checkoutDate: booking.checkOutDate,
+            guestsCount: booking.guestsCount,
+            bedType: booking.roomType.bed_type,
+            roomName: booking.roomType.name,
+            totalPrice: booking.totalPrice,
+            contactFullName: booking.contactFullName,
+            contactEmail: booking.contactEmail,
+            contactPhone: booking.contactPhone,
+            guestsFullName: booking.guestFullName,
+            status: booking.status,
+            totalPriceUpdate: booking.totalPriceUpdate
+        }
     }
+
+
+    //------------------===-----------------------//
+    
 
     //Thống kê KPI
     //✅ 1. Thống kê theo tuần: đủ ngày 7 trong tuần

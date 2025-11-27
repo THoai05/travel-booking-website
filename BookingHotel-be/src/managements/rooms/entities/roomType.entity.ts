@@ -20,7 +20,7 @@ export class RoomType {
     @PrimaryGeneratedColumn()
     id: number
 
-    @ManyToOne(() => Hotel, (hotel) => hotel.roomTypes)
+    @ManyToOne(() => Hotel, (hotel) => hotel.roomTypes, {onDelete:'CASCADE'})
     @JoinColumn({ name: 'hotel_id' })
     hotel: Hotel
     
@@ -49,7 +49,10 @@ export class RoomType {
     @Column()
     bed_type: string // VD: "1 double bed" (Cái này RẤT QUAN TRỌNG)
 
-    @OneToMany(() => RatePlan, (rateplan) => rateplan.roomType)
+    @Column({default:10})
+    quantity: number
+
+    @OneToMany(() => RatePlan, (rateplan) => rateplan.roomType, {cascade:true})
     ratePlans: RatePlan[]
 
     @OneToMany(() => Booking, (booking) => booking.roomType)

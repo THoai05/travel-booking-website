@@ -4,6 +4,12 @@ import { FiUser, FiLock, FiMail, FiPhone, FiEye, FiEyeOff } from "react-icons/fi
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 
+export enum Gender {
+  MALE = "male",
+  FEMALE = "female",
+  OTHER = "other",
+}
+
 interface RegisterPageProps {
   setShowRegister: (value: boolean) => void;
 }
@@ -75,6 +81,22 @@ const Register = ({ setShowRegister }: RegisterPageProps) => {
       setLoading(false);
       return;
     }
+
+
+    // 2️⃣ Không có khoảng trắng đầu/cuối
+    if (fullName !== fullName.trim()) {
+      setError("Họ và tên không được có khoảng trắng đầu hoặc cuối.");
+      setLoading(false);
+      return;
+    }
+
+    // 3️⃣ Không có 2 khoảng trắng liên tiếp
+    if (/\s{2,}/.test(fullName)) {
+      setError("Họ và tên không được có 2 khoảng trắng liên tiếp.");
+      setLoading(false);
+      return;
+    }
+
     const fullNameRegex = /^[a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+$/;
     if (!fullNameRegex.test(fullName)) {
       setError("Họ và tên không có số, ký tự đặc biệt.");
@@ -97,13 +119,21 @@ const Register = ({ setShowRegister }: RegisterPageProps) => {
 
     // 5. Kiểm tra Số điện thoại (nếu có nhập)
     if (phone) {
-      const phoneRegex = /^(0|\+84)\d{9,10}$/;
-      if (!phoneRegex.test(phone) || phone.length > 20) {
-        setError("Số điện thoại phải bắt đầu bằng số 0 hoặc +84 và có từ 10 đến 11 chữ số.");
+      // Chỉ cho phép số 0–9, bắt đầu 0 hoặc +84, tổng 10–11 chữ số
+      const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
+
+      // Loại bỏ ký tự full-width (０１２３…)
+      const fullWidthCheck = /[０-９]/;
+
+      if (!phoneRegex.test(phone) || fullWidthCheck.test(phone) || phone.length > 20) {
+        setError(
+          "Số điện thoại phải bắt đầu bằng 0 hoặc +84, chỉ nhập số bình thường, 10–11 chữ số."
+        );
         setLoading(false);
         return;
       }
     }
+
 
     // 6. Kiểm tra Ngày sinh (dob)
     if (dob) {
@@ -132,6 +162,20 @@ const Register = ({ setShowRegister }: RegisterPageProps) => {
         return;
       }
     }
+
+    //Kiểm tra giới tính
+    if (!gender) {
+      setError("Vui lòng chọn giới tính.");
+      setLoading(false);
+      return;
+    }
+
+    if (![Gender.MALE, Gender.FEMALE, Gender.OTHER].includes(gender as Gender)) {
+      setError("Giới tính không hợp lệ.");
+      setLoading(false);
+      return;
+    }
+
 
     // 7. Kiểm tra Mật khẩu
     if (password.length < 8) {
@@ -173,7 +217,7 @@ const Register = ({ setShowRegister }: RegisterPageProps) => {
       toast.success("✅ Đăng ký thành công!");
       setShowRegister(false);
       router.replace("/admin/user");
-      
+
     } catch (err: any) {
       setError(err.message || "Đăng ký thất bại!");
       toast.error(err.message || "❌ Đăng ký thất bại!");

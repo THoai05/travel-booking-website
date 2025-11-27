@@ -8,7 +8,7 @@ import { useAppSelector, useAppDispatch } from "@/reduxTK/hook";
 import { format, differenceInCalendarDays, parseISO } from "date-fns";
 import api from '@/axios/axios';
 import { useHandleRandomCouponByTitle } from '@/service/coupon/couponService';
-import { setPendingBooking } from '@/reduxTK/features/bookingSlice';
+import { setPendingBooking , fetchBookingById} from '@/reduxTK/features/bookingSlice';
 
 
 // Main Component
@@ -17,8 +17,16 @@ const TravelokaPaymentPage: React.FC = () => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
   }
-  const { pendingBooking } = useAppSelector(selectBooking);
-
+  const dispatch = useAppDispatch()
+  
+     useEffect(() => {
+    const bookingIdStr = sessionStorage.getItem("activeBookingId");
+    if (bookingIdStr) {
+      const bookingId = Number(bookingIdStr);
+      dispatch(fetchBookingById(bookingId));
+    }
+  }, [dispatch]);
+  
   const [selectedPayment, setSelectedPayment] = useState('');
   const [showCoupon, setShowCoupon] = useState(false);
   const [usePoints, setUsePoints] = useState(false);
@@ -26,7 +34,13 @@ const TravelokaPaymentPage: React.FC = () => {
   
   const [selectedCouponId, setSelectedCouponId] = useState(null);
   const [selectedCouponCode, setSelectedCouponeCode] = useState<string>('')
-  const dispatch = useAppDispatch()
+  const { pendingBooking } = useAppSelector(selectBooking);
+  console.log(pendingBooking)
+  
+  const [totalPrice, setTotalPrice] = useState<number>(pendingBooking?.totalPrice ?? 0)
+  
+  
+  console.log(totalPrice)
 
 useEffect(() => {
   const handler = setTimeout(() => {
@@ -46,6 +60,10 @@ useEffect(() => {
             const bookingData = response.data.updateData
             
             dispatch(setPendingBooking(bookingData))
+            const finalPrice = bookingData.totalPriceUpdate !== null 
+            ? bookingData.totalPriceUpdate 
+            : bookingData.totalPrice;
+            setTotalPrice(finalPrice);
               }
 
         } catch (error) {
@@ -65,7 +83,6 @@ useEffect(() => {
 
 
   const handleCouponCode = async () => {
-    console.log(selectedCouponCode)
     if (selectedCouponCode === "") {
       return null
     }
@@ -82,6 +99,7 @@ useEffect(() => {
             const bookingData = response.data.updateData
             
             dispatch(setPendingBooking(bookingData))
+            setTotalPrice(bookingData.totalUpdatePrice)
               }
 
         } catch (error) {
@@ -197,12 +215,14 @@ const formatDiscount = (coupon) => {
   const handlePayment = async (paymentMethod: string) => {
      const response = await api.get(`payment-gate/${paymentMethod}`, {
        params: {
-         orderAmount: pendingBooking?.totalPriceUpdate ? Number(pendingBooking?.totalPriceUpdate) : Number(pendingBooking?.totalPrice) ,
+         orderAmount: Number(totalPrice),
          orderCode:pendingBooking?.bookingId.toString()
        }
      })
      window.location.href = response.data
    }
+   
+  
    
   return (
     <div className="min-h-screen bg-gray-50 mt-10">
@@ -233,7 +253,11 @@ const formatDiscount = (coupon) => {
                     key={method.id}
                     method={method}
                     selected={selectedPayment === method.id}
-                    onSelect={() => setSelectedPayment(method.id)}
+                    onSelect={() => {
+                      setTotalPrice(pendingBooking?.totalPrice)
+                      setSelectedPayment(method.id)
+                    }
+                    }
                   />
                 ))}
               </div>
@@ -331,10 +355,11 @@ const formatDiscount = (coupon) => {
                 value={coupon.id}
                 checked={selectedCouponId === coupon.id}
                 // --- THAY ĐỔI 2: Cập nhật logic onChange ---
-                onChange={() =>
+                onChange={() => {
                   setSelectedCouponId((prevId) =>
                     prevId === coupon.id ? null : coupon.id
                   )
+                }
                 }
                 // ------------------------------------------
                 className="h-5 w-5 text-sky-600 border-gray-300 focus:ring-sky-500"
@@ -390,7 +415,7 @@ const formatDiscount = (coupon) => {
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-xl font-bold text-gray-900">Tổng tiền</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-gray-900">{pendingBooking?.totalPriceUpdate ? formatCurrency(Number(pendingBooking?.totalPriceUpdate)): formatCurrency(Number(pendingBooking?.totalPrice))}</span>
+                    <span className="text-2xl font-bold text-gray-900">{formatCurrency(Number(totalPrice))}</span>
                     <ChevronDown size={20} className="text-gray-600" />
                   </div>
                 </div>

@@ -12,6 +12,8 @@ import { ReviewsService } from 'src/managements/reviews/services/reviews.service
 import { CityService } from 'src/managements/city/services/city.service';
 import { ImagesService } from 'src/managements/images/services/images.service';
 
+
+
 @Injectable()
 export class HotelsService {
 
@@ -168,17 +170,20 @@ export class HotelsService {
   }
 
   // service của bro
-  async findRoomTypeAndRatePlanByHotelId(hotelId: number): Promise<any> {
+  async findRoomTypeAndRatePlanByHotelId(hotelId: number, maxGuests: number): Promise<any> {
+    console.log(hotelId,maxGuests)
   // 1. Lấy hotel, roomTypes, và ratePlans trong 1 query duy nhất
-  const hotel = await this.hotelRepo.findOne({
-    where: {
-      id: hotelId,
-    },
-    relations: [
-      'roomTypes',
-      'roomTypes.ratePlans', // Đảm bảo relation này đúng
-    ],
-  });
+    const hotel = await this.hotelRepo
+      .createQueryBuilder('hotels')
+      .leftJoinAndSelect(
+        'hotels.roomTypes',
+        'roomTypes',
+        'roomTypes.max_guests <= :maxGuests',
+        { maxGuests }
+        )
+      .leftJoinAndSelect('roomTypes.ratePlans', 'ratePlans')
+      .where('hotels.id = :hotelId',{hotelId})
+      .getOne()
 
   if (!hotel) {
     throw new NotFoundException('Không tìm thấy khách sạn');
@@ -219,7 +224,8 @@ export class HotelsService {
       bedType: roomType.bed_type,
       totalInventory: roomType.total_inventory,
       images: images, // Gán mảng ảnh đã fetch
-      ratePlans: ratePlans, // Gán mảng ratePlan đã map
+      ratePlans: ratePlans, // Gán mảng ratePlan đã map,
+      quantity:roomType.quantity
     };
   });
 
@@ -244,6 +250,8 @@ export class HotelsService {
         'hotel.avgPrice',
         'city.id',
         'city.title',
+        'city.lat',
+        'city.lon',
         'amenities.name',
         'amenities.description'
       ])
@@ -285,19 +293,16 @@ export class HotelsService {
 
     const imageResults = await Promise.all(imagesPromises);
     const finalResults = hotels.map((h, index) => {
-      const hotelImages = imageResults[index].data;
+   const hotelImages = imageResults[index].data;
 
-      let imageUrl = "";
-        
-      if (hotelImages && hotelImages.length > 0) {
-        const mainImage = hotelImages.find(img => img.isMain === true);
-            
-        if (mainImage) {
-          imageUrl = mainImage.url;
-        } else {
-          imageUrl = hotelImages[0].url;
-        }
-      }
+let imageUrl = "";
+
+if (hotelImages && hotelImages.length > 0) {
+  // random index từ 0 → hotelImages.length - 1
+  const randomIndex = Math.floor(Math.random() * hotelImages.length);
+
+  imageUrl = hotelImages[randomIndex].url;
+}
 
       // Phần map vẫn y hệt
       return{
@@ -453,6 +458,3 @@ export class HotelsService {
     return finalResults
   }
 }
-
-
-
