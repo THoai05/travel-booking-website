@@ -48,6 +48,7 @@ export default function ProfilePage() {
   const router = useRouter(); // ✅ khởi tạo router
 
   const { user, setUser } = useAuth();
+  const [updateProfile, setUpdateProfile] = useState(0); // cập nhập lần đầu
 
 
 
@@ -95,6 +96,14 @@ export default function ProfilePage() {
             dob: data.dob,
             gender: data.gender,
           });
+
+          if (updateProfile != 0) {
+            setTimeout(() => toast.error("Thông tin thay đổi: Đã tự động cập nhập dữ liệu.", {
+              icon: "⚠️",
+              id: "profile-error"
+            }), 0);
+          }
+          setUpdateProfile(1);
         }
       } catch (err: any) {
         //console.error(err); //hiển thị lỗi không tìm thấy người dùng hoặc Có lỗi xảy ra khi tải thông tin người dùng
