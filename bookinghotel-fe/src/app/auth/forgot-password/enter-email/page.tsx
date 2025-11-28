@@ -61,8 +61,9 @@ export default function EnterEmail() {
                 );
 
                 router.push(`/auth/forgot-password/verify-otp?email=${email}&token=${token}`);
+            } else {
+                setError("Phương thức không hợp lệ " + method);
             }
-
 
         } catch (err: any) {
             setError(err.response?.data?.message || "Có lỗi khi gửi email!");
