@@ -1,7 +1,7 @@
 "use client";
 
 import { PropertyDetail } from '../types';
-import { Star, MapPin, Share2, Heart, X } from 'lucide-react'; // Thêm icon X để đóng modal
+import { Star, MapPin, Share2, Heart, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { useAppDispatch, useAppSelector } from '@/reduxTK/hook';
