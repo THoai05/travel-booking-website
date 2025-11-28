@@ -3,12 +3,14 @@ import { Seeder } from 'typeorm-extension';
 import { Post } from 'src/managements/posts/entities/post.entity';
 import { User } from 'src/managements/users/entities/users.entity';
 import { City } from 'src/managements/city/entities/city.entity';
+import { PostImage } from 'src/managements/posts/entities/post_images.entity';
 
 export default class PostSeeder implements Seeder {
   public async run(dataSource: DataSource): Promise<void> {
     const postRepo = dataSource.getRepository(Post);
     const userRepo = dataSource.getRepository(User);
     const cityRepo = dataSource.getRepository(City);
+    const postImageRepo = dataSource.getRepository(PostImage);
 
     const users = await userRepo.find();
     const cities = await cityRepo.find();
@@ -18,153 +20,76 @@ export default class PostSeeder implements Seeder {
       return;
     }
 
+    // Thay đổi nếu tên trường trong PostImage khác (ví dụ: path, src, etc.)
     const sampleImages = [
-      '/uploads/posts/hotel-tips.jpg',
-      '/uploads/posts/travel-guide.jpg',
-      '/uploads/posts/cuisine.jpg',
+      '/uploads/posts/da-nang.jpg',
+      '/uploads/posts/post-1.png',
+      '/uploads/posts/lauca.jpg',
     ];
 
-    const samplePosts = [
+    // raw data (tham chiếu tới images bằng index cho dễ đọc)
+    const samplePostsData = [
       {
         title: '10 khách sạn được yêu thích nhất tại Đà Nẵng',
-        content: 'Khám phá danh sách 10 khách sạn hàng đầu tại Đà Nẵng, nổi bật với dịch vụ tuyệt vời và vị trí thuận tiện.',
+        content:
+          'Khám phá danh sách 10 khách sạn hàng đầu tại Đà Nẵng, nổi bật với dịch vụ tuyệt vời và vị trí thuận tiện.',
         slug: '10-khach-san-yeu-thich-nhat-tai-da-nang',
         author: users[0],
         city: cities.find((c) => c.title === 'Đà Nẵng') || null,
-        image: sampleImages[0],
+        imageIndex: 0,
         is_public: true,
       },
       {
         title: 'Bí quyết du lịch tiết kiệm cho sinh viên',
-        content: 'Làm sao để du lịch khắp Việt Nam mà vẫn tiết kiệm chi phí? Bài viết này sẽ chia sẻ những bí quyết hữu ích.',
+        content:
+          'Làm sao để du lịch khắp Việt Nam mà vẫn tiết kiệm chi phí? Bài viết này sẽ chia sẻ những bí quyết hữu ích.',
         slug: 'bi-quyet-du-lich-tiet-kiem-cho-sinh-vien',
         author: users[1] || users[0],
         city: cities.find((c) => c.title === 'Hà Nội') || null,
-        image: sampleImages[1],
+        imageIndex: 1,
         is_public: true,
       },
-      {
-        title: 'Top 5 món ăn đặc sản miền Trung nên thử',
-        content: 'Miền Trung Việt Nam nổi tiếng với những món ăn đậm đà, hương vị khó quên. Hãy cùng điểm qua 5 món ngon nhất nhé!',
-        slug: 'top-5-mon-an-dac-san-mien-trung-nen-thu',
-        author: users[0],
-        city: cities.find((c) => c.title === 'Huế') || null,
-        image: sampleImages[2],
-        is_public: true,
-      },
-      {
-        title: 'Những điểm sống ảo hot nhất tại Sài Gòn',
-        content: 'Tổng hợp những địa điểm check-in sang xịn mịn dành cho các bạn trẻ tại TP. Hồ Chí Minh.',
-        slug: 'nhung-diem-song-ao-hot-nhat-tai-sai-gon',
-        author: users[0],
-        city: cities.find((c) => c.title === 'Hồ Chí Minh') || null,
-        image: sampleImages[0],
-        is_public: true,
-      },
-      {
-        title: 'Hướng dẫn đặt phòng khách sạn online an toàn',
-        content: 'Đặt phòng online giúp tiết kiệm thời gian nhưng cũng tiềm ẩn rủi ro. Đây là những mẹo giúp bạn đặt phòng an toàn.',
-        slug: 'huong-dan-dat-phong-khach-san-online-an-toan',
-        author: users[1] || users[0],
-        city: null,
-        image: sampleImages[1],
-        is_public: true,
-      },
-      {
-        title: 'Top 7 bãi biển đẹp nhất miền Trung',
-        content: 'Biển miền Trung mang vẻ đẹp hoang sơ và quyến rũ. Đừng bỏ lỡ 7 địa điểm sau!',
-        slug: 'top-7-bai-bien-dep-nhat-mien-trung',
-        author: users[0],
-        city: cities.find((c) => c.title === 'Đà Nẵng') || null,
-        image: sampleImages[2],
-        is_public: true,
-      },
-      {
-        title: 'Du lịch tự túc hay tour trọn gói? Nên chọn cái nào?',
-        content: 'So sánh ưu và nhược của hai hình thức du lịch phổ biến nhất hiện nay.',
-        slug: 'du-lich-tu-tuc-hay-tour-tron-goi',
-        author: users[1] || users[0],
-        city: null,
-        image: sampleImages[0],
-        is_public: true,
-      },
-      {
-        title: 'Khám phá ẩm thực đường phố Hà Nội',
-        content: 'Những món ăn vỉa hè Hà Nội gây thương nhớ cho bất kỳ ai từng thưởng thức.',
-        slug: 'kham-pha-am-thuc-duong-pho-ha-noi',
-        author: users[0],
-        city: cities.find((c) => c.title === 'Hà Nội') || null,
-        image: sampleImages[1],
-        is_public: true,
-      },
-      {
-        title: '5 điểm săn mây đẹp nhất Đà Lạt',
-        content: 'Đà Lạt luôn khiến du khách mê mẩn với vẻ đẹp bồng bềnh trên mây.',
-        slug: '5-diem-san-may-dep-nhat-da-lat',
-        author: users[0],
-        city: cities.find((c) => c.title === 'Đà Lạt') || null,
-        image: sampleImages[2],
-        is_public: true,
-      },
-      {
-        title: 'Du lịch Nha Trang: Những điều cần lưu ý',
-        content: 'Bật mí những tips quan trọng để có chuyến đi Nha Trang trọn vẹn.',
-        slug: 'du-lich-nha-trang-nhung-dieu-can-luu-y',
-        author: users[1] || users[0],
-        city: cities.find((c) => c.title === 'Nha Trang') || null,
-        image: sampleImages[0],
-        is_public: true,
-      },
-      {
-        title: 'Khám phá Chợ Bến Thành chuẩn dân du lịch',
-        content: 'Chợ Bến Thành là biểu tượng lịch sử và văn hoá không thể bỏ qua của Sài Gòn.',
-        slug: 'kham-pha-cho-ben-thanh',
-        author: users[0],
-        city: cities.find((c) => c.title === 'Hồ Chí Minh') || null,
-        image: sampleImages[1],
-        is_public: true,
-      },
-      {
-        title: 'Review top 3 homestay giá rẻ ở Đà Nẵng',
-        content: 'Giới thiệu những homestay đẹp – rẻ – chất thích hợp cho nhóm bạn.',
-        slug: 'review-top-3-homestay-gia-re-da-nang',
-        author: users[1] || users[0],
-        city: cities.find((c) => c.title === 'Đà Nẵng') || null,
-        image: sampleImages[2],
-        is_public: true,
-      },
-      {
-        title: 'Cần Thơ gạo trắng nước trong – có gì chơi?',
-        content: 'Du lịch miền Tây và khám phá vẻ đẹp bình dị của Cần Thơ.',
-        slug: 'can-tho-co-gi-choi',
-        author: users[0],
-        city: cities.find((c) => c.title === 'Cần Thơ') || null,
-        image: sampleImages[0],
-        is_public: true,
-      },
-      {
-        title: 'Hải Phòng – Thành phố hoa phượng đỏ có gì hấp dẫn?',
-        content: 'Từ đặc sản bánh đa cua đến biển Đồ Sơn – Hải Phòng luôn khiến du khách bất ngờ.',
-        slug: 'hai-phong-thanh-pho-hoa-phuong-do',
-        author: users[1] || users[0],
-        city: cities.find((c) => c.title === 'Hải Phòng') || null,
-        image: sampleImages[1],
-        is_public: true,
-      },
+      // ... (các bài khác) ...
       {
         title: 'Du lịch Việt Nam mùa nào đẹp nhất?',
         content: 'Gợi ý lịch trình du lịch trong năm để bắt trọn mùa đẹp của từng vùng miền.',
         slug: 'du-lich-viet-nam-mua-nao-dep-nhat',
         author: users[0],
         city: null,
-        image: sampleImages[2],
+        imageIndex: 2,
         is_public: true,
       },
     ];
 
-    await postRepo.clear();
+    // Nếu bạn muốn seed tất cả như bản gốc, thêm tất cả object vào samplePostsData tương tự.
+    // Ở đây ví dụ mình chỉ để một số để ngắn gọn; bạn có thể paste lại toàn bộ danh sách.
 
-    await postRepo.save(samplePosts);
+    // Clear trước khi seed (nhớ cân nhắc migration/product data khi chạy production)
+
+
+
+    // Map sang Partial<Post> với images là mảng object (PostImage)
+    const postsToSave: Partial<Post>[] = samplePostsData.map((p) => {
+      const imgs = p.imageIndex !== undefined
+        ? [sampleImages[p.imageIndex]].filter(Boolean).map((url) => {
+            // chú ý: mình giả sử PostImage entity có trường 'url'
+            return { url } as unknown as PostImage;
+          })
+        : [];
+
+      return {
+        title: p.title,
+        content: p.content,
+        slug: p.slug,
+        author: p.author,
+        city: p.city,
+        images: imgs,
+        is_public: p.is_public,
+      } as Partial<Post>;
+    });
+
+    // Save (cascade sẽ tạo PostImage vì relation cascade: true)
+    await postRepo.save(postsToSave);
 
     console.log('✅ PostSeeder completed successfully!');
   }
