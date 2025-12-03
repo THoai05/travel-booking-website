@@ -104,4 +104,8 @@ export class Booking {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'datetime' })
   updatedAt: Date;
+
+  @Column({ name: 'cancelled_at', type: 'datetime', nullable: true })
+  cancelledAt?: Date;
+
 }
