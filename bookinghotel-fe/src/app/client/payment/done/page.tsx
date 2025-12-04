@@ -103,14 +103,18 @@ const PaymentDone = () => {
                   Chúc mừng! Đặt phòng của bạn đã được xác nhận. Thông tin chi tiết đã được gửi đến <span className="font-semibold text-white">{pendingBooking.contactEmail}</span>
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <button
+                  <Button
                     disabled={!pendingBooking}
                     onClick={() => pendingBooking && sendInvoice(pendingBooking.bookingId)}
-                    className="px-3 py-1 bg-blue-600 text-white rounded-lg disabled:opacity-50"
+                    className="bg-sky-800 text-white hover:bg-sky-900 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 font-bold border-2 border-white/20 "
+                    size="lg"
                   >
-                    <Download className="w-5 h-5 mr-2" />
+                    <div className="flex items-center">
+                      <Download className="w-5 h-5 mr-2" />
                     Gửi hóa đơn về Email
-                  </button>
+                    </div>
+
+                  </Button>
                   <Button
                     className="bg-sky-800 text-white hover:bg-sky-900 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 font-bold border-2 border-white/20"
                     size="lg"

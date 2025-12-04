@@ -4,6 +4,9 @@ import { useEffect, useState, useRef } from "react";
 import api from "@/axios/axios";
 import { toast } from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
+import { Button } from "@heroui/react";
+import Link from "next/link";
+
 
 interface Room {
   bookingId: number;
@@ -451,6 +454,11 @@ export default function RoomMonitorPage() {
                 <div className="flex flex-col gap-2">
                   <p>📌 Room Type ID: {room.roomTypeId}</p>
                   <p>🏨 Room Type Name: {room.roomTypeName}</p>
+                  <Link href={`/cancel_booking/${room.bookingId}`}>
+                    <Button className="p-2 rounded-2xl bg-red-500 hover:bg-red-400">
+                      Hủy phòng
+                    </Button>
+                  </Link>
                 </div>
               </div>
             ))}
