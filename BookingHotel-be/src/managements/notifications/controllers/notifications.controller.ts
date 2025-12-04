@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Req, Query, Body, Param, Patch, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Get, Req, Query, Body, Param, Patch, Delete, ParseIntPipe, NotFoundException } from '@nestjs/common';
 import { NotificationsService } from '../services/notifications.service';
 import { da } from '@faker-js/faker';
 import { NotificationType } from '../entities/notification.entity';
@@ -87,6 +87,17 @@ export class NotificationsController {
   @Get('user/:id')
   async getNotificationsForUser(@Param('id') userId: number) {
     return this.notificationsService.getNotificationsForUser(userId);
+  }
+
+  @Get(':id')
+  async getById(@Param('id') id: number) {
+    const noti = await this.notificationsService.findById(id);
+
+    if (!noti) {
+      throw new NotFoundException('Notification not found');
+    }
+
+    return noti;
   }
 
 }

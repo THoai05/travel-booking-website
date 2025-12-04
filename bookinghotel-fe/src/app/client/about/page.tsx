@@ -15,7 +15,7 @@ interface AboutContent {
     about_id: number;
     title: string;
     content: string;
-    image: string;
+    video: string;
     updated_by: number;
     updated_at: string;
     status: number;
@@ -151,18 +151,17 @@ export default function AboutPage() {
                 // Simulate API call
                 await new Promise(resolve => setTimeout(resolve, 500));
 
-                const mockData: AboutContent = {
+                const mockData: AboutContent & { video?: string } = {
                     about_id: 1,
                     title: "Về Bluvera - Nền tảng đặt phòng khách sạn hàng đầu",
-                    content: `
-            <p>Bluvera là nền tảng đặt phòng khách sạn trực tuyến hàng đầu Việt Nam, được thành lập từ năm 2020 với sứ mệnh kết nối hàng triệu du khách với các khách sạn, resort và homestay trên toàn quốc. Chúng tôi mang đến trải nghiệm đặt phòng nhanh chóng, tiện lợi và đáng tin cậy.</p>
-          `,
-                    image: "https://images.unsplash.com/photo-1455587734955-081b22074882",
+                    content: `<p>Bluvera là nền tảng đặt phòng khách sạn trực tuyến...</p>`,
+                    video: "/video/AboutUs.mp4",
                     updated_by: 1,
                     updated_at: new Date().toISOString(),
                     status: 1,
                     slug: "ve-chung-toi"
                 };
+
 
                 setAboutData(mockData);
                 setError(null);
@@ -224,58 +223,18 @@ export default function AboutPage() {
                 transition={{ duration: 0.8 }}
                 className="relative h-[600px] overflow-hidden"
             >
-                {aboutData.image && (
-                    <>
-                        <Image
-                            src={aboutData.image}
-                            alt={aboutData.title}
-                            width={100}
-                            height={100}
-                            className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-transparent" />
-
-                        <motion.div
-                            initial={{ y: 50, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.3, duration: 0.8 }}
-                            className="absolute inset-0 flex items-center justify-center text-center px-4"
-                        >
-                            <div className="max-w-4xl">
-                                <motion.div
-                                    initial={{ scale: 0.9, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    transition={{ delay: 0.5, duration: 0.8 }}
-                                    className="mb-6"
-                                >
-                                    <span className="inline-block px-6 py-2 bg-white/20 backdrop-blur-md rounded-full text-white border border-white/30">
-                                        Nền tảng đặt phòng #1 Việt Nam
-                                    </span>
-                                </motion.div>
-                                <h1 className="text-white mb-6 drop-shadow-lg">Bluvera</h1>
-                                <p className="text-2xl text-white/95 drop-shadow-md mb-8">
-                                    Kết nối hàng triệu du khách với những trải nghiệm lưu trú tuyệt vời
-                                </p>
-                                <motion.div
-                                    initial={{ y: 20, opacity: 0 }}
-                                    animate={{ y: 0, opacity: 1 }}
-                                    transition={{ delay: 0.8, duration: 0.6 }}
-                                    className="flex gap-4 justify-center flex-wrap"
-                                >
-                                    <div className="px-6 py-3 bg-white/10 backdrop-blur-md rounded-lg border border-white/30">
-                                        <div className="text-white">5 triệu+ người dùng</div>
-                                    </div>
-                                    <div className="px-6 py-3 bg-white/10 backdrop-blur-md rounded-lg border border-white/30">
-                                        <div className="text-white">50,000+ khách sạn</div>
-                                    </div>
-                                    <div className="px-6 py-3 bg-white/10 backdrop-blur-md rounded-lg border border-white/30">
-                                        <div className="text-white">4.8/5 đánh giá</div>
-                                    </div>
-                                </motion.div>
-                            </div>
-                        </motion.div>
-                    </>
+                {aboutData.video && (
+                    <video
+                        src={aboutData.video}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover"
+                    />
                 )}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-transparent" />
+
             </motion.div>
 
             <div className="max-w-7xl mx-auto px-4 py-16">
@@ -284,7 +243,7 @@ export default function AboutPage() {
                     initial={{ y: 30, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.4, duration: 0.6 }}
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 -mt-32 mb-20 relative z-10"
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 -mt-16 mb-20 relative z-10"
                 >
                     {statsData.map((stat, index) => (
                         <motion.div

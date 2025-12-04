@@ -236,7 +236,6 @@ export class NotificationsService {
     }
 
     // notifications.service.ts
-    // notifications.service.ts
     async getNotificationsForUser(userId: number) {
         const notificationUsers = await this.notificationUserRepo.find({
             where: { user: { id: userId } },
@@ -254,5 +253,10 @@ export class NotificationsService {
         }));
     }
 
-
+    async findById(id: number) {
+        return await this.notificationsRepo.findOne({
+            where: { id },
+            relations: ['user'], // nếu bạn có quan hệ user
+        });
+    }
 }
