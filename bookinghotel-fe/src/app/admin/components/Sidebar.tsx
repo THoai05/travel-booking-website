@@ -72,7 +72,6 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
         { icon: HelpCircle, label: "FAQ", path: '/admin/faq' },
         { icon: Users, label: "Users", path: '/admin/user' },
         { icon: HeadphonesIcon, label: "Support Chat", path: '/admin/chat' },
-        { icon: Settings, label: "Setting", path: '/admin/setting' },
     ];
 
     return (

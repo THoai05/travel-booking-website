@@ -17,14 +17,13 @@ export class FaqService {
   }
 
   async findOne(id: number) {
+    console.log("DEBUG findOne id:", id);
     const faq = await this.faqRepository.findOne({ where: { id } });
-
-    if (!faq) {
-      throw new NotFoundException(`FAQ with ID ${id} không tìm thấy`);
-    }
-
+    console.log("DEBUG faq:", faq);
+    if (!faq) throw new NotFoundException(`FAQ with ID ${id} không tìm thấy`);
     return faq;
   }
+
 
 
   create(createFaqDto: CreateFaqDto) {
@@ -37,8 +36,12 @@ export class FaqService {
     if (!faq) throw new NotFoundException('FAQ không tồn tại');
 
     // Kiểm tra xung đột updated_at
-    if (updateFaqDto.updated_at && faq.updated_at.toISOString() !== updateFaqDto.updated_at) {
-      throw new ConflictException('FAQ đã được cập nhật ở nơi khác. Vui lòng tải lại trang.');
+    if (updateFaqDto.updated_at) {
+      const clientTime = new Date(updateFaqDto.updated_at).getTime();
+      const serverTime = faq.updated_at.getTime();
+      if (clientTime !== serverTime) {
+        throw new ConflictException('FAQ đã được cập nhật ở nơi khác. Vui lòng tải lại trang.');
+      }
     }
 
     await this.faqRepository.update(id, updateFaqDto);

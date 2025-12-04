@@ -6,7 +6,8 @@ import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Dropdown } from "primereact/dropdown";
 import { Toast } from "primereact/toast";
-import { getAllFaqs, createFaq, updateFaq, deleteFaq } from "@/service/faq/faqService";
+import { useRouter } from "next/navigation";
+import { getAllFaqs, createFaq, updateFaq, deleteFaq, getFaqById } from "@/service/faq/faqService";
 
 interface FAQ {
     id: number;
@@ -39,6 +40,7 @@ export default function AdminFAQPage() {
         updated_at: "",
     });
     const toast = useRef<Toast>(null);
+    const router = useRouter();
 
     const categoryOptions = [
         { label: "Tour du lịch", value: "Tour du lịch" },
@@ -58,8 +60,14 @@ export default function AdminFAQPage() {
         try {
             const data = await getAllFaqs();
             setFaqs(data);
-        } catch (err) {
+        } catch (err: any) {
             console.error("Lỗi tải FAQ:", err);
+            toast.current?.show({
+                severity: "error",
+                summary: "Lỗi tải dữ liệu",
+                detail: "Không thể tải danh sách FAQ. Vui lòng thử lại sau.",
+                life: 5000,
+            });
         } finally {
             setLoading(false);
         }
@@ -67,11 +75,7 @@ export default function AdminFAQPage() {
 
     const openEditModal = async (faq: FAQ) => {
         try {
-            // Fetch dữ liệu mới nhất trước khi sửa
-            const data = await getAllFaqs();
-            setFaqs(data);
-
-            const freshFaq = data.find(f => f.id === faq.id);
+            const freshFaq = await getFaqById(faq.id); // fetch riêng FAQ
             if (!freshFaq) {
                 toast.current?.show({ severity: "error", summary: "Lỗi", detail: "FAQ đã bị xóa." });
                 return;
@@ -83,7 +87,7 @@ export default function AdminFAQPage() {
                 answer: freshFaq.answer,
                 categories: freshFaq.categories,
                 status: freshFaq.status,
-                updated_at: freshFaq.updated_at, // thêm dòng này
+                updated_at: new Date(freshFaq.updated_at).toISOString(),
             });
             setVisible(true);
         } catch (err) {
@@ -92,38 +96,191 @@ export default function AdminFAQPage() {
     };
 
     const handleSave = async () => {
+        const trimmedQuestion = form.question.trim();
+        const trimmedAnswer = form.answer.trim();
+
+        // Kiểm tra trống
+        if (!trimmedQuestion) {
+            toast.current?.show({
+                severity: "error",
+                summary: "Lỗi",
+                detail: "Câu hỏi không được để trống",
+                life: 5000,
+            });
+            return;
+        }
+
+        if (!trimmedAnswer) {
+            toast.current?.show({
+                severity: "error",
+                summary: "Lỗi",
+                detail: "Câu trả lời không được để trống",
+                life: 5000,
+            });
+            return;
+        }
+
+        // Kiểm tra tối thiểu 3 từ
+        if (trimmedQuestion.split(/\s+/).length < 3) {
+            toast.current?.show({
+                severity: "error",
+                summary: "Lỗi",
+                detail: "Câu hỏi phải có ít nhất 3 từ",
+                life: 5000,
+            });
+            return;
+        }
+
+        if (trimmedAnswer.length > 5000) {
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Lỗi',
+                detail: 'Câu trả lời không vượt quá 5000 ký tự',
+                life: 5000,
+            });
+            return;
+        }
+
+        if (trimmedAnswer.split(/\s+/).length < 3) {
+            toast.current?.show({
+                severity: "error",
+                summary: "Lỗi",
+                detail: "Câu trả lời phải có ít nhất 3 từ",
+                life: 5000,
+            });
+            return;
+        }
+
+        // Kiểm tra không phải toàn số hoặc toàn ký tự đặc biệt
+        const onlyNumbersRegex = /^[0-9]+$/;
+        const onlySpecialCharsRegex = /^[^A-Za-z0-9]+$/;
+
+        if (onlyNumbersRegex.test(trimmedQuestion)) {
+            toast.current?.show({
+                severity: "error",
+                summary: "Lỗi",
+                detail: "Câu hỏi không được nhập toàn số",
+                life: 5000,
+            });
+            return;
+        }
+
+        if (onlyNumbersRegex.test(trimmedAnswer)) {
+            toast.current?.show({
+                severity: "error",
+                summary: "Lỗi",
+                detail: "Câu trả lời không được nhập toàn số",
+                life: 5000,
+            });
+            return;
+        }
+
+        if (onlySpecialCharsRegex.test(trimmedQuestion)) {
+            toast.current?.show({
+                severity: "error",
+                summary: "Lỗi",
+                detail: "Câu hỏi không được nhập toàn ký tự đặc biệt",
+                life: 5000,
+            });
+            return;
+        }
+
+        if (onlySpecialCharsRegex.test(trimmedAnswer)) {
+            toast.current?.show({
+                severity: "error",
+                summary: "Lỗi",
+                detail: "Câu trả lời không được nhập toàn ký tự đặc biệt",
+                life: 5000,
+            });
+            return;
+        }
+
+        // Kiểm tra không bắt đầu bằng số
+        const startsWithNumberRegex = /^\d/;
+        if (startsWithNumberRegex.test(trimmedQuestion)) {
+            toast.current?.show({
+                severity: "error",
+                summary: "Lỗi",
+                detail: "Câu hỏi không được bắt đầu bằng số",
+                life: 5000,
+            });
+            return;
+        }
+
+        if (startsWithNumberRegex.test(trimmedAnswer)) {
+            toast.current?.show({
+                severity: "error",
+                summary: "Lỗi",
+                detail: "Câu trả lời không được bắt đầu bằng số",
+                life: 5000,
+            });
+            return;
+        }
+
+        // Kiểm tra độ dài
+        if (trimmedQuestion.length > 255) {
+            toast.current?.show({
+                severity: "error",
+                summary: "Lỗi",
+                detail: "Câu hỏi không vượt quá 255 ký tự",
+                life: 5000,
+            });
+            return;
+        }
+
+        // Kiểm tra trạng thái
+        if (form.status !== "active" && form.status !== "hidden") {
+            toast.current?.show({
+                severity: "error",
+                summary: "Lỗi",
+                detail: "Trạng thái hiển thị không hợp lệ",
+                life: 5000,
+            });
+            return;
+        }
+
+        // Gọi API
         try {
             if (editingFaq) {
-                await updateFaq(editingFaq.id, form); // form đã có updated_at
-                toast.current?.show({ severity: "success", summary: "Thành công", detail: "Cập nhật FAQ thành công", life: 3000 });
+                const freshFaq = await getFaqById(editingFaq.id);
+                if (new Date(freshFaq.updated_at).toISOString() !== form.updated_at) {
+                    toast.current?.show({
+                        severity: "warn",
+                        summary: "Xung đột dữ liệu",
+                        detail: "Dữ liệu đã được cập nhật. Vui lòng tải lại modal trước khi lưu.",
+                        life: 5000,
+                    });
+                    return;
+                }
+
+                await updateFaq(editingFaq.id, form);
+                toast.current?.show({
+                    severity: "success",
+                    summary: "Thành công",
+                    detail: "Cập nhật FAQ thành công",
+                    life: 3000,
+                });
             } else {
                 await createFaq(form);
-                toast.current?.show({ severity: "success", summary: "Thành công", detail: "Thêm FAQ mới thành công", life: 3000 });
+                toast.current?.show({
+                    severity: "success",
+                    summary: "Thành công",
+                    detail: "Thêm FAQ mới thành công",
+                    life: 3000,
+                });
             }
 
             setVisible(false);
             setEditingFaq(null);
-
-            setForm({ question: "", answer: "", categories: "", status: "active" });
-
+            setForm({ question: "", answer: "", categories: "", status: "active", updated_at: "" });
             fetchFaqs();
         } catch (err: any) {
-            if (err.response?.status === 409) {
-                toast.current?.show({
-                    severity: "warn",
-                    summary: "Xung đột dữ liệu",
-                    detail: err.response.data.message,
-                    life: 5000,
-                });
-            } else {
-                const msg = err.response?.data?.message || "Đã có lỗi xảy ra khi lưu FAQ.";
-                toast.current?.show({ severity: "error", summary: "Lỗi", detail: msg, life: 5000 });
-            }
+            const msg = err.response?.data?.message || "Đã có lỗi xảy ra khi lưu FAQ.";
+            toast.current?.show({ severity: "error", summary: "Lỗi", detail: msg, life: 5000 });
         }
-
-
-
     };
+
+
 
     const handleDelete = async (id: number) => {
         if (confirm("Bạn có chắc muốn xóa câu hỏi này?")) {
@@ -133,8 +290,6 @@ export default function AdminFAQPage() {
                 toast.current?.show({ severity: "success", summary: "Thành công", detail: "Xóa FAQ thành công", life: 3000 });
             } catch (err: any) {
                 console.error("Lỗi xóa FAQ:", err);
-
-                // Nếu phần tử không tồn tại nữa
                 if (err.response?.status === 404) {
                     toast.current?.show({
                         severity: "warn",
@@ -146,13 +301,10 @@ export default function AdminFAQPage() {
                     const msg = err.response?.data?.message || "Đã có lỗi xảy ra khi xóa FAQ.";
                     toast.current?.show({ severity: "error", summary: "Lỗi", detail: msg, life: 5000 });
                 }
-
-                // Load lại danh sách để đồng bộ với server
                 fetchFaqs();
             }
         }
     };
-
 
     const handleToggleStatus = async (faq: FAQ) => {
         try {

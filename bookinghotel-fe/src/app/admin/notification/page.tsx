@@ -13,6 +13,7 @@ interface Notification {
     type: string;
     isRead: boolean;
     createdAt: string;
+    updatedAt: string;
 }
 
 export default function AdminNotificationsPage() {
@@ -28,6 +29,7 @@ export default function AdminNotificationsPage() {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
+    const [originalUpdatedAt, setOriginalUpdatedAt] = useState<string | null>(null);
 
     //web push
     const [newBroadcastTitle, setNewBroadcastTitle] = useState("");
@@ -46,7 +48,8 @@ export default function AdminNotificationsPage() {
             const total = res.data.total ?? data.length;
             setNotifications(data.map((n: any) => ({
                 ...n,
-                userId: n.user?.id ?? 0
+                userId: n.user?.id ?? 0,
+                updatedAt: n.updatedAt
             })));
             setTotalPages(Math.ceil(total / limit));
         } catch (err) {
@@ -106,24 +109,39 @@ export default function AdminNotificationsPage() {
         setEditingId(noti.id);
         setEditTitle(noti.title);
         setEditMessage(noti.message);
+        setOriginalUpdatedAt(noti.updatedAt); // Lưu phiên bản lúc bắt đầu edit
     };
 
     const handleSave = async (id: number) => {
         try {
+            // ⛔︎ 1. Fetch lại notification mới nhất
+            const latest = await NotificationService.getNotificationById(id);
+
+            if (latest.data.updatedAt !== originalUpdatedAt) {
+                toast.error("Thông báo này đã bị thay đổi ở tab khác. Vui lòng tải lại trước khi sửa!");
+                setEditingId(null);
+                return;
+            }
+
+            // ✔ 2. Không có xung đột → cho phép update
             await NotificationService.updateNotification(id, {
                 title: editTitle,
                 message: editMessage,
             });
-            setNotifications((prev) =>
-                prev.map((n) =>
-                    n.id === id ? { ...n, title: editTitle, message: editMessage } : n
+
+            setNotifications(prev =>
+                prev.map(n =>
+                    n.id === id
+                        ? { ...n, title: editTitle, message: editMessage, updatedAt: new Date().toISOString() }
+                        : n
                 )
             );
+
             setEditingId(null);
             toast.success("Cập nhật thành công");
         } catch (err) {
             console.error(err);
-            toast.error("Cập nhật thất bại , sản phẩm không tồn tại");
+            toast.error("Cập nhật thất bại , không tìm thấy thông báo này");
         }
     };
 

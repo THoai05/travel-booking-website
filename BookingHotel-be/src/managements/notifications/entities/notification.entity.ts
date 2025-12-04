@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   OneToMany,
   JoinColumn,
@@ -45,6 +46,9 @@ export class Notification {
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 
   @OneToMany(() => ZaloChat, chat => chat.notification)
   zalo_chats: ZaloChat[];

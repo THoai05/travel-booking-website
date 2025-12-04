@@ -53,6 +53,10 @@ const NotificationService = {
     broadcastNotification(data: any) {
         return api.post("/notifications/broadcast", data);
     },
+
+    getNotificationById(notificationId: number) {
+        return api.get(`notifications/${notificationId}`);
+    }
 };
 
 export default NotificationService;

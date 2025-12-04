@@ -17,6 +17,8 @@ export class FaqController {
     return this.faqService.findOne(+id);
   }
 
+
+
   @Post()
   create(@Body() createFaqDto: CreateFaqDto) {
     return this.faqService.create(createFaqDto);
