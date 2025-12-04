@@ -108,15 +108,8 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
                                 {openBlog && (
                                     <div className="ml-9 mt-2 space-y-2 text-sm">
                                         <Link
-                                            href="/admin/blog"
-                                            className={`block text-gray-600 hover:text-blue-600 ${pathname === "/admin/blog"
-                                                ? "font-semibold text-blue-600" : ""}`}
-                                        >
-                                            • Blog Details
-                                        </Link>
-                                        <Link
-                                            href="/admin/blog/singles"
-                                            className={`block text-gray-600 hover:text-blue-600 ${pathname === "/admin/blog/singles"
+                                            href="/admin/blog/"
+                                            className={`block text-gray-600 hover:text-blue-600 ${pathname === "/admin/blog/"
                                                 ? "font-semibold text-blue-600" : ""}`}
                                         >
                                             • Blog Singles

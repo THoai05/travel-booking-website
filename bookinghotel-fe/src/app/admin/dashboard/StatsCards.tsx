@@ -17,7 +17,17 @@ function StatCard({ title, value, change, chartData, color }: StatCardProps) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const maxValue = Math.max(...chartData) || 1;
     const changeValue = parseFloat(change.replace("%", ""));
-    const isPositive = changeValue >= 0;
+    //const isPositive = changeValue >= 0;
+
+    const numericChange = parseFloat(change);
+    const prevValue = 100 - numericChange;
+    const isPositive = numericChange > prevValue;
+    const difference = numericChange - prevValue;
+    const roundedDiff = difference.toFixed(2);
+
+
+
+
 
     return (
         <Card className="border-2 border-dashed border-blue-300 bg-white relative">
@@ -26,16 +36,25 @@ function StatCard({ title, value, change, chartData, color }: StatCardProps) {
                     <div>
                         <p className="text-gray-600 mb-2">{title}</p>
                         <h2 className="text-gray-900 mb-1">{value}</h2>
+
                         <div className="flex items-center gap-1">
                             {isPositive ? (
                                 <TrendingUp className="h-4 w-4 text-green-500" />
                             ) : (
                                 <TrendingDown className="h-4 w-4 text-red-500" />
                             )}
+
                             <span className={`text-sm ${isPositive ? "text-green-500" : "text-red-500"}`}>
-                                {change}
+                                {numericChange}%
                             </span>
-                            <span className="text-sm text-gray-500">vs last period</span>
+
+                            <span className="text-sm text-gray-500">
+                                vs {prevValue}% last period
+                            </span>
+
+                            <span className={`text-sm ${isPositive ? "text-green-500" : "text-red-500"}`}>
+                                ({roundedDiff}%)
+                            </span>
                         </div>
                     </div>
                 </div>

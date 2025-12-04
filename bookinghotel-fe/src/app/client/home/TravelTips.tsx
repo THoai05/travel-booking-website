@@ -9,26 +9,22 @@ import { fetchPublicBlogs } from "@/reduxTK/features/blog/blogThunk";
 import { AppDispatch, RootState } from "@/reduxTK/store";
 import Link from "next/link";
 
+// Swiper Import
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Autoplay } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+
 export default function TravelTips() {
   const dispatch = useDispatch<AppDispatch>();
   const { blogs, isLoading, error } = useSelector((state: RootState) => state.blogs);
 
   useEffect(() => {
-    dispatch(fetchPublicBlogs({ page: 1, limit: 3 }));
+    dispatch(fetchPublicBlogs({ page: 1, limit: 10 }));
   }, [dispatch]);
 
-  // useEffect(() => {
-  //   if (blogs && blogs.length > 0) {
-  //     blogs.forEach((blog: any, index: number) => {
-  //       console.log(`Blog #${index + 1}:`, blog.title);
-  //       console.log("Images array:", blog.images);
-  //     });
-  //   }
-  // }, [blogs]);
-
-  // Lấy ảnh đầu tiên trong mảng images + fallback
   function getPostImageUrl(images?: string[]) {
-    if (!images || images.length === 0) return "/post1.png"; // fallback
+    if (!images || images.length === 0) return "/post1.png";
     const firstImage = images[0];
     if (!firstImage) return "/post1.png";
     if (firstImage.startsWith("http")) return firstImage;
@@ -47,6 +43,7 @@ export default function TravelTips() {
   return (
     <section className="w-full py-20 bg-white">
       <div className="max-w-[1200px] mx-auto px-6">
+        
         {/* Header */}
         <div className="flex justify-between items-center mb-12">
           <div className="text-start w-full">
@@ -55,81 +52,91 @@ export default function TravelTips() {
               Khám phá hành trình, bí kíp và xu hướng du lịch mới nhất từ Bluevera
             </p>
           </div>
-          <div>
-            <Link href="/blog">
-              <Button
-                type="button"
-                title="Xem thêm"
-                icon={ArrowRight}
-                variant="bg-black text-white px-6 py-3 hover:bg-gray-800 transition"
-              />
-            </Link>
-          </div>
+          <Link href="/blog">
+            <Button
+              type="button"
+              title="Xem thêm"
+              icon={ArrowRight}
+              variant="bg-black text-white px-6 py-3 hover:bg-gray-800 transition"
+            />
+          </Link>
         </div>
 
-        {/* Blog Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+        {/* Swiper */}
+        <Swiper
+          modules={[Navigation, Autoplay]}
+          navigation
+          autoplay={{
+            delay: 3000,
+            disableOnInteraction: false,
+          }}
+          spaceBetween={24}
+          slidesPerView={1.2}
+          breakpoints={{
+            640: { slidesPerView: 2 },
+            1024: { slidesPerView: 3 },
+            1280: { slidesPerView: 3 },
+          }}
+        >
           {blogs.map((blog: any) => (
-            <div
-              key={blog.id}
-              className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition"
-            >
-              {/* Image */}
-              <div className="relative w-full h-[250px]">
-                <Image
-                  src={getPostImageUrl(blog.images)}
-                  alt={blog.title}
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute top-4 left-4 bg-white text-sm font-medium px-3 py-1 rounded-full">
-                  {blog.city?.title || "Du lịch"}
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-6">
-                <div className="flex items-center text-gray-500 text-sm gap-4 mb-3">
-                  <span className="flex items-center gap-1">
-                    <Calendar size={14} />{" "}
-                    {new Date(blog.created_at).toLocaleDateString("vi-VN")}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock size={14} /> 6 phút đọc
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MessageSquare size={14} /> 0 bình luận
-                  </span>
+            <SwiperSlide key={blog.id}>
+              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
+                <div className="relative w-full h-[250px]">
+                  <Image
+                    src={getPostImageUrl(blog.images)}
+                    alt={blog.title}
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute top-4 left-4 bg-white text-sm font-medium px-3 py-1 rounded-full">
+                    {blog.city?.title || "Du lịch"}
+                  </div>
                 </div>
 
-                <h3 className="text-lg font-semibold mb-4 leading-snug">
-                  {blog.title}
-                </h3>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Image
-                      src="/author.png"
-                      alt={blog.author?.fullName || "Tác giả"}
-                      width={30}
-                      height={30}
-                      className="rounded-full"
-                    />
-                    <span className="text-sm font-medium">
-                      {blog.author?.fullName || "Ẩn danh"}
+                <div className="p-6">
+                  <div className="flex items-center text-gray-500 text-sm gap-4 mb-3">
+                    <span className="flex items-center gap-1">
+                      <Calendar size={14} />{" "}
+                      {new Date(blog.created_at).toLocaleDateString("vi-VN")}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock size={14} /> 6 phút đọc
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MessageSquare size={14} /> 0 bình luận
                     </span>
                   </div>
-                  <Link
-                    href={`/blog/${blog.slug}`}
-                    className="text-sm bg-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-200 transition inline-block"
-                  >
-                    Keep Reading
-                  </Link>
+
+                  <h3 className="text-lg font-semibold mb-4 leading-snug line-clamp-2">
+                    {blog.title}
+                  </h3>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src="/author.png"
+                        alt={blog.author?.fullName || "Tác giả"}
+                        width={30}
+                        height={30}
+                        className="rounded-full"
+                      />
+                      <span className="text-sm font-medium">
+                        {blog.author?.fullName || "Ẩn danh"}
+                      </span>
+                    </div>
+                    <Link
+                      href={`/blog/${blog.slug}`}
+                      className="text-sm bg-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-200 transition inline-block"
+                    >
+                      Keep Reading
+                    </Link>
+                  </div>
                 </div>
               </div>
-            </div>
+            </SwiperSlide>
           ))}
-        </div>
+        </Swiper>
+
       </div>
     </section>
   );

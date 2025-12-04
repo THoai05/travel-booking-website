@@ -53,8 +53,13 @@ export default function ProfilePage({ setShowProfilePage }: ProfilePageProps) {
   const formatDateUTC = (dateStr?: string) => {
     if (!dateStr) return "-";
     const d = new Date(dateStr);
-    return d.toLocaleDateString("vi-VN", { timeZone: "UTC" });
+    return d.toLocaleString("vi-VN", {
+      timeZone: "UTC",
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+    });
   };
+
 
   // =================== LẤY THÔNG TIN NGƯỜI DÙNG VỚI POLLING ===================
   useEffect(() => {
@@ -277,7 +282,8 @@ export default function ProfilePage({ setShowProfilePage }: ProfilePageProps) {
         headers: { "Content-Type": "multipart/form-data" },
       });
       const data = res.data;
-      alert("Upload avatar thành công");
+      //alert("Upload avatar thành công");
+      toast.success(data.message || "✅ Cập nhật avatar thành công!");
       setUser((prev) => (prev ? { ...prev, avatar: data.avatarUrl } : prev));
     } catch (err: any) {
       let message = "Upload avatar thất bại";
