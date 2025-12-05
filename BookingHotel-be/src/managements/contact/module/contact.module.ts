@@ -6,7 +6,7 @@ import { Contact } from '../entities/contact.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Contact]), // ✅ Đây là bước quan trọng
+        TypeOrmModule.forFeature([Contact]),
     ],
     controllers: [ContactController],
     providers: [ContactService],
