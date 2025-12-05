@@ -3,6 +3,8 @@ import { Review } from 'src/managements/reviews/entities/review.entity';
 import { Room } from 'src/managements/rooms/entities/rooms.entity';
 import { Amenity } from 'src/managements/amenities/entities/amenities.entity';
 import { Favourite } from 'src/managements/favourite/entities/favourite.entity';
+import { ImageAttachment } from 'src/managements/images/entities/image_attachment.entity';
+
 
 import {
   Entity,
@@ -70,7 +72,7 @@ export class Hotel {
 
   @ManyToMany(() => Amenity, (amenity) => amenity.hotels)
   @JoinTable({
-    name: 'hotels_amenities', // 👈 tên bảng trung gian
+    name: 'hotels_amenities',
     joinColumn: { name: 'hotel_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'amenity_id', referencedColumnName: 'id' },
   })
@@ -89,7 +91,7 @@ export class Hotel {
   avgPrice: number | null;
 
   @OneToMany(() => RoomType, (roomType) => roomType.hotel)
-  roomTypes:RoomType[]
+  roomTypes: RoomType[]
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
