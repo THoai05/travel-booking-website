@@ -86,11 +86,15 @@ export class FavouritesService {
     }
 
     async remove(id: number) {
-        const favourite = await this.favouriteRepo.findOneBy({ id });
-        if (!favourite) throw new NotFoundException('Favourite not found');
+        const result = await this.favouriteRepo.delete(id);
 
-        return this.favouriteRepo.remove(favourite);
+        if (result.affected === 0) {
+            throw new NotFoundException('Favourite not found');
+        }
+
+        return { success: true };
     }
+
 
     async getAnalytics() {
         // 1️⃣ Tổng số lượt yêu thích
