@@ -4,9 +4,7 @@ import { Repository } from 'typeorm';
 import { Notification, NotificationType } from '../entities/notification.entity';
 import { NotificationUser } from '../entities/notification-user.entity';
 import { User } from 'src/managements/users/entities/users.entity';
-import { PushSubscription } from 'src/managements/push-web/entities/push-subscription.entity';
 import { ZaloChatService } from 'src/managements/zalo/zalo.service';
-import { PushWebService } from '../../push-web/push-web.service';
 import { Not } from 'typeorm';
 
 
@@ -19,15 +17,11 @@ export class NotificationsService {
         @InjectRepository(User)
         private usersRepo: Repository<User>,
 
-        @InjectRepository(PushSubscription)
-        private pushWebRepo: Repository<PushSubscription>,
-
         @InjectRepository(NotificationUser)
         private notificationUserRepo: Repository<NotificationUser>,
 
         private zaloChatService: ZaloChatService,
 
-        private pushWebService: PushWebService,
     ) { }
 
     // ==========================
@@ -53,17 +47,6 @@ export class NotificationsService {
             type: 'notification',
             notification_id: savedNoti.id,
         });
-
-        try {
-            await this.pushWebService.sendToUser(user.id, {
-                title: data.title,
-                message: data.message,
-                url: data.url ?? '/', // optional, nếu muốn click mở trang
-            });
-        } catch (err) {
-            console.error('Web push failed:', err);
-        }
-
 
         return savedNoti;
     }
@@ -216,17 +199,6 @@ export class NotificationsService {
                 console.error(`Zalo chat failed for user ${user.id}:`, err.message);
             }
 
-            try {
-                // Gửi Web Push
-                await this.pushWebService.sendToUser(user.id, {
-                    title: data.title,
-                    message: data.message,
-                    url: data.url ?? '/',
-                });
-
-            } catch (err) {
-                console.error(`Web push failed for user ${user.id}:`, err.message);
-            }
         }
 
         return {
@@ -235,7 +207,6 @@ export class NotificationsService {
         };
     }
 
-    // notifications.service.ts
     // notifications.service.ts
     async getNotificationsForUser(userId: number) {
         const notificationUsers = await this.notificationUserRepo.find({
@@ -254,5 +225,10 @@ export class NotificationsService {
         }));
     }
 
-
+    async findById(id: number) {
+        return await this.notificationsRepo.findOne({
+            where: { id },
+            relations: ['user'], // nếu bạn có quan hệ user
+        });
+    }
 }

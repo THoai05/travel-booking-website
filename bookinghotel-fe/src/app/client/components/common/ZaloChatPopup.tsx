@@ -32,15 +32,19 @@ export default function ZaloChatPopup({ user }: Props) {
         ZaloChatService.connect(user.id);
 
         // Nhận tin nhắn mới realtime
-        const handleMessage = (msg: ZaloMessage) => setMessages(prev => [...prev, msg]);
+        const handleMessage = (msg: ZaloMessage) => {
+            if (!msg.message && !msg.file_url && msg.type !== 'notification' && msg.type !== 'booking') return;
+            setMessages(prev => [...prev, msg]);
+        };
+
         const handleNoti = (noti: ZaloMessage) => {
-            if (!noti.id || !noti.message) return; // bỏ qua object trống
+            if (!noti.id || (!noti.message && !noti.title)) return; // bỏ qua notification rỗng
             setMessages(prev => {
-                const exists = prev.some(m => m.id === noti.id);
-                if (exists) return prev;
+                if (prev.some(m => m.id === noti.id)) return prev;
                 return [...prev, noti];
             });
         };
+
 
         ZaloChatService.onNewMessage(handleMessage);
         ZaloChatService.onNewNotification(handleNoti);
@@ -182,9 +186,12 @@ export default function ZaloChatPopup({ user }: Props) {
                         </div>
 
                         {/* Messages */}
+                        {/* Messages */}
                         <div className="flex-1 overflow-y-auto p-3 bg-gray-50">
                             {messages.map((m, i) => {
+                                // --- Notification ---
                                 if (m.type === 'notification') {
+                                    if (!m.title && !m.message) return null; // bỏ qua notification rỗng
                                     return (
                                         <div key={i} className="flex justify-center mb-3">
                                             <div className="bg-yellow-100 border border-yellow-300 rounded-xl p-3 max-w-[80%] shadow-sm flex flex-col gap-1">
@@ -200,6 +207,7 @@ export default function ZaloChatPopup({ user }: Props) {
                                     );
                                 }
 
+                                // --- Booking ---
                                 if (m.type === 'booking') {
                                     return (
                                         <div key={i} className="flex justify-center mb-3">
@@ -207,7 +215,7 @@ export default function ZaloChatPopup({ user }: Props) {
                                                 <div className="flex justify-between items-center mb-2">
                                                     <span className="font-semibold text-blue-800">Booking #{m.booking_id}</span>
                                                     <span className={`text-xs px-2 py-0.5 rounded-full 
-                                                        ${m.message?.includes('expired') ? 'bg-red-200 text-red-800' :
+                  ${m.message?.includes('expired') ? 'bg-red-200 text-red-800' :
                                                             m.message?.includes('confirmed') ? 'bg-green-200 text-green-800' :
                                                                 'bg-gray-200 text-gray-800'}`}>
                                                         {m.message}
@@ -231,7 +239,9 @@ export default function ZaloChatPopup({ user }: Props) {
                                     );
                                 }
 
-                                // Tin nhắn text / image / file
+                                // --- Text / Image / File ---
+                                if ((m.type === 'text' && !m.message?.trim()) && !m.file_url) return null; // bỏ qua tin nhắn trống
+
                                 return (
                                     <div key={i} className={`flex items-end mb-2 ${m.sender_id === user.id ? 'justify-end' : 'justify-start'}`}>
                                         {m.sender_id !== user.id && (
@@ -239,7 +249,7 @@ export default function ZaloChatPopup({ user }: Props) {
                                         )}
 
                                         <div className={`max-w-[70%] p-2 px-3 rounded-2xl text-sm break-words
-                                            ${m.sender_id === user.id ? 'bg-[#0084FF] text-white rounded-br-none' : 'bg-gray-200 text-gray-900 rounded-bl-none'}`}>
+          ${m.sender_id === user.id ? 'bg-[#0084FF] text-white rounded-br-none' : 'bg-gray-200 text-gray-900 rounded-bl-none'}`}>
                                             {m.type === 'text' ? m.message : m.file_url ? (
                                                 <img src={`http://localhost:3636${m.file_url}`} alt="img" className="max-w-full rounded-md" />
                                             ) : null}
@@ -253,6 +263,7 @@ export default function ZaloChatPopup({ user }: Props) {
                             })}
                             <div ref={chatEndRef} />
                         </div>
+
 
                         {/* Input */}
                         <div className="p-2 border-t flex items-center gap-2 bg-white shadow-inner relative">

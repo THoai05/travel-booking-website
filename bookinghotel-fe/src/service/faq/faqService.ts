@@ -26,7 +26,7 @@ export const getFaqById = async (id: number) => {
         const res = await axios.get(`/faq/${id}`);
         return res.data;
     } catch (error) {
-        console.error("Lỗi khi lấy chi tiết FAQ:", error);
+        console.error("Lỗi khi lấy FAQ:", error);
         throw error;
     }
 };

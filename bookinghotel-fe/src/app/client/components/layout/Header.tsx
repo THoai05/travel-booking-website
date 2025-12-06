@@ -118,7 +118,6 @@ const Header = () => {
         const profileRes = await api.get("auth/profile");
         if (profileRes.status !== 401) {
           setProfile(profileRes.data);
-          setUser(profileRes.data);
           if (user?.role === "admin") {
             router.replace("/admin");
           }
@@ -133,7 +132,6 @@ const Header = () => {
         }
       } catch (err) {
         console.log("Fetch error:", err);
-        setUser(null);
       }
     };
 

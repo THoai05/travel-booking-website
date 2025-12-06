@@ -12,11 +12,11 @@ import { PostsModule } from "src/managements/posts/posts.module";
 import { PromotionModule } from "src/managements/promotion/modules/promotion.module";
 import { ReviewsModule } from "src/managements/reviews/modules/reviews.module";
 import { RoomsModule } from "src/managements/rooms/modules/rooms.module";
-import { SupportChatModule } from "src/managements/support_chat/modules/support_chat.module";
 import { UsersModule } from "src/managements/users/modules/users.module";
 import { BookingModuleAbout } from "src/managements/about/module/booking.module";
 import { RevenueModule } from "src/managements/about/module/revenue.module";
 import { StatsModule } from "src/managements/bookings_ manage/modules/StatsModule";
+import { BookingCancelModule } from "src/managements/cancel_booking/module/booking-cancel.module";
 
 
 export const ManagementsImports = [
@@ -31,12 +31,12 @@ export const ManagementsImports = [
     PromotionModule,
     ReviewsModule,
     RoomsModule,
-    SupportChatModule,
     UsersModule,
     CityModule,
     BookingsModule,
     BookingModuleAbout,
     RevenueModule,
     PostsModule,
-    StatsModule
+    StatsModule,
+    BookingCancelModule
 ]
