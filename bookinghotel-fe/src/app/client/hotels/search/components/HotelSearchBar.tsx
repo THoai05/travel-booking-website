@@ -80,27 +80,27 @@ const POPULAR_DESTINATIONS: Suggestion[] = [
 // --- ADDED: Copy Subcomponents từ HeroSearch (ĐÃ DỊCH) ---
 const SuggestionItem = ({ suggestion, onClick }: { suggestion: Suggestion; onClick: () => void }) => (
   <div
-   className="flex justify-between items-center p-3 -mx-2 rounded-lg hover:bg-sky-50 cursor-pointer transition-colors"
-   onMouseDown={onClick}
+    className="flex justify-between items-center p-3 -mx-2 rounded-lg hover:bg-sky-50 cursor-pointer transition-colors"
+    onMouseDown={onClick}
   >
-      <MapPin className="w-5 h-5 text-sky-500 mr-3 flex-shrink-0" />
+    <MapPin className="w-5 h-5 text-sky-500 mr-3 flex-shrink-0" />
     <div className="flex-1 min-w-0">
-    <div className="font-semibold text-gray-900 truncate">{suggestion.name}</div>
-    <div className="text-sm text-gray-500 truncate">{suggestion.details}</div>
-   </div>
-   {suggestion.count && (
-    <span className="ml-2 text-xs text-gray-500 border border-gray-300 rounded-full px-3 py-1 whitespace-nowrap">
-     {suggestion.count} hotels nearby
-    </span>
-   )}
+      <div className="font-semibold text-gray-900 truncate">{suggestion.name}</div>
+      <div className="text-sm text-gray-500 truncate">{suggestion.details}</div>
+    </div>
+    {suggestion.count && (
+      <span className="ml-2 text-xs text-gray-500 border border-gray-300 rounded-full px-3 py-1 whitespace-nowrap">
+        {suggestion.count} hotels nearby
+      </span>
+    )}
   </div>
 );
 
-const SuggestionBox = ({ 
-  onSelect, 
-  apiSuggestions, 
-  isLoading, 
-  hasQuery 
+const SuggestionBox = ({
+  onSelect,
+  apiSuggestions,
+  isLoading,
+  hasQuery
 }: SuggestionBoxProps) => (
   <div className="absolute top-full left-0 w-full bg-white rounded-lg shadow-xl mt-2 border border-gray-200 z-50 max-h-96 overflow-y-auto">
 
@@ -185,7 +185,7 @@ export default function HotelSearchBar({
 }: HotelSearchBarProps) {
   // --- CHANGED: State cho Popover ---
 
-   const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch()
   const {
     destination: location, // Đổi tên cho khớp code cũ
     checkIn: checkInString,
@@ -196,21 +196,21 @@ export default function HotelSearchBar({
 
 
   const { data, isLoading, isError } = useHandleFilterTitleCity(location)
-  
-   const apiSuggestions: Suggestion[] = useMemo(() => {
-      // Kiểm tra xem data và data.data có tồn tại không
-      if (data  && Array.isArray(data)) {
-        return data?.map((city: any) => ({
-          name: city.title,       // Ánh xạ 'title' từ API -> 'name'
-          details: city.description // Ánh xạ 'description' từ API -> 'details'
-          // 'count' là optional, nên ta có thể bỏ qua
-        }));
-      }
-      // Nếu không có data thì trả về mảng rỗng
-      return [];
-    }, [data]);
 
- 
+  const apiSuggestions: Suggestion[] = useMemo(() => {
+    // Kiểm tra xem data và data.data có tồn tại không
+    if (data && Array.isArray(data)) {
+      return data?.map((city: any) => ({
+        name: city.title,       // Ánh xạ 'title' từ API -> 'name'
+        details: city.description // Ánh xạ 'description' từ API -> 'details'
+        // 'count' là optional, nên ta có thể bỏ qua
+      }));
+    }
+    // Nếu không có data thì trả về mảng rỗng
+    return [];
+  }, [data]);
+
+
 
   const range = useMemo<DateRange | undefined>(
     () => ({
@@ -276,8 +276,14 @@ export default function HotelSearchBar({
 
   // --- CHANGED: Cập nhật handleSearch để dùng state 'range' mới ---
   const handleSearch = () => {
-    router.refresh()
-    router.push(`/hotels/search?cityTitle=${location}`)
+    // Tạo object params để xử lý ký tự đặc biệt an toàn
+    const params = new URLSearchParams()
+    if (location) {
+      params.set('cityTitle', location);
+    }
+
+    // Chỉ cần push, Next.js tự biết load lại data theo params mới
+    router.push(`/hotels/search?${params.toString()}`);
   }
 
   const handleDestinationSelect = (location: string) => {
@@ -307,15 +313,15 @@ export default function HotelSearchBar({
           className="w-full outline-none bg-transparent text-gray-800"
         />
         {/* Hiển thị SuggestionBox khi focus */}
-         {isDestinationFocused && (
-            <SuggestionBox
-              onSelect={handleDestinationSelect}
-              
-              apiSuggestions={apiSuggestions}
-              isLoading={isLoading}
-              hasQuery={location.length > 0} // Báo cho SuggestionBox biết là user đã gõ gì đó
-            />
-          )}
+        {isDestinationFocused && (
+          <SuggestionBox
+            onSelect={handleDestinationSelect}
+
+            apiSuggestions={apiSuggestions}
+            isLoading={isLoading}
+            hasQuery={location.length > 0} // Báo cho SuggestionBox biết là user đã gõ gì đó
+          />
+        )}
       </div>
 
       {/* --- CHANGED: Date Range Picker (Dùng Popover + DayPicker) (ĐÃ DỊCH) --- */}

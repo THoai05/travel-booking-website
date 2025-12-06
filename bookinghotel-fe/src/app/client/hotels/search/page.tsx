@@ -10,13 +10,15 @@ import StarFilter from './components/StarFilter';
 import { useHandleHotels } from '@/service/hotels/hotelService';
 import { useInView } from 'react-intersection-observer'; // <-- 1. Import hook
 import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+
 
 const MIN_PRICE = 100000;
 const MAX_PRICE = 10000000;
 
 export default function SearchResultPage() {
-  
-   const searchParams = useSearchParams();
+
+  const searchParams = useSearchParams();
 
   // Lấy cityTitle từ query string
   const cityTitleParam = searchParams.get('cityTitle') || '';
@@ -24,8 +26,8 @@ export default function SearchResultPage() {
   // const [page, setPage] = useState(1); // <-- XÓA
 
 
-  const [limit, setLimit] = useState(10); 
-  
+  const [limit, setLimit] = useState(10);
+
   // (Giữ nguyên tất cả state filter: cityTitle, hotelName, priceRange...)
   const [cityTitle, setCityTitle] = useState(cityTitleParam);
   const [hotelName, setHotelName] = useState('');
@@ -38,11 +40,11 @@ export default function SearchResultPage() {
   const maxPrice = priceRange[1];
   const starParam = selectedStar ? Number(selectedStar) : undefined;
   const amenitiesParam = selectedFacilities.length > 0 ? selectedFacilities : undefined;
- 
+
 
   // ===== 2. GỌI HOOK MỚI =====
-  const { 
-    data, 
+  const {
+    data,
     isLoading,         // Dùng cho lần tải đầu tiên (hiện Skeleton)
     error,
     fetchNextPage,     // Hàm để gọi trang tiếp theo
@@ -75,12 +77,12 @@ export default function SearchResultPage() {
 
 
   // (Hàm handleSearch giữ nguyên)
-  const handleSearch = ( city: string) => {
+  const handleSearch = (city: string) => {
     // setPage(1); // <-- XÓA
     setCityTitle(city);
-  
+
   };
-  
+
   // (Các hàm filter KHÔNG CẦN reset page nữa, React Query tự lo)
   const handlePriceChange = (value: number[]) => {
     setPriceRange(value);
@@ -100,18 +102,22 @@ export default function SearchResultPage() {
   // Chúng ta gộp (flatMap) 'data' của mỗi trang lại
   const allHotels = data?.pages.flatMap(page => page.data) || [];
 
+  useEffect(() => {
+    setCityTitle(cityTitleParam)
+  }, [cityTitleParam])
+
   return (
     <div className='min-h-screen mt-15 bg-white'>
       <HotelSearchBar onSearch={handleSearch} />
-      
+
       <main className="w-full max-w-7xl px-4 pb-6 pt-10 mx-auto">
         <div className="flex flex-col md:flex-row gap-8">
-          
+
           {/* (Phần Aside - Filter KHÔNG THAY ĐỔI) */}
           <aside className="w-full md:w-1/4 lg:w-1/6">
             <div className="space-y-4">
               <FilterSection title="Mức giá" defaultOpen={true} showReset={true}>
-                <PriceRange 
+                <PriceRange
                   value={priceRange}
                   onChange={handlePriceChange}
                   min={MIN_PRICE}
@@ -139,11 +145,11 @@ export default function SearchResultPage() {
             <HotelSection
               hotels={allHotels} // <-- Truyền mảng đã gộp
               isLoading={isLoading} // <-- Chỉ truyền isLoading (cho skeleton)
-              
-              // XÓA CÁC PROPS PAGINATION CŨ
-              // totalPages={...}
-              // currentPage={...}
-              // onPageChange={...}
+
+            // XÓA CÁC PROPS PAGINATION CŨ
+            // totalPages={...}
+            // currentPage={...}
+            // onPageChange={...}
             />
 
             {/* ===== 6. "CẢM BIẾN" VÀ SPINNER TẢI THÊM ===== */}
