@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HeroUIProvider } from "@heroui/system";
 import { usePathname, useRouter } from "next/navigation";
-import useWebPush from "@/service/webpush/useWebPush";
 
 import Header from "../client/components/layout/Header";
 import Footer from "../client/components/layout/Footer";

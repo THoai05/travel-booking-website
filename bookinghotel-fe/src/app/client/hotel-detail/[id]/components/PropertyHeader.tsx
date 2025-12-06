@@ -196,4 +196,4 @@ export default function PropertyHeader({ property }: PropertyHeaderProps) {
       )}
     </>
   );
-}
+} z
